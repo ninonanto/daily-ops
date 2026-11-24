@@ -239,7 +239,7 @@ details > summary { cursor: pointer; font-weight: 600; padding: 4px 0; }
   <section id="v-import" hidden>
     <div class="panel">
       <h2>Import system sales (Sale Order export)</h2>
-      <p class="muted" style="margin-top:0">Choose the Sale Order export from the charging system (.xlsx, .xls or .csv). The page reads it here in your browser, totals it by day, station, charger and hour, and saves only those totals to the Sheet — not each order. For every date in the file, what is stored is <b>replaced</b>, so re-importing the same file is safe.</p>
+      <p class="muted" style="margin-top:0">Choose the Sale Order export from the charging system (.xlsx, .xls or .csv). The page reads it here in your browser, totals it by day, station, charger and hour, and saves only those totals to the Sheet — not each order. For every <b>date and station</b> in the file, what is stored is <b>replaced</b>; other stations and dates are left alone. Re-importing the same file is safe. Daily routine: import yesterday's full-day export each morning.</p>
       <div id="impManagerOnly" class="notice" hidden>Only a manager can import sales. Sign in with the manager passcode.</div>
       <div class="tools">
         <label class="f grow"><span>Export file</span><input type="file" id="impFile" accept=".xlsx,.xls,.csv"></label>
@@ -1232,7 +1232,9 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     $("impStatus").innerHTML = '<div class="notice info">Read <b>' + n0(IMP.orders) + "</b> orders from sheet “" + esc(IMP.sheet) + "” · " + fDate(IMP.first) + " to " + fDate(IMP.last) + " · revenue " + n0(IMP.revenue) + " KHR" +
       (IMP.dupes ? " · " + IMP.dupes + " duplicate rows (same SO code and transaction ID) skipped" : "") + (IMP.bad ? " · " + IMP.bad + " rows without a readable date skipped" : "") + ". Checking what is already stored…</div>";
     api({ action: "sales", from: IMP.first, to: IMP.last }).then(function (j) {
-      var ex = {}; j.daily.forEach(function (r) { ex[r[0]] = (ex[r[0]] || 0) + r[4]; });
+      // compare only the stations that appear in the file for each date (those are the ones that get replaced)
+      var inFile = {}; Object.keys(IMP.daily).forEach(function (k) { var a = IMP.daily[k]; inFile[a[0] + "|" + a[1]] = 1; });
+      var ex = {}; j.daily.forEach(function (r) { if (inFile[r[0] + "|" + r[1]]) ex[r[0]] = (ex[r[0]] || 0) + r[4]; });
       IMP.existing = ex; drawPreview(ds);
     }).catch(function (e) { $("impStatus").innerHTML = '<div class="notice bad">' + esc(errText(e)) + "</div>"; });
   }
@@ -1245,9 +1247,9 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
         unk.map(function (u, i) { return "<tr><td>" + esc(u) + '</td><td class="num">' + n0(IMP.unknown[u].n) + '</td><td class="num">' + n0(IMP.unknown[u].rev) + '</td><td><select data-map="' + i + '">' + stationOptions(false, '<option value="-">Do not import</option>') + "</select></td></tr>"; }).join("") + "</tbody></table></div>";
     }
     var risky = 0;
-    h += '<h3 style="margin-top:14px">Dates in this file</h3><p class="muted small" style="margin-top:0">Ticked dates replace what is stored. A date is unticked when the file has <b>fewer</b> orders than already stored — usually a partial export. Tick it only if you are sure.</p>' +
+    h += '<h3 style="margin-top:14px">Dates in this file</h3><p class="muted small" style="margin-top:0">Ticked dates replace what is stored for the stations in the file. A date is unticked when the file has <b>fewer</b> orders for those stations than already stored — usually a partial export. Tick it only if you are sure.</p>' +
       '<div class="inrow noprint" style="margin-bottom:6px"><button class="btn ghost small" type="button" data-tick="all">Tick all</button><button class="btn ghost small" type="button" data-tick="new">Only dates not stored yet</button></div>' +
-      '<div class="tbl-wrap" style="max-height:340px;overflow:auto"><table><thead><tr><th>Import</th><th>Date</th><th class="num">Orders in file</th><th class="num">Stored now</th><th class="num">Revenue in file</th><th>Note</th></tr></thead><tbody>' +
+      '<div class="tbl-wrap" style="max-height:340px;overflow:auto"><table><thead><tr><th>Import</th><th>Date</th><th class="num">Orders in file</th><th class="num">Stored now (same stations)</th><th class="num">Revenue in file</th><th>Note</th></tr></thead><tbody>' +
       ds.map(function (d) {
         var f = IMP.dates[d].n, e = IMP.existing[d] || 0, less = e > f; if (less) risky++;
         return '<tr><td><input type="checkbox" style="width:auto" data-date="' + d + '"' + (less ? "" : " checked") + "></td><td>" + fDate(d) + '</td><td class="num">' + n0(f) + '</td><td class="num">' + (e ? n0(e) : "—") + '</td><td class="num">' + n0(IMP.dates[d].rev) + "</td><td>" +
@@ -1294,7 +1296,8 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
         return;
       }
       var ch = chunks[step], cs = {}; ch.forEach(function (d) { cs[d] = 1; });
-      var payload = { action: "import", importId: importId, fileName: IMP.name, dates: ch,
+      var keys = {}; dRows.concat(hRows).forEach(function (r) { if (cs[r[0]]) keys[r[0] + "|" + r[1]] = 1; });
+      var payload = { action: "import", importId: importId, fileName: IMP.name, dates: ch, keys: Object.keys(keys),
         daily: dRows.filter(function (r) { return cs[r[0]]; }), hourly: hRows.filter(function (r) { return cs[r[0]]; }),
         mappings: step === 0 ? mappings : [], chargers: step === 0 ? Object.keys(chargers).map(function (k) { return chargers[k]; }) : [],
         final: step === chunks.length - 1, first: dates[0], last: dates[dates.length - 1], orders: orders, revenue: Math.round(revenue), rowsTotal: dRows.length,
