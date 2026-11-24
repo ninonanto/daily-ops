@@ -1,0 +1,1449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daily Operation Record · VET-ENERGY</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js" defer></script>
+<style>
+:root {
+  --bg: #f1f4f6; --surface: #ffffff; --ink: #14232e; --muted: #5d6f7c; --line: #d6dee4;
+  --accent: #0b6e75; --accent-ink: #ffffff; --accent-soft: #dff0f0;
+  --ok: #2c7a4b; --ok-soft: #dff1e5; --warn: #a2620a; --warn-soft: #fbeed3; --crit: #b3362b; --crit-soft: #fae1dd; --idle: #7c8b96;
+  --font-display: "IBM Plex Sans Condensed", "Arial Narrow", Arial, sans-serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f181e; --surface: #17232b; --ink: #e6eef2; --muted: #93a5b1; --line: #2b3b46;
+    --accent: #4fc0c4; --accent-ink: #06262a; --accent-soft: #143a3d;
+    --ok: #6cc68e; --ok-soft: #173826; --warn: #e3ac4d; --warn-soft: #3d2f12; --crit: #f08478; --crit-soft: #44201c; --idle: #8497a3;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 14px; line-height: 1.45; }
+.wrap { max-width: 1440px; margin: 0 auto; padding: 18px 16px 56px; display: flex; flex-direction: column; gap: 16px; }
+h1 { font-family: var(--font-display); font-size: 28px; line-height: 1.1; margin: 0; }
+h2 { font-family: var(--font-display); font-size: 20px; margin: 0 0 10px; }
+h3 { font-size: 14px; margin: 0 0 8px; font-weight: 600; }
+.head { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; justify-content: space-between; }
+.head p { margin: 2px 0 0; color: var(--muted); }
+.who { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+.dot { display: inline-flex; align-items: center; gap: 6px; }
+.dot::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--idle); }
+.dot.ok::before { background: var(--ok); } .dot.busy::before { background: var(--warn); } .dot.err::before { background: var(--crit); }
+nav.tabs { display: flex; gap: 4px; flex-wrap: wrap; border-bottom: 1px solid var(--line); }
+nav.tabs button { background: none; border: none; border-bottom: 3px solid transparent; padding: 8px 12px; color: var(--muted); font-weight: 500; }
+nav.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+nav.tabs .count { background: var(--crit-soft); color: var(--crit); border-radius: 9px; padding: 0 6px; font-size: 12px; margin-left: 4px; }
+.notice { background: var(--warn-soft); border-left: 4px solid var(--warn); padding: 9px 12px; border-radius: 4px; }
+.notice.info { background: var(--accent-soft); border-left-color: var(--accent); }
+.notice.bad { background: var(--crit-soft); border-left-color: var(--crit); }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 16px; }
+.grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+label.f { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--muted); font-weight: 500; }
+label.f.req > span::after { content: " *"; color: var(--crit); }
+input, select, textarea { font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 5px; padding: 7px 9px; width: 100%; min-width: 0; }
+textarea { resize: vertical; min-height: 60px; }
+button { font: inherit; cursor: pointer; }
+.btn { background: var(--accent); color: var(--accent-ink); border: 1px solid var(--accent); border-radius: 5px; padding: 7px 14px; font-weight: 600; white-space: nowrap; }
+.btn.ghost { background: transparent; color: var(--ink); border-color: var(--line); font-weight: 500; }
+.btn.small { padding: 3px 9px; font-size: 12px; }
+.btn.danger { background: var(--crit); border-color: var(--crit); color: #fff; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.tools { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
+.tools label.f { flex: 1 1 140px; max-width: 220px; }
+.tools .grow { flex: 3 1 220px; max-width: none; }
+.muted { color: var(--muted); } .small { font-size: 12px; }
+.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.section-title { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin: 4px 0 8px; }
+.section-title h2 { margin: 0; }
+
+/* KPI tiles */
+.kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); gap: 10px; }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-top: 4px solid var(--idle); border-radius: 6px; padding: 9px 11px; display: flex; flex-direction: column; gap: 2px; min-height: 92px; }
+.kpi .t { font-size: 12px; color: var(--muted); font-weight: 500; }
+.kpi .v { font-family: var(--font-display); font-size: 24px; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.kpi .s { font-size: 12px; color: var(--muted); }
+.kpi .d { font-size: 12px; font-variant-numeric: tabular-nums; }
+.kpi.g { border-top-color: var(--ok); } .kpi.a { border-top-color: var(--warn); } .kpi.r { border-top-color: var(--crit); }
+.kpi.r .v { color: var(--crit); }
+.up { color: var(--ok); } .down { color: var(--crit); } .flat { color: var(--muted); }
+.group-label { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; margin: 6px 0 6px; }
+
+/* tables */
+.tbl-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+td:first-child { white-space: nowrap; }
+th, td { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+th { background: var(--bg); font-weight: 600; font-size: 12px; color: var(--muted); position: sticky; top: 0; white-space: nowrap; }
+tbody tr:hover { background: var(--accent-soft); }
+tr.click { cursor: pointer; }
+tr.total td { font-weight: 600; background: var(--bg); }
+tr.void td { color: var(--muted); text-decoration: line-through; }
+td.g { color: var(--ok); } td.a { color: var(--warn); font-weight: 600; } td.r { color: var(--crit); font-weight: 600; }
+.chip { display: inline-block; border-radius: 10px; padding: 1px 8px; font-size: 12px; font-weight: 500; white-space: nowrap; background: var(--bg); border: 1px solid var(--line); }
+.chip.ok { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
+.chip.warn { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
+.chip.bad { background: var(--crit-soft); color: var(--crit); border-color: transparent; }
+.chip.idle { color: var(--muted); }
+.desc { max-width: 380px; }
+
+/* heat map */
+.heat td { text-align: center; padding: 3px 0; font-size: 11px; min-width: 26px; border: 1px solid var(--surface); }
+.heat th { font-size: 11px; padding: 3px 4px; }
+.chart-box { position: relative; height: 260px; }
+
+/* dialog */
+dialog { border: 1px solid var(--line); border-radius: 8px; padding: 0; width: min(860px, 96vw); background: var(--surface); color: var(--ink); }
+dialog::backdrop { background: rgba(10, 20, 28, .45); }
+.dlg-head { padding: 12px 16px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.dlg-head h2 { margin: 0; }
+.dlg-body { padding: 14px 16px; max-height: 70vh; overflow-y: auto; }
+.dlg-foot { padding: 12px 16px; border-top: 1px solid var(--line); display: flex; gap: 8px; justify-content: space-between; flex-wrap: wrap; align-items: center; }
+.form { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 12px; }
+.form .w2 { grid-column: span 2; } .form .w3 { grid-column: 1 / -1; }
+@media (max-width: 720px) { .form { grid-template-columns: 1fr 1fr; } .form .w2, .form .w3 { grid-column: 1 / -1; } }
+.inrow { display: flex; gap: 6px; } .inrow input { flex: 1; }
+.hint { font-size: 12px; color: var(--muted); font-weight: 400; }
+.err-box { color: var(--crit); font-size: 13px; }
+.progress { height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; }
+.progress > i { display: block; height: 100%; background: var(--accent); width: 0; }
+details > summary { cursor: pointer; font-weight: 600; padding: 4px 0; }
+[hidden] { display: none !important; }
+@media print {
+  nav.tabs, .tools, .who button, .noprint { display: none !important; }
+  body { background: #fff; } .panel, .kpi, .tbl-wrap { break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="head">
+    <div>
+      <h1>Daily Operation Record</h1>
+      <p>VET-ENERGY charging network · faults, complaints, incidents and sales in one place</p>
+    </div>
+    <div class="who">
+      <span id="sync" class="dot">Not connected</span>
+      <span id="whoName"></span>
+      <button class="btn ghost small" id="btnRefresh" type="button">Refresh</button>
+      <button class="btn ghost small" id="btnSignOut" type="button">Sign out</button>
+    </div>
+  </header>
+
+  <div id="notice" class="notice" hidden></div>
+
+  <nav class="tabs" role="tablist" id="tabs">
+    <button type="button" data-v="dash" aria-selected="true">Dashboard</button>
+    <button type="button" data-v="faults">Charger faults <span class="count" id="cntFaults" hidden></span></button>
+    <button type="button" data-v="complaints">Complaints <span class="count" id="cntComplaints" hidden></span></button>
+    <button type="button" data-v="incidents">Incidents <span class="count" id="cntIncidents" hidden></span></button>
+    <button type="button" data-v="nonsys">Non-system sales</button>
+    <button type="button" data-v="import">Import sales</button>
+    <button type="button" data-v="admin">Stations &amp; settings</button>
+  </nav>
+
+  <!-- ============ DASHBOARD ============ -->
+  <section id="v-dash">
+    <div class="panel tools noprint">
+      <label class="f"><span>Period</span>
+        <select id="fPreset">
+          <option value="yesterday">Yesterday</option>
+          <option value="last7">Last 7 days</option>
+          <option value="thisweek">This week (Mon–today)</option>
+          <option value="lastweek">Last week (Mon–Sun)</option>
+          <option value="thismonth">This month to date</option>
+          <option value="lastmonth">Last month</option>
+          <option value="thisquarter">This quarter to date</option>
+          <option value="lastquarter">Last quarter</option>
+          <option value="custom">Custom dates</option>
+        </select></label>
+      <label class="f"><span>From</span><input type="date" id="fFrom"></label>
+      <label class="f"><span>To</span><input type="date" id="fTo"></label>
+      <label class="f"><span>Compare with</span>
+        <select id="fCompare"><option value="prev">Previous period</option><option value="none">No comparison</option></select></label>
+      <label class="f"><span>Stations</span><select id="fStation"></select></label>
+      <div class="inrow" style="align-self:end">
+        <button class="btn ghost" type="button" id="btnExport">Export report (.xlsx)</button>
+        <button class="btn ghost" type="button" onclick="window.print()">Print</button>
+      </div>
+    </div>
+    <p class="muted small" id="periodLabel" style="margin:8px 0 0"></p>
+    <div id="dataNote"></div>
+
+    <div class="group-label">Sales — system + non-system</div>
+    <div class="kpis" id="kSales"></div>
+    <div class="group-label">Operations — charger faults &amp; complaints</div>
+    <div class="kpis" id="kOps"></div>
+    <div class="group-label">Incidents — safety, damage &amp; security</div>
+    <div class="kpis" id="kInc"></div>
+
+    <div class="panel" style="margin-top:16px">
+      <div class="section-title"><h2>By station</h2>
+        <div class="inrow noprint"><button class="btn small" type="button" data-st="ops">Operations</button><button class="btn ghost small" type="button" data-st="sales">Sales</button></div>
+      </div>
+      <div class="tbl-wrap" id="tStations"></div>
+      <p class="small muted" style="margin:8px 0 0">Uptime = 1 − downtime hours inside the period ÷ (chargers × operating hrs/day × days the station was open in the period). An open fault counts up to now. Faults, complaints and incidents count in the period they start / are received / occur. “Now” columns ignore the period. Red flags: a KPI in red per Settings, any overdue complaint, any critical or major incident, or any overdue incident.</p>
+    </div>
+
+    <div class="grid2" style="margin-top:16px">
+      <div class="panel"><h3>Daily trend — sessions, issue rate and events</h3><div class="chart-box"><canvas id="cDaily"></canvas></div></div>
+      <div class="panel"><h3>Revenue — last 6 months (KHR, system + non-system)</h3><div class="chart-box"><canvas id="cMonthly"></canvas></div></div>
+    </div>
+
+    <div class="grid3" style="margin-top:16px">
+      <div class="panel"><h3>Revenue by station type</h3><div class="tbl-wrap" id="tByType"></div></div>
+      <div class="panel"><h3>Revenue by customer type (system)</h3><div class="tbl-wrap" id="tByCust"></div></div>
+      <div class="panel"><h3>Incidents by severity</h3><div class="tbl-wrap" id="tIncSev"></div></div>
+    </div>
+
+    <div class="grid3" style="margin-top:16px">
+      <div class="panel"><h3>Charger faults by category</h3><div class="tbl-wrap" id="tFaultCat"></div></div>
+      <div class="panel"><h3>Complaints by category</h3><div class="tbl-wrap" id="tCompCat"></div></div>
+      <div class="panel"><h3>Incidents by type</h3><div class="tbl-wrap" id="tIncType"></div></div>
+    </div>
+
+    <div class="grid3" style="margin-top:16px">
+      <div class="panel"><h3>Complaints by channel</h3><div class="tbl-wrap" id="tCompCh"></div></div>
+      <div class="panel" style="grid-column: span 2"><h3>When drivers charge — sessions by weekday and hour</h3><div class="tbl-wrap" id="tHeat"></div></div>
+    </div>
+
+    <div class="panel" style="margin-top:16px">
+      <h2>Open now</h2>
+      <div class="grid3">
+        <div><h3>Charger faults</h3><div class="tbl-wrap" id="tOpenF"></div></div>
+        <div><h3>Complaints</h3><div class="tbl-wrap" id="tOpenC"></div></div>
+        <div><h3>Incidents</h3><div class="tbl-wrap" id="tOpenI"></div></div>
+      </div>
+    </div>
+
+    <details class="panel" style="margin-top:16px"><summary>Daily detail</summary><div class="tbl-wrap" id="tDaily" style="margin-top:8px"></div></details>
+    <details class="panel" style="margin-top:12px"><summary>Charger performance</summary><div class="tbl-wrap" id="tChargers" style="margin-top:8px"></div></details>
+  </section>
+
+  <!-- ============ LOG VIEWS (built by script) ============ -->
+  <section id="v-faults" hidden></section>
+  <section id="v-complaints" hidden></section>
+  <section id="v-incidents" hidden></section>
+  <section id="v-nonsys" hidden></section>
+
+  <!-- ============ IMPORT ============ -->
+  <section id="v-import" hidden>
+    <div class="panel">
+      <h2>Import system sales (Sale Order export)</h2>
+      <p class="muted" style="margin-top:0">Choose the Sale Order export from the charging system (.xlsx, .xls or .csv). The page reads it here in your browser, totals it by day, station, charger and hour, and saves only those totals to the Sheet — not each order. For every date in the file, what is stored is <b>replaced</b>, so re-importing the same file is safe.</p>
+      <div id="impManagerOnly" class="notice" hidden>Only a manager can import sales. Sign in with the manager passcode.</div>
+      <div class="tools">
+        <label class="f grow"><span>Export file</span><input type="file" id="impFile" accept=".xlsx,.xls,.csv"></label>
+      </div>
+      <div id="impStatus" style="margin-top:10px"></div>
+      <div id="impPreview"></div>
+    </div>
+  </section>
+
+  <!-- ============ ADMIN ============ -->
+  <section id="v-admin" hidden></section>
+</div>
+
+<!-- sign-in -->
+<dialog id="dlgSignIn">
+  <form method="dialog" id="formSignIn">
+    <div class="dlg-head"><h2>Sign in</h2></div>
+    <div class="dlg-body">
+      <p class="muted" style="margin-top:0">Your name is written next to every record you add or change.</p>
+      <div class="form" style="grid-template-columns:1fr 1fr">
+        <label class="f req"><span>Your name</span><input id="siName" autocomplete="name" required maxlength="60"></label>
+        <label class="f req"><span>Passcode</span><input id="siKey" type="password" autocomplete="current-password" required></label>
+        <label class="f w3" style="flex-direction:row;gap:8px;align-items:center"><input type="checkbox" id="siRemember" style="width:auto" checked> Remember me on this device</label>
+      </div>
+      <p class="err-box" id="siErr"></p>
+    </div>
+    <div class="dlg-foot"><span class="small muted">Staff and manager passcodes are set in the Apps Script.</span><button class="btn" type="submit">Sign in</button></div>
+  </form>
+</dialog>
+
+<!-- record editor -->
+<dialog id="dlgRec">
+  <form method="dialog" id="formRec" novalidate>
+    <div class="dlg-head"><h2 id="recTitle">Record</h2><button class="btn ghost small" type="button" data-close>Close</button></div>
+    <div class="dlg-body"><div class="form" id="recFields"></div><div id="recInfo" class="small muted" style="margin-top:12px"></div><p class="err-box" id="recErr"></p></div>
+    <div class="dlg-foot">
+      <div class="inrow" id="recLeft"></div>
+      <div class="inrow"><button class="btn ghost" type="button" data-close>Cancel</button><button class="btn" type="submit" id="recSave">Save</button></div>
+    </div>
+  </form>
+</dialog>
+
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" defer></script>
+<script>
+/* =====================================================================
+   SETUP: paste your Apps Script web app URL here (see SETUP-GUIDE.md).
+   ===================================================================== */
+var API_URL = "https://script.google.com/macros/s/AKfycbwP-wyebInmGaMy3DIOhYPPdQD0a1eIA5NiEtfgmWS5-Kt2de0QLjO-ql9H0rsbG_prCA/exec";
+var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5ivOGKPIeNXG3Vmz_U_X4/edit";   // optional: link to the Google Sheet, shown on the Stations & settings tab
+
+(function () {
+  "use strict";
+  var OFF = 7 * 3600e3;                     // Cambodia is UTC+7 all year
+  var LS_KEY = "dor.key", LS_USER = "dor.user", LS_PRESET = "dor.preset";
+  var $ = function (id) { return document.getElementById(id); };
+  var S = { key: "", user: "", role: "", data: null, cfg: null, sales: null, view: "dash", charts: {}, stationTable: "ops", busy: false };
+
+  /* ---------------- small utilities ---------------- */
+  function esc(s) { return String(s === null || s === undefined ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function ms(s) {
+    var m = String(s || "").match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2})(?::(\d{2}))?)?/);
+    if (!m) return NaN;
+    return Date.UTC(+m[1], +m[2] - 1, +m[3], +(m[4] || 0), +(m[5] || 0), +(m[6] || 0)) - OFF;
+  }
+  function strOf(t) { return new Date(t + OFF).toISOString().slice(0, 16).replace("T", " "); }
+  function nowStr() { return strOf(Date.now()); }
+  function today() { return nowStr().slice(0, 10); }
+  function addDays(d, n) { var t = Date.UTC(+d.slice(0, 4), +d.slice(5, 7) - 1, +d.slice(8, 10)) + n * 864e5; return new Date(t).toISOString().slice(0, 10); }
+  function daysBetween(a, b) { return Math.round((Date.UTC(+b.slice(0, 4), +b.slice(5, 7) - 1, +b.slice(8, 10)) - Date.UTC(+a.slice(0, 4), +a.slice(5, 7) - 1, +a.slice(8, 10))) / 864e5); }
+  function dow(d) { return (new Date(Date.UTC(+d.slice(0, 4), +d.slice(5, 7) - 1, +d.slice(8, 10))).getUTCDay() + 6) % 7; }
+  var MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  function fDate(d) { return d ? d.slice(8, 10) + "-" + MON[+d.slice(5, 7) - 1] + "-" + d.slice(2, 4) : ""; }
+  function fDT(s) { return s ? fDate(s.slice(0, 10)) + " " + s.slice(11, 16) : ""; }
+  function n0(v) { return v === "" || v === null || v === undefined || isNaN(v) ? "—" : Math.round(v).toLocaleString("en-US"); }
+  function n1(v) { return v === "" || v === null || v === undefined || isNaN(v) ? "—" : (Math.round(v * 10) / 10).toLocaleString("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 }); }
+  function pct(v, d) { return v === "" || v === null || v === undefined || isNaN(v) ? "—" : (v * 100).toFixed(d === undefined ? 1 : d) + "%"; }
+  function hrsBetween(a, b) { return (b - a) / 3600e3; }
+  function sum(a, f) { var t = 0; for (var i = 0; i < a.length; i++) t += f ? f(a[i]) : a[i]; return t; }
+  function div(a, b) { return b ? a / b : NaN; }
+  function by(arr, key) { var o = {}; arr.forEach(function (x) { var k = typeof key === "function" ? key(x) : x[key]; (o[k] = o[k] || []).push(x); }); return o; }
+  function notice(msg, kind) { var n = $("notice"); if (!msg) { n.hidden = true; return; } n.className = "notice" + (kind ? " " + kind : ""); n.innerHTML = msg; n.hidden = false; }
+  function setSync(state, text) { var el = $("sync"); el.className = "dot " + state; el.textContent = text; }
+  function timeNow() { return nowStr().slice(11, 16); }
+
+  /* ---------------- API ---------------- */
+  function api(payload) {
+    payload.key = S.key; payload.user = S.user;
+    return fetch(API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload), redirect: "follow" })
+      .then(function (r) { if (!r.ok) throw { code: "http", detail: r.status }; return r.json(); })
+      .then(function (j) { if (!j || !j.ok) throw { code: (j && j.error) || "server_error", detail: j && j.detail }; return j; });
+  }
+  function errText(e) {
+    if (!e) return "Unknown problem.";
+    if (e.code === "invalid") return e.detail;
+    if (e.code === "conflict") return e.detail;
+    if (e.code === "forbidden") return "Only a manager can do this.";
+    if (e.code === "busy") return "The Sheet is busy with another save. Wait a few seconds and try again.";
+    if (e.code === "http") return "Could not reach the Google Sheet (error " + e.detail + "). Check the web app URL and that it is deployed for “Anyone”.";
+    if (e.code === "server_error") return "The Google Sheet reported a problem: " + (e.detail || "unknown error");
+    if (e.code === "wrong_passcode") return "The passcode was not accepted.";
+    return "Could not reach the Google Sheet. Check your internet connection and try again.";
+  }
+  function handleError(e, what) {
+    if (e && e.code === "wrong_passcode") { signOut("The passcode was not accepted. Sign in again."); return; }
+    setSync("err", what + " failed " + timeNow());
+    notice(esc(errText(e)), "bad");
+  }
+
+  /* ---------------- settings & helpers on the data ---------------- */
+  function buildCfg(d) {
+    var c = { thr: {}, compCats: [], partnerTypes: [], partnerHrs: 168, faultCats: [], channels: [], custTypes: [], incTypes: [], sev: [], general: {} };
+    d.settings.forEach(function (r) {
+      var g = r[0], it = r[1];
+      if (g === "Threshold") c.thr[it] = { dir: String(r[2]).toLowerCase(), green: +r[3], amber: +r[4], note: r[5] };
+      else if (g === "ComplaintCategory") c.compCats.push({ name: it, sla: +r[2] || 24, note: r[5] });
+      else if (g === "PartnerSLA" && it === "Station types") c.partnerTypes = String(r[2] || "").split(",").map(function (x) { return x.trim().toLowerCase(); }).filter(String);
+      else if (g === "PartnerSLA" && it === "SLA hrs") c.partnerHrs = +r[2] || 168;
+      else if (g === "FaultCategory") c.faultCats.push(it);
+      else if (g === "Channel") c.channels.push(it);
+      else if (g === "CustomerType") c.custTypes.push(it);
+      else if (g === "IncidentType") c.incTypes.push(it);
+      else if (g === "IncidentSeverity") c.sev.push({ name: it, reportHrs: +r[2] || 24, closeDays: +r[3] || 30, note: r[5] });
+      else if (g === "General") c.general[it] = r[2];
+    });
+    c.openAlert = +c.general["Fault open alert (hrs)"] || 24;
+    c.khrUsd = +c.general["KHR per USD"] || 4000;
+    c.stById = {}; d.stations.forEach(function (s) { c.stById[s.id] = s; });
+    c.chargersBy = {}; d.chargers.forEach(function (x) { (c.chargersBy[x[0]] = c.chargersBy[x[0]] || []).push(x[1]); });
+    return c;
+  }
+  function stName(id) { var s = S.cfg.stById[id]; return s ? s.short : (id || "—"); }
+  function stType(id) { var s = S.cfg.stById[id]; return s ? s.type : ""; }
+  function typeGroup(t) { t = String(t || "").toUpperCase(); if (t.indexOf("HSP") >= 0) return "HSP"; if (t.indexOf("PNP") >= 0) return "Franchised (PNP)"; return "VET-owned"; }
+  function active(r) { return r.status !== "Void"; }
+
+  function faultInfo(f, now) {
+    var s = ms(f.start), e = f.end ? ms(f.end) : NaN;
+    var open = !f.end;
+    var hrs = hrsBetween(s, open ? now : e);
+    return { s: s, e: open ? now : e, open: open, hrs: hrs, label: !active(f) ? "Void" : open ? (hrs > S.cfg.openAlert ? "Open — over " + S.cfg.openAlert + " h" : "Open") : "Closed",
+      chip: !active(f) ? "idle" : open ? (hrs > S.cfg.openAlert ? "bad" : "warn") : "ok" };
+  }
+  function slaFor(c) {
+    var cat = S.cfg.compCats.filter(function (x) { return x.name === c.category; })[0];
+    var sla = cat ? cat.sla : 24;
+    var t = String(stType(c.station)).toLowerCase().replace(/\s/g, "");
+    if (S.cfg.partnerTypes.some(function (p) { return p.replace(/\s/g, "") === t; })) sla = Math.max(sla, S.cfg.partnerHrs);
+    return sla;
+  }
+  function complaintInfo(c, now) {
+    var r = ms(c.received), sla = slaFor(c);
+    var closed = !!c.resolved;
+    var hrs = hrsBetween(r, closed ? ms(c.resolved) : now);
+    var st, chip, within;
+    if (!active(c)) { st = "Void"; chip = "idle"; within = ""; }
+    else if (closed) { within = hrs <= sla ? "Y" : "N"; st = within === "Y" ? "Closed — in SLA" : "Closed — late"; chip = within === "Y" ? "ok" : "warn"; }
+    else if (hrs > sla) { st = "Open — overdue"; chip = "bad"; within = "N"; }
+    else { st = "Open — within SLA"; chip = "warn"; within = ""; }
+    return { r: r, sla: sla, hrs: hrs, open: !closed, overdue: !closed && hrs > sla, within: within, label: st, chip: chip, due: strOf(r + sla * 3600e3) };
+  }
+  function sevOf(name) { return S.cfg.sev.filter(function (x) { return x.name === name; })[0] || { name: name, reportHrs: 24, closeDays: 30 }; }
+  function isCritMaj(i) { var n = String(i.severity).toLowerCase(); return n === "critical" || n === "major"; }
+  function incidentInfo(i, now) {
+    var o = ms(i.occurred), sev = sevOf(i.severity);
+    var closed = !!i.closed;
+    var repHrs = i.reported ? hrsBetween(o, ms(i.reported)) : NaN;
+    var onTime = i.reported ? (repHrs <= sev.reportHrs ? "Y" : "N") : (hrsBetween(o, now) > sev.reportHrs ? "N" : "");
+    var closeBy = o + sev.closeDays * 864e5;
+    var dueMissed = i.due && !closed && ms(i.due + " 23:59") < now;
+    var overdue = !closed && (now > closeBy || dueMissed);
+    var st, chip;
+    if (!active(i)) { st = "Void"; chip = "idle"; }
+    else if (closed) { st = "Closed"; chip = "ok"; }
+    else if (overdue) { st = "Open — overdue"; chip = "bad"; }
+    else if (!i.reported) { st = onTime === "N" ? "Open — not reported" : "Open — report due"; chip = onTime === "N" ? "bad" : "warn"; }
+    else { st = "Open — investigating"; chip = "warn"; }
+    return { o: o, sev: sev, open: !closed, overdue: overdue, onTime: onTime, repHrs: repHrs, label: st, chip: chip, closeBy: strOf(closeBy), reportBy: strOf(o + sev.reportHrs * 3600e3) };
+  }
+
+  /* ---------------- periods ---------------- */
+  function qStart(d) { var m = +d.slice(5, 7); var qm = Math.floor((m - 1) / 3) * 3 + 1; return d.slice(0, 4) + "-" + ("0" + qm).slice(-2) + "-01"; }
+  function monthEnd(d) { var y = +d.slice(0, 4), m = +d.slice(5, 7); return new Date(Date.UTC(y, m, 0)).toISOString().slice(0, 10); }
+  function monthAdd(d, n) { var y = +d.slice(0, 4), m = +d.slice(5, 7) - 1 + n; var dt = new Date(Date.UTC(y, m, 1)); return dt.toISOString().slice(0, 10); }
+  function presetRange(p) {
+    var T = today(), w = dow(T);
+    switch (p) {
+      case "yesterday": return [addDays(T, -1), addDays(T, -1)];
+      case "last7": return [addDays(T, -6), T];
+      case "thisweek": return [addDays(T, -w), T];
+      case "lastweek": return [addDays(T, -w - 7), addDays(T, -w - 1)];
+      case "thismonth": return [T.slice(0, 8) + "01", T];
+      case "lastmonth": var a = monthAdd(T.slice(0, 8) + "01", -1); return [a, monthEnd(a)];
+      case "thisquarter": return [qStart(T), T];
+      case "lastquarter": var q = monthAdd(qStart(T), -3); return [q, monthEnd(monthAdd(q, 2))];
+    }
+    return null;
+  }
+  function compareRange(from, to) {
+    var len = daysBetween(from, to) + 1;
+    var fullMonth = from.slice(8) === "01" && to === monthEnd(from);
+    var fullQuarter = from === qStart(from) && to === monthEnd(monthAdd(from, 2)) && from.slice(8) === "01";
+    if (fullQuarter) { var q = monthAdd(from, -3); return [q, monthEnd(monthAdd(q, 2))]; }
+    if (fullMonth) { var m = monthAdd(from, -1); return [m, monthEnd(m)]; }
+    if (from.slice(8) === "01" && from.slice(0, 7) === to.slice(0, 7)) {    // month to date → same days last month
+      var pm = monthAdd(from, -1), pe = addDays(pm, len - 1);
+      if (pe > monthEnd(pm)) pe = monthEnd(pm);
+      return [pm, pe];
+    }
+    return [addDays(from, -len), addDays(from, -1)];
+  }
+
+  /* ---------------- calculations ---------------- */
+  function stationFilter() {
+    var v = $("fStation").value || "*";
+    var ids = S.data.stations.map(function (s) { return s.id; });
+    if (v === "*") return ids;
+    if (v.indexOf("type:") === 0) { var g = v.slice(5); return ids.filter(function (id) { return typeGroup(stType(id)) === g; }); }
+    return [v];
+  }
+
+  function calc(from, to, ids, now) {
+    var set = {}; ids.forEach(function (id) { set[id] = 1; });
+    var t0 = ms(from), t1 = ms(addDays(to, 1));
+    var days = daysBetween(from, to) + 1;
+    var R = { from: from, to: to, days: days, st: {}, net: null, daily: {}, cust: {}, types: {}, chargers: {}, heat: [], faultCat: {}, compCat: {}, compCh: {}, incSev: {}, incType: {} };
+    function blank() { return { sessions: 0, ok: 0, failed: 0, canceled: 0, kwh: 0, rev: 0, cost: 0, nsRev: 0, nsKwh: 0, nsSessions: 0, cap: 0, faults: 0, downHrs: 0, mttrSum: 0, mttrN: 0, openF: 0,
+      comp: 0, slaY: 0, slaN: 0, openC: 0, overC: 0, inc: 0, critMaj: 0, injuries: 0, cost$: 0, repY: 0, repN: 0, openI: 0, overI: 0, chargers: 0 }; }
+    ids.forEach(function (id) {
+      var s = S.cfg.stById[id], b = blank();
+      var openDays = days;
+      if (s.opened && s.opened > from) openDays = Math.max(0, daysBetween(s.opened, to) + 1);
+      if (s.opened && s.opened > to) openDays = 0;
+      b.chargers = s.chargers; b.cap = s.chargers * (s.hrs || 24) * Math.min(days, openDays);
+      R.st[id] = b;
+    });
+    var dayList = []; for (var d = from; d <= to; d = addDays(d, 1)) { dayList.push(d); R.daily[d] = { sessions: 0, bad: 0, faults: 0, down: 0, comp: 0, inc: 0, rev: 0 }; }
+    // system sales
+    (S.sales ? S.sales.daily : []).forEach(function (r) {
+      if (r[0] < from || r[0] > to || !set[r[1]]) return;
+      var b = R.st[r[1]];
+      b.sessions += r[4]; b.ok += r[5]; b.failed += r[6]; b.canceled += r[7]; b.kwh += r[8]; b.rev += r[9]; b.cost += r[10];
+      var dd = R.daily[r[0]]; dd.sessions += r[4]; dd.bad += r[6] + r[7]; dd.rev += r[9];
+      var c = R.cust[r[3]] || (R.cust[r[3]] = { sessions: 0, ok: 0, kwh: 0, rev: 0 }); c.sessions += r[4]; c.ok += r[5]; c.kwh += r[8]; c.rev += r[9];
+      var ck = r[1] + "|" + r[2], ch = R.chargers[ck] || (R.chargers[ck] = { station: r[1], charger: r[2], sessions: 0, failed: 0, canceled: 0, kwh: 0, rev: 0, faults: 0, downHrs: 0 });
+      ch.sessions += r[4]; ch.failed += r[6]; ch.canceled += r[7]; ch.kwh += r[8]; ch.rev += r[9];
+    });
+    var heat = []; for (var w = 0; w < 7; w++) heat.push(new Array(24).fill(0));
+    (S.sales ? S.sales.hourly : []).forEach(function (r) { if (r[0] >= from && r[0] <= to && set[r[1]]) heat[dow(r[0])][r[2]] += r[3]; });
+    R.heat = heat;
+    // non-system sales
+    S.data.nonsys.forEach(function (n) {
+      if (!active(n) || !set[n.station]) return;
+      var d = n.date.slice(0, 10); if (d < from || d > to) return;
+      var b = R.st[n.station]; b.nsRev += +n.revenue || 0; b.nsKwh += +n.kwh || 0; b.nsSessions += 1;
+      R.daily[d].rev += +n.revenue || 0;
+    });
+    // faults
+    S.data.faults.forEach(function (f) {
+      if (!active(f) || !set[f.station]) return;
+      var fi = faultInfo(f, now), b = R.st[f.station];
+      var ov = Math.max(0, Math.min(fi.e, t1) - Math.max(fi.s, t0)) / 3600e3;
+      b.downHrs += ov;
+      var chk = f.station + "|" + f.charger; if (R.chargers[chk]) R.chargers[chk].downHrs += ov;
+      if (fi.open) b.openF++;
+      var cat = R.faultCat[f.category] || (R.faultCat[f.category] = { n: 0, hrs: 0, mttrSum: 0, mttrN: 0, open: 0 });
+      if (fi.open) cat.open++;
+      cat.hrs += ov;
+      if (fi.s >= t0 && fi.s < t1) {
+        b.faults++; cat.n++;
+        if (R.chargers[chk]) R.chargers[chk].faults++;
+        if (!fi.open) { b.mttrSum += fi.hrs; b.mttrN++; cat.mttrSum += fi.hrs; cat.mttrN++; }
+        R.daily[f.start.slice(0, 10)].faults++;
+      }
+      dayList.forEach(function (d) { var de = ms(addDays(d, 1)); if (fi.s < de && fi.e >= de) R.daily[d].down++; });
+    });
+    // complaints
+    S.data.complaints.forEach(function (c) {
+      if (!active(c) || !set[c.station]) return;
+      var ci = complaintInfo(c, now), b = R.st[c.station];
+      if (ci.open) b.openC++;
+      if (ci.overdue) b.overC++;
+      var inP = ci.r >= t0 && ci.r < t1;
+      var cat = R.compCat[c.category] || (R.compCat[c.category] = { n: 0, inSla: 0, late: 0, open: 0, over: 0 });
+      var chn = R.compCh[c.channel] || (R.compCh[c.channel] = { n: 0, open: 0 });
+      if (!inP) return;
+      b.comp++; cat.n++; chn.n++;
+      if (ci.within === "Y") { b.slaY++; cat.inSla++; } else if (ci.within === "N") { b.slaN++; }
+      if (!ci.open && ci.within === "N") cat.late++;
+      if (ci.open) { cat.open++; chn.open++; } if (ci.overdue) cat.over++;
+      R.daily[c.received.slice(0, 10)].comp++;
+    });
+    // incidents
+    S.data.incidents.forEach(function (i) {
+      if (!active(i) || !set[i.station]) return;
+      var ii = incidentInfo(i, now), b = R.st[i.station];
+      if (ii.open) b.openI++;
+      if (ii.overdue) b.overI++;
+      var inP = ii.o >= t0 && ii.o < t1;
+      var sv = R.incSev[i.severity] || (R.incSev[i.severity] = { n: 0, open: 0, injuries: 0, cost: 0, repY: 0, repN: 0 });
+      var ty = R.incType[i.type] || (R.incType[i.type] = { n: 0, critMaj: 0, open: 0, injuries: 0 });
+      if (ii.open) { sv.open++; ty.open++; }
+      if (!inP) return;
+      b.inc++; sv.n++; ty.n++;
+      if (isCritMaj(i)) { b.critMaj++; ty.critMaj++; }
+      b.injuries += +i.injuries || 0; sv.injuries += +i.injuries || 0; ty.injuries += +i.injuries || 0;
+      b.cost$ += +i.cost || 0; sv.cost += +i.cost || 0;
+      if (ii.onTime === "Y") { b.repY++; sv.repY++; } else if (ii.onTime === "N") { b.repN++; sv.repN++; }
+      R.daily[i.occurred.slice(0, 10)].inc++;
+    });
+    // derived per station + network
+    var net = blank();
+    ids.forEach(function (id) {
+      var b = R.st[id];
+      Object.keys(net).forEach(function (k) { net[k] += b[k]; });
+      derive(b);
+      var tg = typeGroup(stType(id)), t = R.types[tg] || (R.types[tg] = { rev: 0, nsRev: 0, sessions: 0, nsSessions: 0, kwh: 0 });
+      t.rev += b.rev; t.nsRev += b.nsRev; t.sessions += b.sessions; t.nsSessions += b.nsSessions; t.kwh += b.kwh + b.nsKwh;
+    });
+    derive(net);
+    R.net = net;
+    R.dayList = dayList;
+    // days since last critical/major (all time, these stations)
+    var lastCM = 0;
+    S.data.incidents.forEach(function (i) { if (active(i) && set[i.station] && isCritMaj(i)) lastCM = Math.max(lastCM, ms(i.occurred)); });
+    R.daysSinceCM = lastCM ? Math.floor((now - lastCM) / 864e5) : null;
+    return R;
+  }
+  function derive(b) {
+    b.totRev = b.rev + b.nsRev; b.totKwh = b.kwh + b.nsKwh; b.totSessions = b.sessions + b.nsSessions;
+    b.success = b.sessions ? 1 - (b.failed + b.canceled) / b.sessions : NaN;
+    b.gm = b.rev - b.cost; b.gmPct = div(b.gm, b.rev);
+    b.kwhPer = div(b.kwh, b.sessions); b.revPer = div(b.rev, b.sessions);
+    b.uptime = b.cap ? Math.max(0, 1 - b.downHrs / b.cap) : NaN;
+    b.mttr = b.mttrN ? b.mttrSum / b.mttrN : NaN;
+    b.per1k = b.sessions ? b.comp / b.sessions * 1000 : NaN;
+    b.slaPct = (b.slaY + b.slaN) ? b.slaY / (b.slaY + b.slaN) : NaN;
+    b.repPct = (b.repY + b.repN) ? b.repY / (b.repY + b.repN) : NaN;
+    b.per10k = b.sessions ? b.inc / b.sessions * 10000 : NaN;
+    // flags
+    var flags = 0, watch = 0;
+    function chk(name, v) { var c = grade(name, v); if (c === "r") flags++; else if (c === "a") watch++; }
+    chk("Charger uptime", b.uptime); chk("Session success rate", b.success); chk("MTTR (hrs)", b.mttr);
+    chk("Complaints per 1,000 sessions", b.per1k); chk("Complaints resolved within SLA", b.slaPct);
+    chk("Critical + major incidents", b.critMaj); chk("Incidents reported on time", b.repPct);
+    if (b.overC > 0) flags++;
+    if (b.overI > 0) flags++;
+    b.flags = flags;
+    b.statusTxt = flags > 0 ? "Action needed" : (watch + b.openF + b.openC + b.openI > 0 ? "Watch" : "OK");
+  }
+  // returns g / a / r / "" for a KPI value vs Settings thresholds
+  function grade(name, v) {
+    var t = S.cfg && S.cfg.thr[name];
+    if (!t || v === "" || v === null || isNaN(v)) return "";
+    if (t.dir === "higher") return v >= t.green ? "g" : v >= t.amber ? "a" : "r";
+    return v <= t.green ? "g" : v <= t.amber ? "a" : "r";
+  }
+
+  /* ---------------- dashboard rendering ---------------- */
+  function periodFromUI() {
+    var p = $("fPreset").value, r = presetRange(p);
+    if (r) { $("fFrom").value = r[0]; $("fTo").value = r[1]; }
+    var from = $("fFrom").value, to = $("fTo").value;
+    if (!from || !to) { r = presetRange("last7"); from = r[0]; to = r[1]; }
+    if (from > to) { var x = from; from = to; to = x; }
+    var cmp = $("fCompare").value === "none" ? null : compareRange(from, to);
+    return { from: from, to: to, cmp: cmp };
+  }
+
+  function ensureSales(lo, hi) {
+    if (S.sales && S.sales.from <= lo && S.sales.to >= hi) return Promise.resolve();
+    setSync("busy", "Loading sales…");
+    // load a generous window so switching presets rarely needs another call
+    var from = lo < addDays(today(), -200) ? lo : addDays(today(), -200);
+    var to = hi > today() ? hi : today();
+    return api({ action: "sales", from: from, to: to }).then(function (j) { S.sales = j; setSync("ok", "Up to date " + timeNow()); });
+  }
+
+  function renderDash() {
+    if (!S.data) return;
+    var P = periodFromUI();
+    try { localStorage.setItem(LS_PRESET, JSON.stringify({ p: $("fPreset").value, f: P.from, t: P.to, c: $("fCompare").value, s: $("fStation").value })); } catch (e) {}
+    var lo = P.cmp ? P.cmp[0] : P.from;
+    ensureSales(lo, P.to).then(function () { drawDash(P); }).catch(function (e) { handleError(e, "Loading sales"); drawDash(P); });
+  }
+
+  function chg(a, b, kind) {
+    if (b === null || b === undefined || isNaN(a) || isNaN(b)) return "";
+    var d, txt;
+    if (kind === "pct") { d = (a - b) * 100; txt = (d >= 0 ? "+" : "") + d.toFixed(1) + " pts"; }
+    else if (kind === "rel") { if (!b) return ""; d = a / b - 1; txt = (d >= 0 ? "+" : "") + (d * 100).toFixed(1) + "%"; }
+    else { d = a - b; txt = (d >= 0 ? "+" : "") + (Math.abs(d) >= 10 || Math.abs(d - Math.round(d)) < 1e-9 ? n0(d) : n1(d)); }
+    return { d: d, txt: txt };
+  }
+  function kpi(title, value, sub, change, good, gradeCls) {
+    var cls = "kpi" + (gradeCls ? " " + gradeCls : "");
+    var dHtml = "";
+    if (change && change.txt) {
+      var dir = change.d === 0 ? "flat" : ((change.d > 0) === (good !== "lower") ? "up" : "down");
+      if (good === "neutral") dir = "flat";
+      dHtml = '<span class="d ' + dir + '">' + esc(change.txt) + ' vs comparison</span>';
+    }
+    return '<div class="' + cls + '"><span class="t">' + esc(title) + '</span><span class="v">' + value + '</span>' + (sub ? '<span class="s">' + sub + '</span>' : "") + dHtml + "</div>";
+  }
+
+  function drawDash(P) {
+    var now = Date.now(), ids = stationFilter();
+    var A = calc(P.from, P.to, ids, now), B = P.cmp ? calc(P.cmp[0], P.cmp[1], ids, now) : null;
+    S.lastCalc = { P: P, A: A, B: B };
+    var a = A.net, b = B ? B.net : null;
+    var sel = $("fStation"); var selTxt = sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : "All stations";
+    $("periodLabel").textContent = selTxt + " · " + fDate(P.from) + " to " + fDate(P.to) + " (" + A.days + " day" + (A.days > 1 ? "s" : "") + ")" + (P.cmp ? " · compared with " + fDate(P.cmp[0]) + " to " + fDate(P.cmp[1]) : "");
+    var sr = S.data.salesRange, note = "";
+    if (!sr) note = "No system sales are stored yet. Import a Sale Order export on the Import sales tab.";
+    else if (sr.last < P.to) note = "System sales are stored up to <b>" + fDate(sr.last) + "</b>. Sessions, revenue, success rate and “per 1,000 sessions” figures after that date are missing until the next Sale Order export is imported.";
+    $("dataNote").innerHTML = note ? '<div class="notice" style="margin-top:8px">' + note + "</div>" : "";
+
+    var usd = function (khr) { return "≈ USD " + n0(khr / S.cfg.khrUsd); };
+    $("kSales").innerHTML = [
+      kpi("Revenue (KHR)", n0(a.totRev), usd(a.totRev) + " · non-system " + n0(a.nsRev), b && chg(a.totRev, b.totRev, "rel")),
+      kpi("Energy delivered (kWh)", n0(a.totKwh), "non-system " + n0(a.nsKwh), b && chg(a.totKwh, b.totKwh, "rel")),
+      kpi("Charging sessions", n0(a.totSessions), "system " + n0(a.sessions) + " · non-system " + n0(a.nsSessions), b && chg(a.totSessions, b.totSessions, "rel")),
+      kpi("Gross margin (system)", pct(a.gmPct), n0(a.gm) + " KHR", b && chg(a.gmPct, b.gmPct, "pct")),
+      kpi("kWh per session", n1(a.kwhPer), "system sessions", b && chg(a.kwhPer, b.kwhPer, "rel"), "neutral"),
+      kpi("Revenue per session (KHR)", n0(a.revPer), "system sessions", b && chg(a.revPer, b.revPer, "rel"), "neutral")
+    ].join("");
+    $("kOps").innerHTML = [
+      kpi("Session success", pct(a.success), n0(a.failed + a.canceled) + " failed + canceled", b && chg(a.success, b.success, "pct"), "higher", grade("Session success rate", a.success)),
+      kpi("Charger uptime", pct(a.uptime, 2), n1(a.downHrs) + " downtime hrs in period", b && chg(a.uptime, b.uptime, "pct"), "higher", grade("Charger uptime", a.uptime)),
+      kpi("Faults started", n0(a.faults), "MTTR " + n1(a.mttr) + " hrs (closed faults)", b && chg(a.faults, b.faults), "lower", grade("MTTR (hrs)", a.mttr)),
+      kpi("Complaints received", n0(a.comp), n1(a.per1k) + " per 1,000 sessions", b && chg(a.comp, b.comp), "lower", grade("Complaints per 1,000 sessions", a.per1k)),
+      kpi("Complaints resolved in SLA", pct(a.slaPct), a.slaY + " in SLA · " + a.slaN + " late/overdue", b && chg(a.slaPct, b.slaPct, "pct"), "higher", grade("Complaints resolved within SLA", a.slaPct)),
+      kpi("Open faults (now)", n0(a.openF), "charger faults not yet back in service", null, "lower", a.openF ? "a" : "g"),
+      kpi("Open complaints (now)", n0(a.openC), n0(a.overC) + " overdue", null, "lower", a.overC ? "r" : a.openC ? "a" : "g")
+    ].join("");
+    $("kInc").innerHTML = [
+      kpi("Incidents", n0(a.inc), n1(a.per10k) + " per 10,000 sessions", b && chg(a.inc, b.inc), "lower", grade("Incidents per 10,000 sessions", a.per10k)),
+      kpi("Critical + major", n0(a.critMaj), "in the period", b && chg(a.critMaj, b.critMaj), "lower", grade("Critical + major incidents", a.critMaj)),
+      kpi("Injuries", n0(a.injuries), "people hurt in incidents", b && chg(a.injuries, b.injuries), "lower", a.injuries ? "r" : "g"),
+      kpi("Est. incident cost (USD)", n0(a.cost$), "damage and repair estimate", b && chg(a.cost$, b.cost$), "lower"),
+      kpi("Reported on time", pct(a.repPct, 0), a.repY + " on time · " + a.repN + " late", b && chg(a.repPct, b.repPct, "pct"), "higher", grade("Incidents reported on time", a.repPct)),
+      kpi("Open incidents (now)", n0(a.openI), n0(a.overI) + " overdue for closing", null, "lower", a.overI ? "r" : a.openI ? "a" : "g"),
+      kpi("Days since last critical/major", A.daysSinceCM === null ? "—" : n0(A.daysSinceCM), A.daysSinceCM === null ? "none recorded" : "all time, these stations", null, "higher")
+    ].join("");
+
+    drawStationTable(A, ids);
+    drawBreakdowns(A, B);
+    drawOpen(ids, now);
+    drawDailyTable(A);
+    drawChargers(A);
+    drawCharts(A, ids);
+  }
+
+  function gcell(name, v, txt) { var g = grade(name, v); return '<td class="num ' + g + '">' + txt + "</td>"; }
+  function drawStationTable(A, ids) {
+    var h, rows = [];
+    var list = ids.map(function (id) { return { id: id, b: A.st[id] }; });
+    if (S.stationTable === "ops") {
+      h = ["Station ID", "Station", "Type", "Chargers", "Sessions", "Session success", "Faults", "Downtime hrs", "Uptime", "MTTR hrs", "Open faults", "Complaints", "Per 1,000", "In SLA", "Open compl.", "Overdue compl.", "Incidents", "Crit./major", "Open inc.", "Overdue inc.", "Red flags", "Status"];
+      var line = function (id, name, type, b, total) {
+        var stc = b.statusTxt === "Action needed" ? "bad" : b.statusTxt === "Watch" ? "warn" : "ok";
+        return "<tr" + (total ? ' class="total"' : "") + "><td>" + esc(id) + "</td><td>" + esc(name) + "</td><td>" + esc(type) + '</td><td class="num">' + n0(b.chargers) + '</td><td class="num">' + n0(b.sessions) + "</td>" +
+          gcell("Session success rate", b.success, pct(b.success)) + '<td class="num">' + n0(b.faults) + '</td><td class="num">' + n1(b.downHrs) + "</td>" + gcell("Charger uptime", b.uptime, pct(b.uptime, 2)) + gcell("MTTR (hrs)", b.mttr, n1(b.mttr)) +
+          '<td class="num">' + n0(b.openF) + '</td><td class="num">' + n0(b.comp) + "</td>" + gcell("Complaints per 1,000 sessions", b.per1k, n1(b.per1k)) + gcell("Complaints resolved within SLA", b.slaPct, pct(b.slaPct, 0)) +
+          '<td class="num">' + n0(b.openC) + '</td><td class="num ' + (b.overC ? "r" : "") + '">' + n0(b.overC) + '</td><td class="num">' + n0(b.inc) + '</td><td class="num ' + (b.critMaj ? "r" : "") + '">' + n0(b.critMaj) + '</td><td class="num">' + n0(b.openI) + '</td><td class="num ' + (b.overI ? "r" : "") + '">' + n0(b.overI) +
+          '</td><td class="num ' + (b.flags ? "r" : "") + '">' + n0(b.flags) + '</td><td>' + (total ? esc(list.filter(function (x) { return x.b.statusTxt === "Action needed"; }).length + " need action") : '<span class="chip ' + stc + '">' + esc(b.statusTxt) + "</span>") + "</td></tr>";
+      };
+      list.forEach(function (x) { var s = S.cfg.stById[x.id]; rows.push(line(x.id, s.short, s.type, x.b)); });
+      rows.push(line("Network", "Selected stations", "", A.net, true));
+    } else {
+      h = ["Station ID", "Station", "Type", "Revenue (KHR)", "Non-system rev.", "Share", "Sessions", "Non-sys. sessions", "Energy (kWh)", "Cost (KHR)", "Gross margin", "GM %", "Completed", "Failed", "Canceled", "Completion", "kWh/session", "Rev./session"];
+      var tot = A.net.totRev;
+      var line2 = function (id, name, type, b, total) {
+        return "<tr" + (total ? ' class="total"' : "") + "><td>" + esc(id) + "</td><td>" + esc(name) + "</td><td>" + esc(type) + '</td><td class="num">' + n0(b.rev) + '</td><td class="num">' + n0(b.nsRev) + '</td><td class="num">' + pct(div(b.totRev, tot)) +
+          '</td><td class="num">' + n0(b.sessions) + '</td><td class="num">' + n0(b.nsSessions) + '</td><td class="num">' + n0(b.kwh) + '</td><td class="num">' + n0(b.cost) + '</td><td class="num">' + n0(b.gm) + '</td><td class="num">' + pct(b.gmPct) +
+          '</td><td class="num">' + n0(b.ok) + '</td><td class="num">' + n0(b.failed) + '</td><td class="num">' + n0(b.canceled) + "</td>" + gcell("Session success rate", b.success, pct(b.success)) + '<td class="num">' + n1(b.kwhPer) + '</td><td class="num">' + n0(b.revPer) + "</td></tr>";
+      };
+      list.slice().sort(function (p, q) { return q.b.totRev - p.b.totRev; }).forEach(function (x) { var s = S.cfg.stById[x.id]; rows.push(line2(x.id, s.short, s.type, x.b)); });
+      rows.push(line2("Network", "Selected stations", "", A.net, true));
+    }
+    $("tStations").innerHTML = "<table><thead><tr>" + h.map(function (x) { return "<th>" + esc(x) + "</th>"; }).join("") + "</tr></thead><tbody>" + rows.join("") + "</tbody></table>";
+  }
+
+  function simpleTable(el, head, rows, numFrom, empty) {
+    numFrom = numFrom === undefined ? 1 : numFrom;
+    $(el).innerHTML = "<table><thead><tr>" + head.map(function (x, i) { return "<th" + (i >= numFrom ? ' class="num"' : "") + ">" + esc(x) + "</th>"; }).join("") + "</tr></thead><tbody>" +
+      (rows.length ? rows.map(function (r) { return "<tr" + (r.cls ? ' class="' + r.cls + '"' : "") + ">" + r.map(function (c, i) { return "<td" + (i >= numFrom ? ' class="num"' : "") + ">" + c + "</td>"; }).join("") + "</tr>"; }).join("") : '<tr><td colspan="' + head.length + '" class="muted">' + (empty || "Nothing in this period.") + '</td></tr>') + "</tbody></table>";
+  }
+  function diffTxt(a, b) { if (b === undefined || b === null) return "—"; var d = a - b; return (d > 0 ? "+" : "") + d; }
+
+  function drawBreakdowns(A, B) {
+    var types = ["VET-owned", "Franchised (PNP)", "HSP"];
+    var rows = types.map(function (t) { var x = A.types[t] || { rev: 0, nsRev: 0, sessions: 0, nsSessions: 0 }; return [esc(t), n0(x.rev), n0(x.nsRev), n0(x.sessions + x.nsSessions), pct(div(x.rev + x.nsRev, A.net.totRev))]; });
+    var tr = [ "Total", n0(A.net.rev), n0(A.net.nsRev), n0(A.net.totSessions), pct(A.net.totRev ? 1 : NaN)]; tr.cls = "total"; rows.push(tr);
+    simpleTable("tByType", ["Type", "System", "Non-system", "Sessions", "Share"], rows);
+
+    var custs = Object.keys(A.cust).sort(function (p, q) { return A.cust[q].rev - A.cust[p].rev; });
+    rows = custs.map(function (k) { var c = A.cust[k]; return [esc(k), n0(c.rev), pct(div(c.rev, A.net.rev)), n0(c.kwh), pct(div(c.ok, c.sessions))]; });
+    simpleTable("tByCust", ["Customer type", "Revenue", "Share", "Energy (kWh)", "Completion"], rows);
+
+    var sevNames = S.cfg.sev.map(function (s) { return s.name; });
+    Object.keys(A.incSev).forEach(function (k) { if (sevNames.indexOf(k) < 0) sevNames.push(k); });
+    rows = sevNames.filter(function (k) { return A.incSev[k] || (B && B.incSev[k]); }).map(function (k) {
+      var x = A.incSev[k] || { n: 0, open: 0, injuries: 0, cost: 0 }, y = B && B.incSev[k] ? B.incSev[k].n : (B ? 0 : null);
+      return ['<span class="chip ' + sevChip(k) + '">' + esc(k) + "</span>", x.n, y === null ? "—" : y, diffTxt(x.n, y), x.open, x.injuries, n0(x.cost)];
+    });
+    simpleTable("tIncSev", ["Severity", "Period", "Compare", "Change", "Open now", "Injuries", "Cost USD"], rows);
+
+    var cats = S.cfg.faultCats.slice(); Object.keys(A.faultCat).forEach(function (k) { if (cats.indexOf(k) < 0) cats.push(k); });
+    rows = cats.filter(function (k) { return A.faultCat[k] || (B && B.faultCat[k]); }).map(function (k) {
+      var x = A.faultCat[k] || { n: 0, hrs: 0, mttrN: 0, mttrSum: 0, open: 0 }, y = B && B.faultCat[k] ? B.faultCat[k].n : (B ? 0 : null);
+      return [esc(k), x.n, n1(x.hrs), x.mttrN ? n1(x.mttrSum / x.mttrN) : "—", y === null ? "—" : y, diffTxt(x.n, y), x.open];
+    });
+    simpleTable("tFaultCat", ["Category", "Faults", "Down hrs", "MTTR", "Compare", "Change", "Open now"], rows);
+
+    cats = S.cfg.compCats.map(function (c) { return c.name; }); Object.keys(A.compCat).forEach(function (k) { if (cats.indexOf(k) < 0) cats.push(k); });
+    rows = cats.filter(function (k) { return (A.compCat[k] && (A.compCat[k].n || A.compCat[k].open)) || (B && B.compCat[k] && B.compCat[k].n); }).map(function (k) {
+      var x = A.compCat[k] || { n: 0, inSla: 0, late: 0, open: 0, over: 0 }, y = B && B.compCat[k] ? B.compCat[k].n : (B ? 0 : null);
+      return [esc(k), x.n, x.inSla, x.late, x.open, x.over, y === null ? "—" : y, diffTxt(x.n, y)];
+    });
+    simpleTable("tCompCat", ["Category", "Received", "In SLA", "Late", "Open", "Overdue", "Compare", "Change"], rows);
+
+    var chs = S.cfg.channels.slice(); Object.keys(A.compCh).forEach(function (k) { if (chs.indexOf(k) < 0) chs.push(k); });
+    rows = chs.filter(function (k) { return (A.compCh[k] && A.compCh[k].n) || (B && B.compCh[k] && B.compCh[k].n); }).map(function (k) {
+      var x = A.compCh[k] || { n: 0, open: 0 }, y = B && B.compCh[k] ? B.compCh[k].n : (B ? 0 : null);
+      return [esc(k), x.n, y === null ? "—" : y, diffTxt(x.n, y), x.open];
+    });
+    simpleTable("tCompCh", ["Channel", "Received", "Compare", "Change", "Still open"], rows);
+
+    var tps = S.cfg.incTypes.slice(); Object.keys(A.incType).forEach(function (k) { if (tps.indexOf(k) < 0) tps.push(k); });
+    rows = tps.filter(function (k) { return (A.incType[k] && (A.incType[k].n || A.incType[k].open)) || (B && B.incType[k] && B.incType[k].n); }).map(function (k) {
+      var x = A.incType[k] || { n: 0, critMaj: 0, open: 0, injuries: 0 }, y = B && B.incType[k] ? B.incType[k].n : (B ? 0 : null);
+      return [esc(k), x.n, x.critMaj, x.injuries, x.open, y === null ? "—" : y, diffTxt(x.n, y)];
+    });
+    simpleTable("tIncType", ["Type", "Incidents", "Crit./major", "Injuries", "Open", "Compare", "Change"], rows);
+
+    // heat map
+    var max = 0; A.heat.forEach(function (r) { r.forEach(function (v) { if (v > max) max = v; }); });
+    var dn = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    var html = '<table class="heat"><thead><tr><th></th>' + A.heat[0].map(function (x, h) { return "<th>" + ("0" + h).slice(-2) + "</th>"; }).join("") + "</tr></thead><tbody>";
+    A.heat.forEach(function (r, w) {
+      html += "<tr><th>" + dn[w] + "</th>" + r.map(function (v) {
+        var a = max ? v / max : 0;
+        return '<td title="' + dn[w] + ': ' + v + ' sessions" style="background:rgba(11,110,117,' + (0.06 + a * 0.85).toFixed(2) + ");color:" + (a > 0.55 ? "#fff" : "inherit") + '">' + (v || "") + "</td>";
+      }).join("") + "</tr>";
+    });
+    $("tHeat").innerHTML = html + "</tbody></table>";
+  }
+  function sevChip(k) { k = String(k).toLowerCase(); return k === "critical" ? "bad" : k === "major" ? "warn" : k === "near miss" ? "idle" : "ok"; }
+
+  function drawOpen(ids, now) {
+    var set = {}; ids.forEach(function (id) { set[id] = 1; });
+    var f = S.data.faults.filter(function (x) { return active(x) && set[x.station] && !x.end; }).sort(function (p, q) { return p.start < q.start ? -1 : 1; });
+    simpleTable("tOpenF", ["Fault", "Station", "Charger", "Hrs down", "Status"], f.map(function (x) { var i = faultInfo(x, now); var r = [link("faults", x.id), esc(stName(x.station)), esc(x.charger), n1(i.hrs), '<span class="chip ' + i.chip + '">' + esc(i.label) + "</span>"]; return r; }), 3, "Nothing open.");
+    var c = S.data.complaints.filter(function (x) { return active(x) && set[x.station] && !x.resolved; }).sort(function (p, q) { return p.received < q.received ? -1 : 1; });
+    simpleTable("tOpenC", ["Complaint", "Station", "Category", "Hrs open", "Status"], c.map(function (x) { var i = complaintInfo(x, now); return [link("complaints", x.id), esc(stName(x.station)), esc(x.category), n1(i.hrs) + " / " + i.sla, '<span class="chip ' + i.chip + '">' + esc(i.label) + "</span>"]; }), 3, "Nothing open.");
+    var n = S.data.incidents.filter(function (x) { return active(x) && set[x.station] && !x.closed; }).sort(function (p, q) { return p.occurred < q.occurred ? -1 : 1; });
+    simpleTable("tOpenI", ["Incident", "Station", "Severity", "Close by", "Status"], n.map(function (x) { var i = incidentInfo(x, now); return [link("incidents", x.id), esc(stName(x.station)), '<span class="chip ' + sevChip(x.severity) + '">' + esc(x.severity) + "</span>", fDT(i.closeBy), '<span class="chip ' + i.chip + '">' + esc(i.label) + "</span>"]; }), 3, "Nothing open.");
+  }
+  function link(kind, id) { return '<a href="#" data-open="' + kind + '" data-id="' + esc(id) + '">' + esc(id) + "</a>"; }
+
+  function drawDailyTable(A) {
+    var rows = A.dayList.map(function (d) { var x = A.daily[d]; return [fDate(d) + " " + ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][dow(d)], n0(x.sessions), n0(x.bad), pct(div(x.bad, x.sessions)), n0(x.rev), x.faults, x.down, x.comp, x.inc]; });
+    simpleTable("tDaily", ["Date", "Sessions", "Failed + canceled", "Issue rate", "Revenue (KHR)", "Faults started", "Chargers down at day end", "Complaints", "Incidents"], rows);
+  }
+  function drawChargers(A) {
+    var list = Object.keys(A.chargers).map(function (k) { return A.chargers[k]; }).sort(function (p, q) { return q.rev - p.rev; });
+    simpleTable("tChargers", ["Charger", "Station", "Revenue (KHR)", "Sessions", "Energy (kWh)", "Failed", "Canceled", "Issue rate", "Rev./session", "Faults", "Down hrs"], list.map(function (c) {
+      return [esc(c.charger), esc(stName(c.station)), n0(c.rev), n0(c.sessions), n0(c.kwh), n0(c.failed), n0(c.canceled), pct(div(c.failed + c.canceled, c.sessions)), n0(div(c.rev, c.sessions)), c.faults, n1(c.downHrs)];
+    }), 2);
+  }
+
+  function drawCharts(A, ids) {
+    if (!window.Chart) return;
+    var css = getComputedStyle(document.documentElement);
+    var acc = css.getPropertyValue("--accent").trim(), crit = css.getPropertyValue("--crit").trim(), warn = css.getPropertyValue("--warn").trim(), ink = css.getPropertyValue("--muted").trim(), line = css.getPropertyValue("--line").trim();
+    Chart.defaults.color = ink; Chart.defaults.borderColor = line; Chart.defaults.font.family = css.getPropertyValue("--font-body");
+    var labels = A.dayList.map(function (d) { return d.slice(8) + "-" + MON[+d.slice(5, 7) - 1]; });
+    var dd = A.dayList.map(function (d) { return A.daily[d]; });
+    if (S.charts.daily) S.charts.daily.destroy();
+    S.charts.daily = new Chart($("cDaily"), {
+      data: { labels: labels, datasets: [
+        { type: "bar", label: "Sessions", data: dd.map(function (x) { return x.sessions; }), backgroundColor: acc, yAxisID: "y", order: 3 },
+        { type: "line", label: "Issue rate %", data: dd.map(function (x) { return x.sessions ? +(x.bad / x.sessions * 100).toFixed(1) : null; }), borderColor: warn, backgroundColor: warn, yAxisID: "y1", tension: .25, pointRadius: 2, order: 1 },
+        { type: "line", label: "Faults + complaints + incidents", data: dd.map(function (x) { return x.faults + x.comp + x.inc; }), borderColor: crit, backgroundColor: crit, yAxisID: "y2", showLine: false, pointRadius: dd.map(function (x) { return x.faults + x.comp + x.inc ? 5 : 0; }), order: 0 }
+      ] },
+      options: { maintainAspectRatio: false, interaction: { mode: "index", intersect: false }, plugins: { legend: { position: "bottom", labels: { boxWidth: 12 } } },
+        scales: { y: { beginAtZero: true, title: { display: true, text: "Sessions" } }, y1: { position: "right", beginAtZero: true, grid: { drawOnChartArea: false }, title: { display: true, text: "Issue rate %" } }, y2: { display: false, beginAtZero: true } } }
+    });
+    // monthly
+    var end = A.to.slice(0, 7) + "-01", months = []; for (var i = 5; i >= 0; i--) months.push(monthAdd(end, -i).slice(0, 7));
+    var set = {}; ids.forEach(function (id) { set[id] = 1; });
+    var sys = months.map(function () { return 0; }), ns = months.map(function () { return 0; });
+    (S.sales ? S.sales.monthly : []).forEach(function (m) { var k = months.indexOf(m[0]); if (k >= 0 && set[m[1]]) sys[k] += m[5]; });
+    S.data.nonsys.forEach(function (n) { if (!active(n) || !set[n.station]) return; var k = months.indexOf(n.date.slice(0, 7)); if (k >= 0) ns[k] += +n.revenue || 0; });
+    if (S.charts.monthly) S.charts.monthly.destroy();
+    S.charts.monthly = new Chart($("cMonthly"), {
+      type: "bar",
+      data: { labels: months.map(function (m) { return MON[+m.slice(5) - 1] + " " + m.slice(2, 4); }), datasets: [{ label: "System", data: sys, backgroundColor: acc, stack: "r" }, { label: "Non-system", data: ns, backgroundColor: warn, stack: "r" }] },
+      options: { maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { boxWidth: 12 } } }, scales: { y: { stacked: true, beginAtZero: true, ticks: { callback: function (v) { return (v / 1e6).toLocaleString() + "M"; } } }, x: { stacked: true } } }
+    });
+  }
+
+  /* ---------------- record lists & forms ---------------- */
+  var KINDS = {
+    faults: { label: "Charger fault", plural: "Charger faults", list: "faults", dateField: "start",
+      intro: "One row per charger fault or outage. Leave “Back in service” empty while the charger is down — it stays open and its hours keep counting.",
+      fields: [
+        { k: "station", l: "Station", t: "station", req: 1 }, { k: "charger", l: "Charger / connector", t: "charger", req: 1, hint: "Pick or type, e.g. EV03 or “Whole station”" },
+        { k: "category", l: "Fault category", t: "select", opts: function () { return S.cfg.faultCats; }, req: 1 },
+        { k: "start", l: "Fault start", t: "dt", req: 1, now: 1 }, { k: "end", l: "Back in service", t: "dt", now: 1, hint: "Empty = still down" },
+        { k: "incident", l: "Linked incident", t: "linkI", hint: "If an incident caused this fault" },
+        { k: "description", l: "Description", t: "long", req: 1, w: 3 },
+        { k: "reportedBy", l: "Reported by", t: "text", def: "user" }, { k: "fixedBy", l: "Fixed by", t: "text" },
+        { k: "action", l: "Corrective action", t: "long", w: 3 }
+      ] },
+    complaints: { label: "Complaint", plural: "Complaints", list: "complaints", dateField: "received",
+      intro: "One row per customer complaint (SOP 4.6 Complaint Register). The SLA comes from the category in Settings; partner/host sites get the longer partner SLA.",
+      fields: [
+        { k: "station", l: "Station", t: "station", req: 1 }, { k: "received", l: "Received", t: "dt", req: 1, now: 1 },
+        { k: "channel", l: "Channel", t: "select", opts: function () { return S.cfg.channels; }, req: 1 },
+        { k: "category", l: "Category", t: "select", opts: function () { return S.cfg.compCats.map(function (c) { return c.name; }); }, req: 1, w: 2 },
+        { k: "customerRef", l: "Customer reference", t: "text", hint: "SO code or ticket no. Avoid full names and phone numbers." },
+        { k: "description", l: "Description", t: "long", req: 1, w: 3 },
+        { k: "assignedTo", l: "Assigned to", t: "text" }, { k: "resolved", l: "Resolved", t: "dt", now: 1, hint: "Empty = still open" },
+        { k: "_sla", l: "SLA", t: "info" },
+        { k: "action", l: "Action taken / resolution", t: "long", w: 3 }
+      ] },
+    incidents: { label: "Incident", plural: "Incidents", list: "incidents", dateField: "occurred",
+      intro: "Safety, damage and security events at a station: fire or overheating, electrical hazards, collisions, injuries, theft or vandalism, flooding, site-wide outages, conflicts and near misses. Charger faults without a safety or damage side go in Charger faults.",
+      fields: [
+        { k: "station", l: "Station", t: "station", req: 1 }, { k: "occurred", l: "Occurred", t: "dt", req: 1, now: 1 },
+        { k: "severity", l: "Severity", t: "select", opts: function () { return S.cfg.sev.map(function (s) { return s.name; }); }, req: 1 },
+        { k: "type", l: "Incident type", t: "select", opts: function () { return S.cfg.incTypes; }, req: 1, w: 2 },
+        { k: "reported", l: "Reported to management", t: "dt", now: 1 },
+        { k: "_sev", l: "Targets", t: "info", w: 3 },
+        { k: "description", l: "What happened", t: "long", req: 1, w: 3 },
+        { k: "injuries", l: "Injuries (people)", t: "int" }, { k: "damage", l: "Property damage", t: "select", opts: function () { return ["No", "Yes"]; } },
+        { k: "cost", l: "Est. cost (USD)", t: "num" },
+        { k: "impact", l: "Service impact", t: "select", opts: function () { return ["None", "Partial — some chargers down", "Station closed"]; } },
+        { k: "fault", l: "Linked charger fault", t: "linkF" }, { k: "reportedBy", l: "Reported by", t: "text", def: "user" },
+        { k: "immediate", l: "Immediate action", t: "long", w: 3 },
+        { k: "rootCause", l: "Root cause", t: "long", w: 3 },
+        { k: "capa", l: "Corrective / preventive action", t: "long", w: 3, hint: "Required before closing" },
+        { k: "owner", l: "Action owner", t: "text" }, { k: "due", l: "Action due", t: "date" }, { k: "closed", l: "Closed", t: "dt", now: 1, hint: "Empty = still open" }
+      ] },
+    nonsys: { label: "Non-system sale", plural: "Non-system sales", list: "nonsys", dateField: "date",
+      intro: "Charging sessions that did not go through the charging system (manual or offline sales). They add to revenue and energy; operations KPIs use system sessions only.",
+      fields: [
+        { k: "date", l: "Sale date", t: "dt", req: 1, now: 1 }, { k: "station", l: "Station", t: "station", req: 1 }, { k: "charger", l: "Charger", t: "charger" },
+        { k: "custType", l: "Customer type", t: "select", opts: function () { return S.cfg.custTypes; }, req: 1 },
+        { k: "chgStatus", l: "Charging status", t: "select", opts: function () { return ["Succeeded", "Failed", "Canceled"]; }, req: 1 },
+        { k: "kwh", l: "Energy (kWh)", t: "num", req: 1 }, { k: "revenue", l: "Revenue (KHR)", t: "num", req: 1 }, { k: "cost", l: "Cost (KHR)", t: "num" },
+        { k: "ref", l: "Reference", t: "text", hint: "Receipt or note number" }, { k: "notes", l: "Notes", t: "long", w: 3 }
+      ] }
+  };
+  var LF = {};   // list filters per kind
+
+  function stationOptions(withAll, extra) {
+    var h = withAll ? '<option value="*">All stations</option>' : '<option value="">Choose…</option>';
+    if (extra) h += extra;
+    S.data.stations.forEach(function (s) { h += '<option value="' + esc(s.id) + '"' + (s.active ? "" : ' class="muted"') + ">" + esc(s.id + " · " + s.short) + (s.active ? "" : " (inactive)") + "</option>"; });
+    return h;
+  }
+
+  function buildListView(kind) {
+    var K = KINDS[kind], el = $("v-" + kind);
+    LF[kind] = LF[kind] || { station: "*", status: "open", from: "", to: "", q: "" };
+    var f = LF[kind];
+    if (kind === "nonsys" && f.status === "open") f.status = "all";
+    var statusOpts = kind === "nonsys" ? [["all", "All active"], ["void", "Voided"]] :
+      [["open", "Open"], ["overdue", "Overdue / over alert"], ["closed", "Closed"], ["all", "All active"], ["void", "Voided"]];
+    el.innerHTML = '<div class="section-title"><h2>' + esc(K.plural) + '</h2><div class="inrow noprint"><button class="btn ghost" type="button" data-csv="' + kind + '">Download CSV</button><button class="btn" type="button" data-new="' + kind + '">+ New ' + esc(K.label.toLowerCase()) + "</button></div></div>" +
+      '<p class="muted" style="margin-top:0">' + esc(K.intro) + "</p>" +
+      '<div class="panel tools noprint"><label class="f"><span>Station</span><select data-lf="station">' + stationOptions(true) + '</select></label>' +
+      '<label class="f"><span>Status</span><select data-lf="status">' + statusOpts.map(function (o) { return '<option value="' + o[0] + '">' + o[1] + "</option>"; }).join("") + "</select></label>" +
+      '<label class="f"><span>From</span><input type="date" data-lf="from"></label><label class="f"><span>To</span><input type="date" data-lf="to"></label>' +
+      '<label class="f grow"><span>Search</span><input type="search" data-lf="q" placeholder="ID, charger, description, people…"></label></div>' +
+      '<p class="small muted" data-count style="margin:8px 0"></p><div class="tbl-wrap" data-list></div>';
+    el.querySelectorAll("[data-lf]").forEach(function (inp) {
+      inp.value = f[inp.getAttribute("data-lf")];
+      inp.addEventListener(inp.tagName === "INPUT" && inp.type === "search" ? "input" : "change", function () { f[inp.getAttribute("data-lf")] = inp.value; renderList(kind); });
+    });
+    renderList(kind);
+  }
+
+  function filteredRecords(kind) {
+    var K = KINDS[kind], f = LF[kind], now = Date.now();
+    var q = (f.q || "").toLowerCase();
+    return S.data[K.list].filter(function (r) {
+      if (f.station !== "*" && r.station !== f.station) return false;
+      var d = String(r[K.dateField] || "").slice(0, 10);
+      if (f.from && d < f.from) return false;
+      if (f.to && d > f.to) return false;
+      if (f.status === "void") { if (active(r)) return false; }
+      else if (!active(r)) return false;
+      else if (f.status !== "all") {
+        var info = kind === "faults" ? faultInfo(r, now) : kind === "complaints" ? complaintInfo(r, now) : kind === "incidents" ? incidentInfo(r, now) : null;
+        if (info) {
+          if (f.status === "open" && !info.open) return false;
+          if (f.status === "closed" && info.open) return false;
+          if (f.status === "overdue" && !(kind === "faults" ? info.open && info.hrs > S.cfg.openAlert : info.overdue)) return false;
+        }
+      }
+      if (q) { var hay = Object.keys(r).map(function (k) { return r[k]; }).join(" ").toLowerCase() + " " + stName(r.station).toLowerCase(); if (hay.indexOf(q) < 0) return false; }
+      return true;
+    }).sort(function (a, b) { return String(b[K.dateField]).localeCompare(String(a[K.dateField])); });
+  }
+
+  function listColumns(kind, now) {
+    if (kind === "faults") return { head: ["ID", "Station", "Charger", "Fault start", "Back in service", "Hrs", "Category", "Description", "Status"], row: function (r) {
+      var i = faultInfo(r, now); return [esc(r.id), esc(stName(r.station)), esc(r.charger), fDT(r.start), r.end ? fDT(r.end) : "—", '<span class="num">' + n1(i.hrs) + "</span>", esc(r.category), '<div class="desc">' + esc(r.description) + "</div>", '<span class="chip ' + i.chip + '">' + esc(i.label) + "</span>"]; } };
+    if (kind === "complaints") return { head: ["ID", "Station", "Received", "Channel", "Category", "Description", "Hrs / SLA", "Status"], row: function (r) {
+      var i = complaintInfo(r, now); return [esc(r.id), esc(stName(r.station)), fDT(r.received), esc(r.channel), esc(r.category), '<div class="desc">' + esc(r.description) + "</div>", '<span class="num">' + n1(i.hrs) + " / " + i.sla + "</span>", '<span class="chip ' + i.chip + '">' + esc(i.label) + "</span>"]; } };
+    if (kind === "incidents") return { head: ["ID", "Station", "Occurred", "Severity", "Type", "What happened", "Injuries", "Reported on time", "Status"], row: function (r) {
+      var i = incidentInfo(r, now); return [esc(r.id), esc(stName(r.station)), fDT(r.occurred), '<span class="chip ' + sevChip(r.severity) + '">' + esc(r.severity) + "</span>", esc(r.type), '<div class="desc">' + esc(r.description) + "</div>", n0(r.injuries || 0), i.onTime === "Y" ? '<span class="chip ok">Yes</span>' : i.onTime === "N" ? '<span class="chip bad">No</span>' : "—", '<span class="chip ' + i.chip + '">' + esc(i.label) + "</span>"]; } };
+    return { head: ["ID", "Sale date", "Station", "Charger", "Customer type", "Status", "kWh", "Revenue (KHR)", "Notes"], row: function (r) {
+      return [esc(r.id), fDT(r.date), esc(stName(r.station)), esc(r.charger), esc(r.custType), esc(r.chgStatus), '<span class="num">' + n1(r.kwh) + "</span>", '<span class="num">' + n0(r.revenue) + "</span>", '<div class="desc">' + esc(r.notes) + "</div>"]; } };
+  }
+
+  function renderList(kind) {
+    var el = $("v-" + kind); if (!el.querySelector("[data-list]")) return;
+    var now = Date.now(), rows = filteredRecords(kind), cols = listColumns(kind, now);
+    el.querySelector("[data-count]").textContent = rows.length + " record" + (rows.length === 1 ? "" : "s") + (rows.length > 500 ? " — showing the newest 500; narrow the filter or download CSV for all" : "");
+    el.querySelector("[data-list]").innerHTML = "<table><thead><tr>" + cols.head.map(function (h) { return "<th>" + esc(h) + "</th>"; }).join("") + "</tr></thead><tbody>" +
+      (rows.length ? rows.slice(0, 500).map(function (r) { return '<tr class="click' + (active(r) ? "" : " void") + '" data-open="' + kind + '" data-id="' + esc(r.id) + '">' + cols.row(r).map(function (c) { return "<td>" + c + "</td>"; }).join("") + "</tr>"; }).join("")
+        : '<tr><td colspan="' + cols.head.length + '" class="muted">No records match.</td></tr>') + "</tbody></table>";
+  }
+
+  function updateCounts() {
+    if (!S.data) return;
+    var now = Date.now();
+    var f = S.data.faults.filter(function (x) { return active(x) && !x.end; }).length;
+    var c = S.data.complaints.filter(function (x) { return active(x) && complaintInfo(x, now).overdue; }).length;
+    var i = S.data.incidents.filter(function (x) { return active(x) && !x.closed; }).length;
+    var set = function (id, v, title) { var e = $(id); e.hidden = !v; e.textContent = v; e.title = title; };
+    set("cntFaults", f, "open faults"); set("cntComplaints", c, "overdue complaints"); set("cntIncidents", i, "open incidents");
+  }
+
+  /* --- editor dialog --- */
+  var ED = { kind: null, rec: null };
+  function openRecord(kind, id) {
+    var K = KINDS[kind];
+    var rec = id ? S.data[K.list].filter(function (r) { return r.id === id; })[0] : null;
+    if (id && !rec) { notice("Record " + esc(id) + " was not found. Select Refresh.", "bad"); return; }
+    ED.kind = kind; ED.rec = rec;
+    $("recTitle").textContent = rec ? K.label + " " + rec.id : "New " + K.label.toLowerCase();
+    $("recErr").textContent = "";
+    var html = "";
+    K.fields.forEach(function (f) {
+      var v = rec ? rec[f.k] : (f.def === "user" ? S.user : f.t === "dt" && f.req && f.now ? nowStr() : "");
+      if (v === undefined || v === null) v = "";
+      var cls = "f" + (f.req ? " req" : "") + (f.w === 3 ? " w3" : f.w === 2 ? " w2" : "");
+      var input;
+      if (f.t === "station") input = '<select name="' + f.k + '">' + stationOptions(false) + "</select>";
+      else if (f.t === "select") { var o = f.opts().slice(); if (v && o.indexOf(v) < 0) o.push(v); input = '<select name="' + f.k + '"><option value="">Choose…</option>' + o.map(function (x) { return '<option value="' + esc(x) + '">' + esc(x) + "</option>"; }).join("") + "</select>"; }
+      else if (f.t === "dt") input = '<div class="inrow"><input type="datetime-local" name="' + f.k + '" value="' + esc(String(v).replace(" ", "T").slice(0, 16)) + '">' + (f.now ? '<button type="button" class="btn ghost small" data-now="' + f.k + '">Now</button>' : "") + "</div>";
+      else if (f.t === "date") input = '<input type="date" name="' + f.k + '" value="' + esc(v) + '">';
+      else if (f.t === "long") input = '<textarea name="' + f.k + '" maxlength="3000">' + esc(v) + "</textarea>";
+      else if (f.t === "num" || f.t === "int") input = '<input type="number" min="0" step="' + (f.t === "int" ? "1" : "any") + '" name="' + f.k + '" value="' + esc(v) + '">';
+      else if (f.t === "charger") input = '<input name="' + f.k + '" list="dlCharger" value="' + esc(v) + '" maxlength="60"><datalist id="dlCharger"></datalist>';
+      else if (f.t === "linkI" || f.t === "linkF") input = '<input name="' + f.k + '" list="dl' + f.t + '" value="' + esc(v) + '" maxlength="20" placeholder="' + (f.t === "linkI" ? "I-0001" : "F-0001") + '"><datalist id="dl' + f.t + '"></datalist>';
+      else if (f.t === "info") { html += '<div class="' + cls + '" data-info="' + f.k + '"><span class="hint"></span></div>'; return; }
+      else input = '<input name="' + f.k + '" value="' + esc(v) + '" maxlength="200">';
+      html += '<label class="' + cls + '"><span>' + esc(f.l) + "</span>" + input + (f.hint ? '<span class="hint">' + esc(f.hint) + "</span>" : "") + "</label>";
+    });
+    $("recFields").innerHTML = html;
+    var form = $("formRec");
+    K.fields.forEach(function (f) { if ((f.t === "station" || f.t === "select") && rec) form.elements[f.k].value = rec[f.k] || ""; });
+    if (!rec && kind === "nonsys") { form.elements.custType.value = S.cfg.custTypes[0] || ""; form.elements.chgStatus.value = "Succeeded"; }
+    if (!rec && kind === "incidents") { form.elements.damage.value = "No"; form.elements.impact.value = "None"; }
+    var info = "";
+    if (rec) info = "Created " + fDT(rec.created) + " by " + esc(rec.createdBy || "—") + " · last changed " + fDT(rec.updated) + " by " + esc(rec.updatedBy || "—") + (active(rec) ? "" : ' · <b class="down">VOID</b>');
+    $("recInfo").innerHTML = info;
+    var left = "";
+    if (rec && S.role === "manager") left = active(rec) ? '<button class="btn danger" type="button" data-void>Void…</button>' : '<button class="btn ghost" type="button" data-restore>Restore</button>';
+    if (rec && active(rec)) {
+      if (kind === "faults" && !rec.end) left += '<button class="btn ghost" type="button" data-quick="end">Back in service now</button>';
+      if (kind === "complaints" && !rec.resolved) left += '<button class="btn ghost" type="button" data-quick="resolved">Resolved now</button>';
+    }
+    $("recLeft").innerHTML = left;
+    $("recSave").disabled = !!(rec && !active(rec) && S.role !== "manager");
+    refreshDynamic();
+    if (!$("dlgRec").open) $("dlgRec").showModal();
+  }
+
+  function refreshDynamic() {
+    var form = $("formRec"), kind = ED.kind, now = Date.now();
+    var st = form.elements.station ? form.elements.station.value : "";
+    var dl = $("dlCharger");
+    if (dl) dl.innerHTML = (S.cfg.chargersBy[st] || []).concat(["Whole station"]).map(function (c) { return '<option value="' + esc(c) + '">'; }).join("");
+    var dlI = $("dllinkI"); if (dlI) dlI.innerHTML = S.data.incidents.filter(function (i) { return i.station === st && active(i); }).map(function (i) { return '<option value="' + esc(i.id) + '">' + esc(fDT(i.occurred) + " " + i.type) + "</option>"; }).join("");
+    var dlF = $("dllinkF"); if (dlF) dlF.innerHTML = S.data.faults.filter(function (i) { return i.station === st && active(i); }).map(function (i) { return '<option value="' + esc(i.id) + '">' + esc(fDT(i.start) + " " + i.charger) + "</option>"; }).join("");
+    var val = function (k) { var e = form.elements[k]; return e ? String(e.value || "").replace("T", " ") : ""; };
+    var box = form.querySelector('[data-info="_sla"] .hint');
+    if (box) {
+      var c = { station: st, category: val("category"), received: val("received"), resolved: val("resolved"), status: "Active" };
+      if (c.category && c.received) { var ci = complaintInfo(c, now); box.innerHTML = "<b>" + ci.sla + " hrs</b> — due " + esc(fDT(ci.due)) + '<br><span class="chip ' + ci.chip + '">' + esc(ci.label) + "</span>"; }
+      else box.textContent = "Pick a category and the received time.";
+    }
+    var sb = form.querySelector('[data-info="_sev"] .hint');
+    if (sb) {
+      var sev = val("severity"), occ = val("occurred");
+      if (sev && occ) { var ii = incidentInfo({ severity: sev, occurred: occ, reported: val("reported"), closed: val("closed"), due: val("due"), status: "Active" }, now);
+        sb.innerHTML = esc(ii.sev.note || "") + "<br>Report to management by <b>" + esc(fDT(ii.reportBy)) + "</b> (" + ii.sev.reportHrs + " h) · close by <b>" + esc(fDT(ii.closeBy)) + "</b> (" + ii.sev.closeDays + " days) · " + '<span class="chip ' + ii.chip + '">' + esc(ii.label) + "</span>"; }
+      else sb.textContent = "Pick the severity and when it occurred to see the reporting and closing targets.";
+    }
+  }
+
+  function collectForm() {
+    var K = KINDS[ED.kind], form = $("formRec"), rec = {}, missing = [];
+    K.fields.forEach(function (f) {
+      if (f.t === "info") return;
+      var e = form.elements[f.k]; var v = e ? String(e.value || "").trim() : "";
+      if (f.t === "dt" && v) v = v.replace("T", " ").slice(0, 16);
+      if (f.req && !v) missing.push(f.l);
+      rec[f.k] = v;
+    });
+    return { rec: rec, missing: missing };
+  }
+
+  function saveRecord(ev) {
+    ev.preventDefault();
+    var c = collectForm();
+    if (c.missing.length) { $("recErr").textContent = "Fill in: " + c.missing.join(", ") + "."; return; }
+    var r = c.rec;
+    var chk = function (a, b, msg) { if (r[a] && r[b] && r[b] < r[a]) throw msg; };
+    try {
+      if (ED.kind === "faults") chk("start", "end", "Back in service is before the fault start.");
+      if (ED.kind === "complaints") chk("received", "resolved", "Resolved is before Received.");
+      if (ED.kind === "incidents") { chk("occurred", "reported", "Reported is before Occurred."); chk("occurred", "closed", "Closed is before Occurred."); if (r.closed && !r.capa) throw "Add the corrective / preventive action before closing the incident."; }
+    } catch (msg) { $("recErr").textContent = msg; return; }
+    if (ED.rec) { r.id = ED.rec.id; r.updated = ED.rec.updated; }
+    $("recSave").disabled = true; $("recErr").textContent = "Saving…";
+    setSync("busy", "Saving…");
+    api({ action: "save", kind: ED.kind, record: r }).then(function (j) {
+      upsertLocal(ED.kind, j.record);
+      setSync("ok", "Saved " + timeNow());
+      $("dlgRec").close();
+      afterDataChange();
+    }).catch(function (e) {
+      $("recSave").disabled = false;
+      if (e && e.code === "wrong_passcode") { $("dlgRec").close(); handleError(e); return; }
+      $("recErr").textContent = errText(e) + (e && e.code === "conflict" ? "" : " Your entry is still here — try Save again.");
+      setSync("err", "Save failed " + timeNow());
+    });
+  }
+  function upsertLocal(kind, rec) {
+    var list = S.data[KINDS[kind].list];
+    for (var i = 0; i < list.length; i++) if (list[i].id === rec.id) { list[i] = rec; return; }
+    list.push(rec);
+  }
+  function voidRecord(restore) {
+    var reason = "";
+    if (!restore) { reason = prompt("Why is " + ED.rec.id + " being voided? (e.g. duplicate, entered by mistake)"); if (!reason) return; }
+    setSync("busy", "Saving…");
+    api({ action: "void", kind: ED.kind, id: ED.rec.id, reason: reason, restore: !!restore }).then(function (j) {
+      upsertLocal(ED.kind, j.record); setSync("ok", "Saved " + timeNow()); $("dlgRec").close(); afterDataChange();
+    }).catch(function (e) { $("recErr").textContent = errText(e); setSync("err", "Failed " + timeNow()); });
+  }
+  function afterDataChange() { updateCounts(); if (S.view === "dash") renderDash(); else if (KINDS[S.view]) renderList(S.view); }
+
+  /* --- CSV --- */
+  function downloadCSV(kind) {
+    var K = KINDS[kind], rows = filteredRecords(kind), now = Date.now();
+    var keys = ["id"].concat(K.fields.filter(function (f) { return f.t !== "info"; }).map(function (f) { return f.k; }));
+    var head = ["ID"].concat(K.fields.filter(function (f) { return f.t !== "info"; }).map(function (f) { return f.l; })).concat(["Station name", "Status (calc)", "Record status", "Created", "Created by", "Updated", "Updated by"]);
+    var out = [head];
+    rows.forEach(function (r) {
+      var info = kind === "faults" ? faultInfo(r, now) : kind === "complaints" ? complaintInfo(r, now) : kind === "incidents" ? incidentInfo(r, now) : { label: "" };
+      out.push(keys.map(function (k) { return r[k]; }).concat([stName(r.station), info.label, r.status, r.created, r.createdBy, r.updated, r.updatedBy]));
+    });
+    var csv = "﻿" + out.map(function (r) { return r.map(function (c) { c = String(c === undefined || c === null ? "" : c); return /[",\n]/.test(c) ? '"' + c.replace(/"/g, '""') + '"' : c; }).join(","); }).join("\r\n");
+    var a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); a.download = kind + "_" + today() + ".csv"; a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+  }
+
+  /* --- XLSX period report --- */
+  function exportReport() {
+    if (!window.XLSX) { notice("The spreadsheet library did not load. Check your internet connection and reload the page.", "bad"); return; }
+    if (!S.lastCalc) return;
+    var A = S.lastCalc.A, B = S.lastCalc.B, P = S.lastCalc.P, a = A.net, b = B ? B.net : {};
+    var wb = XLSX.utils.book_new();
+    var metrics = [
+      ["Revenue (KHR, system + non-system)", "totRev"], ["Non-system revenue (KHR)", "nsRev"], ["Energy (kWh)", "totKwh"], ["Charging sessions (all)", "totSessions"], ["System sessions", "sessions"],
+      ["Failed + canceled", null, function (x) { return x.failed + x.canceled; }], ["Session success", "success"], ["Gross margin % (system)", "gmPct"],
+      ["Faults started", "faults"], ["Downtime hrs in period", "downHrs"], ["Charger uptime", "uptime"], ["MTTR hrs", "mttr"],
+      ["Complaints received", "comp"], ["Complaints per 1,000 sessions", "per1k"], ["Complaints resolved in SLA", "slaPct"],
+      ["Incidents", "inc"], ["Critical + major incidents", "critMaj"], ["Injuries", "injuries"], ["Incident cost (USD)", "cost$"], ["Incidents reported on time", "repPct"], ["Incidents per 10,000 sessions", "per10k"],
+      ["Open faults (now)", "openF"], ["Open complaints (now)", "openC"], ["Overdue complaints (now)", "overC"], ["Open incidents (now)", "openI"], ["Overdue incidents (now)", "overI"]
+    ];
+    var val = function (x, m) { if (!x || x.sessions === undefined) return ""; var v = m[2] ? m[2](x) : x[m[1]]; return isNaN(v) ? "" : v; };
+    var sum1 = [["VET-ENERGY Daily Operation Record — period report"], ["Stations", $("fStation").options[$("fStation").selectedIndex].text], ["Period", P.from + " to " + P.to], ["Compared with", P.cmp ? P.cmp[0] + " to " + P.cmp[1] : "—"], ["Exported", nowStr() + " by " + S.user], [], ["Metric", "Period", "Compare", "Change"]];
+    metrics.forEach(function (m) { var x = val(a, m), y = B ? val(b, m) : ""; sum1.push([m[0], x, y, x !== "" && y !== "" ? x - y : ""]); });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sum1), "Summary");
+    var st = [["Station ID", "Station", "Type", "Chargers", "Revenue (KHR)", "Non-system revenue", "Sessions", "Energy (kWh)", "Cost (KHR)", "Gross margin %", "Session success", "Faults", "Downtime hrs", "Uptime", "MTTR hrs", "Open faults", "Complaints", "Per 1,000", "In SLA", "Open complaints", "Overdue complaints", "Incidents", "Critical + major", "Injuries", "Incident cost USD", "Reported on time", "Open incidents", "Overdue incidents", "Red flags", "Status"]];
+    Object.keys(A.st).forEach(function (id) { var x = A.st[id], s = S.cfg.stById[id]; st.push([id, s.short, s.type, x.chargers, x.rev, x.nsRev, x.sessions, x.kwh, x.cost, nz(x.gmPct), nz(x.success), x.faults, x.downHrs, nz(x.uptime), nz(x.mttr), x.openF, x.comp, nz(x.per1k), nz(x.slaPct), x.openC, x.overC, x.inc, x.critMaj, x.injuries, x.cost$, nz(x.repPct), x.openI, x.overI, x.flags, x.statusTxt]); });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(st), "Stations");
+    var dl = [["Date", "Sessions", "Failed + canceled", "Revenue (KHR)", "Faults started", "Chargers down at day end", "Complaints", "Incidents"]];
+    A.dayList.forEach(function (d) { var x = A.daily[d]; dl.push([d, x.sessions, x.bad, x.rev, x.faults, x.down, x.comp, x.inc]); });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(dl), "Daily");
+    var ids = {}; Object.keys(A.st).forEach(function (id) { ids[id] = 1; });
+    ["faults", "complaints", "incidents", "nonsys"].forEach(function (kind) {
+      var K = KINDS[kind], fl = K.fields.filter(function (f) { return f.t !== "info"; }), now = Date.now();
+      var rows = [["ID"].concat(fl.map(function (f) { return f.l; })).concat(["Status (calc)"])];
+      S.data[K.list].forEach(function (r) {
+        if (!active(r) || !ids[r.station]) return;
+        var d = String(r[K.dateField]).slice(0, 10);
+        var info = kind === "faults" ? faultInfo(r, now) : kind === "complaints" ? complaintInfo(r, now) : kind === "incidents" ? incidentInfo(r, now) : { label: "", open: false };
+        if ((d < P.from || d > P.to) && !info.open) return;
+        rows.push([r.id].concat(fl.map(function (f) { return r[f.k]; })).concat([info.label]));
+      });
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), K.plural.slice(0, 31));
+    });
+    XLSX.writeFile(wb, "Daily_Ops_Report_" + P.from + "_to_" + P.to + ".xlsx");
+  }
+  function nz(v) { return isNaN(v) ? "" : v; }
+
+  /* ---------------- import ---------------- */
+  var IMP = null;
+  function norm(s) { return String(s || "").toLowerCase().replace(/\s+/g, " ").trim(); }
+  function parseWhen(v) {
+    if (v instanceof Date && !isNaN(v)) { return v.getFullYear() + "-" + ("0" + (v.getMonth() + 1)).slice(-2) + "-" + ("0" + v.getDate()).slice(-2) + " " + ("0" + v.getHours()).slice(-2); }
+    if (typeof v === "number" && v > 20000) { var d = new Date(Math.round((v - 25569) * 864e5)); return d.toISOString().slice(0, 13).replace("T", " "); }
+    var s = String(v || "").trim(), m;
+    if ((m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T](\d{1,2}))?/))) return m[1] + "-" + ("0" + m[2]).slice(-2) + "-" + ("0" + m[3]).slice(-2) + " " + ("0" + (m[4] || 0)).slice(-2);
+    if ((m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}))?/))) return m[3] + "-" + ("0" + m[2]).slice(-2) + "-" + ("0" + m[1]).slice(-2) + " " + ("0" + (m[4] || 0)).slice(-2);
+    return "";
+  }
+  function onImportFile(ev) {
+    var file = ev.target.files[0]; if (!file) return;
+    if (!window.XLSX) { $("impStatus").innerHTML = '<div class="notice bad">The spreadsheet library did not load. Check your internet connection and reload.</div>'; return; }
+    $("impPreview").innerHTML = "";
+    $("impStatus").innerHTML = '<div class="notice info">Reading ' + esc(file.name) + " (" + n1(file.size / 1048576) + " MB)… large files can take up to a minute.</div>";
+    var rd = new FileReader();
+    rd.onload = function () {
+      setTimeout(function () {
+        try { IMP = summarise(rd.result, file.name); showPreview(); }
+        catch (err) { $("impStatus").innerHTML = '<div class="notice bad">' + esc(String(err && err.message || err)) + "</div>"; }
+      }, 30);
+    };
+    rd.readAsArrayBuffer(file);
+  }
+  function summarise(buf, name) {
+    var wb = XLSX.read(buf, { type: "array", cellDates: false, dense: true });   // dates as Excel serial numbers: converted below without browser-timezone drift
+    var found = null;
+    wb.SheetNames.some(function (sn) {
+      var rows = XLSX.utils.sheet_to_json(wb.Sheets[sn], { header: 1, raw: true, defval: "" });
+      for (var i = 0; i < Math.min(15, rows.length); i++) {
+        var h = rows[i].map(norm);
+        if (h.indexOf("so date") >= 0 && h.indexOf("station") >= 0 && h.indexOf("charging status") >= 0 && h.indexOf("so code") >= 0) { found = { sheet: sn, rows: rows, hr: i, h: h }; return true; }
+      }
+      return false;
+    });
+    if (!found) throw new Error("No Sale Order table found. The file needs the export headers “SO Code”, “SO Date”, “Station” and “Charging Status”.");
+    var h = found.h, col = function (want, starts) { for (var i = 0; i < h.length; i++) if (starts ? h[i].indexOf(want) === 0 : h[i] === want) return i; return -1; };
+    var C = { code: col("so code"), txn: col("transaction id"), date: col("so date"), type: col("type"), station: col("station"), charger: col("charger"), status: col("charging status"),
+      kwh: col("power delivered", true), cost: col("costing price", true), rev: col("total payment", true) };
+    ["date", "station", "status", "kwh", "rev"].forEach(function (k) { if (C[k] < 0) throw new Error("Column for " + k + " is missing in the export (sheet " + found.sheet + ")."); });
+    var map = {}; S.data.stationMap.forEach(function (m) { map[norm(m[0])] = m[1]; });
+    var daily = {}, hourly = {}, unknown = {}, seen = {}, chargers = {}, dates = {}, orders = 0, revenue = 0, dupes = 0, bad = 0;
+    for (var i = found.hr + 1; i < found.rows.length; i++) {
+      var r = found.rows[i];
+      if (!r || r[C.date] === "" || r[C.date] === undefined) continue;
+      // the system can reuse an SO code for two charges, so a row is a duplicate only when SO code AND transaction ID repeat
+      var code = (C.code >= 0 ? String(r[C.code]).trim() : "") + "|" + (C.txn >= 0 ? String(r[C.txn]).trim() : String(r[C.date]) + "|" + String(r[C.charger]));
+      if (code !== "|") { if (seen[code]) { dupes++; continue; } seen[code] = 1; }
+      var when = parseWhen(r[C.date]); if (!when) { bad++; continue; }
+      var d = when.slice(0, 10), hr = +when.slice(11, 13);
+      var stRaw = String(r[C.station] || "").trim(), sid = map[norm(stRaw)];
+      var ch = C.charger >= 0 ? String(r[C.charger] || "").trim() : "";
+      var ct = C.type >= 0 ? String(r[C.type] || "").trim() : "";
+      var stt = String(r[C.status] || "").trim().toLowerCase();
+      var kwh = +r[C.kwh] || 0, rev = +r[C.rev] || 0, cost = C.cost >= 0 ? +r[C.cost] || 0 : 0;
+      var skey = sid || ("?" + stRaw);
+      if (!sid) { var u = unknown[stRaw] || (unknown[stRaw] = { n: 0, rev: 0 }); u.n++; u.rev += rev; }
+      var k = d + "|" + skey + "|" + ch + "|" + ct, a = daily[k] || (daily[k] = [d, skey, ch, ct, 0, 0, 0, 0, 0, 0, 0]);
+      a[4]++; if (stt === "succeeded") a[5]++; else if (stt === "failed") a[6]++; else if (stt === "canceled" || stt === "cancelled") a[7]++;
+      a[8] += kwh; a[9] += rev; a[10] += cost;
+      var hk = d + "|" + skey + "|" + hr; hourly[hk] = (hourly[hk] || 0) + 1;
+      if (ch) chargers[skey + "|" + ch] = 1;
+      var dd = dates[d] || (dates[d] = { n: 0, rev: 0 }); dd.n++; dd.rev += rev;
+      orders++; revenue += rev;
+    }
+    if (!orders) throw new Error("The table has headers but no orders.");
+    return { name: name, sheet: found.sheet, daily: daily, hourly: hourly, unknown: unknown, chargers: chargers, dates: dates, orders: orders, revenue: revenue, dupes: dupes, bad: bad, existing: null };
+  }
+  function showPreview() {
+    var ds = Object.keys(IMP.dates).sort();
+    IMP.first = ds[0]; IMP.last = ds[ds.length - 1];
+    $("impStatus").innerHTML = '<div class="notice info">Read <b>' + n0(IMP.orders) + "</b> orders from sheet “" + esc(IMP.sheet) + "” · " + fDate(IMP.first) + " to " + fDate(IMP.last) + " · revenue " + n0(IMP.revenue) + " KHR" +
+      (IMP.dupes ? " · " + IMP.dupes + " duplicate rows (same SO code and transaction ID) skipped" : "") + (IMP.bad ? " · " + IMP.bad + " rows without a readable date skipped" : "") + ". Checking what is already stored…</div>";
+    api({ action: "sales", from: IMP.first, to: IMP.last }).then(function (j) {
+      var ex = {}; j.daily.forEach(function (r) { ex[r[0]] = (ex[r[0]] || 0) + r[4]; });
+      IMP.existing = ex; drawPreview(ds);
+    }).catch(function (e) { $("impStatus").innerHTML = '<div class="notice bad">' + esc(errText(e)) + "</div>"; });
+  }
+  function drawPreview(ds) {
+    var st = $("impStatus").querySelector(".notice"); if (st) st.innerHTML = st.innerHTML.replace(" Checking what is already stored…", "");
+    var unk = Object.keys(IMP.unknown);
+    var h = "";
+    if (unk.length) {
+      h += '<h3 style="margin-top:14px">Station names the map does not know</h3><p class="muted small" style="margin-top:0">Pick the station for each name. The choice is saved to the StationMap tab for next time. Names left unmatched are not imported.</p><div class="tbl-wrap"><table><thead><tr><th>Name in export</th><th class="num">Orders</th><th class="num">Revenue</th><th>Station</th></tr></thead><tbody>' +
+        unk.map(function (u, i) { return "<tr><td>" + esc(u) + '</td><td class="num">' + n0(IMP.unknown[u].n) + '</td><td class="num">' + n0(IMP.unknown[u].rev) + '</td><td><select data-map="' + i + '">' + stationOptions(false, '<option value="-">Do not import</option>') + "</select></td></tr>"; }).join("") + "</tbody></table></div>";
+    }
+    var risky = 0;
+    h += '<h3 style="margin-top:14px">Dates in this file</h3><p class="muted small" style="margin-top:0">Ticked dates replace what is stored. A date is unticked when the file has <b>fewer</b> orders than already stored — usually a partial export. Tick it only if you are sure.</p>' +
+      '<div class="inrow noprint" style="margin-bottom:6px"><button class="btn ghost small" type="button" data-tick="all">Tick all</button><button class="btn ghost small" type="button" data-tick="new">Only dates not stored yet</button></div>' +
+      '<div class="tbl-wrap" style="max-height:340px;overflow:auto"><table><thead><tr><th>Import</th><th>Date</th><th class="num">Orders in file</th><th class="num">Stored now</th><th class="num">Revenue in file</th><th>Note</th></tr></thead><tbody>' +
+      ds.map(function (d) {
+        var f = IMP.dates[d].n, e = IMP.existing[d] || 0, less = e > f; if (less) risky++;
+        return '<tr><td><input type="checkbox" style="width:auto" data-date="' + d + '"' + (less ? "" : " checked") + "></td><td>" + fDate(d) + '</td><td class="num">' + n0(f) + '</td><td class="num">' + (e ? n0(e) : "—") + '</td><td class="num">' + n0(IMP.dates[d].rev) + "</td><td>" +
+          (less ? '<span class="chip bad">fewer than stored</span>' : e ? (e === f ? '<span class="chip idle">same count</span>' : '<span class="chip warn">will update</span>') : '<span class="chip ok">new</span>') + "</td></tr>";
+      }).join("") + "</tbody></table></div>";
+    h += '<div class="inrow" style="margin-top:12px;align-items:center"><button class="btn" type="button" id="impGo">Import ticked dates</button><span class="small muted" id="impSel"></span></div><div class="progress" style="margin-top:10px" hidden id="impBar"><i></i></div><div id="impDone" style="margin-top:10px"></div>';
+    $("impPreview").innerHTML = h;
+    $("impPreview").querySelectorAll("[data-map]").forEach(function (s) {
+      var name = unk[+s.getAttribute("data-map")];
+      var guess = S.data.stations.filter(function (st) { return norm(name).indexOf(norm(st.short)) >= 0; })[0];
+      if (guess) s.value = guess.id; else s.value = "-";
+    });
+    var upd = function () { var n = $("impPreview").querySelectorAll("[data-date]:checked").length; $("impSel").textContent = n + " of " + ds.length + " dates ticked" + (risky ? " · " + risky + " flagged" : ""); $("impGo").disabled = !n || S.role !== "manager"; };
+    $("impPreview").addEventListener("change", upd); upd();
+    if (S.role !== "manager") $("impSel").textContent += " · manager passcode needed";
+  }
+  function runImport() {
+    var sel = {}; $("impPreview").querySelectorAll("[data-date]:checked").forEach(function (c) { sel[c.getAttribute("data-date")] = 1; });
+    var mappings = [], remap = {};
+    var unk = Object.keys(IMP.unknown);
+    $("impPreview").querySelectorAll("[data-map]").forEach(function (s) { var name = unk[+s.getAttribute("data-map")]; if (s.value && s.value !== "-") { mappings.push([name, s.value]); remap["?" + name] = s.value; } });
+    var fix = function (sk) { return sk.charAt(0) === "?" ? remap[sk] || null : sk; };
+    var daily = {}, hourly = {}, chargers = {};
+    Object.keys(IMP.daily).forEach(function (k) {
+      var a = IMP.daily[k], s = fix(a[1]); if (!s || !sel[a[0]]) return;
+      var nk = a[0] + "|" + s + "|" + a[2] + "|" + a[3], b = daily[nk] || (daily[nk] = [a[0], s, a[2], a[3], 0, 0, 0, 0, 0, 0, 0]);
+      for (var i = 4; i <= 10; i++) b[i] += a[i];
+    });
+    Object.keys(IMP.hourly).forEach(function (k) { var p = k.split("|"), s = fix(p[1]); if (!s || !sel[p[0]]) return; var nk = p[0] + "|" + s + "|" + p[2]; hourly[nk] = (hourly[nk] || 0) + IMP.hourly[k]; });
+    Object.keys(IMP.chargers).forEach(function (k) { var p = k.split("|"), s = fix(p[0]); if (s) chargers[s + "|" + p[1]] = [s, p[1]]; });
+    var dates = Object.keys(sel).sort();
+    var dRows = Object.keys(daily).map(function (k) { var a = daily[k]; a[8] = Math.round(a[8] * 1000) / 1000; a[9] = Math.round(a[9] * 100) / 100; a[10] = Math.round(a[10] * 100) / 100; return a; });
+    var hRows = Object.keys(hourly).map(function (k) { var p = k.split("|"); return [p[0], p[1], +p[2], hourly[k]]; });
+    var chunks = []; for (var i = 0; i < dates.length; i += 20) chunks.push(dates.slice(i, i + 20));
+    var orders = 0, revenue = 0; dates.forEach(function (d) { orders += IMP.dates[d].n; revenue += IMP.dates[d].rev; });
+    var importId = "", step = 0, written = 0;
+    $("impGo").disabled = true; $("impBar").hidden = false;
+    var bar = $("impBar").firstChild;
+    function next() {
+      if (step >= chunks.length) {
+        bar.style.width = "100%";
+        $("impDone").innerHTML = '<div class="notice info">Done — ' + importId + ": " + n0(orders) + " orders for " + dates.length + " dates saved as " + n0(written) + " daily rows. Reloading…</div>";
+        S.sales = null; loadAll();
+        return;
+      }
+      var ch = chunks[step], cs = {}; ch.forEach(function (d) { cs[d] = 1; });
+      var payload = { action: "import", importId: importId, fileName: IMP.name, dates: ch,
+        daily: dRows.filter(function (r) { return cs[r[0]]; }), hourly: hRows.filter(function (r) { return cs[r[0]]; }),
+        mappings: step === 0 ? mappings : [], chargers: step === 0 ? Object.keys(chargers).map(function (k) { return chargers[k]; }) : [],
+        final: step === chunks.length - 1, first: dates[0], last: dates[dates.length - 1], orders: orders, revenue: Math.round(revenue), rowsTotal: dRows.length,
+        notes: "Sheet " + IMP.sheet + (mappings.length ? " · new mappings: " + mappings.map(function (m) { return m[0] + "→" + m[1]; }).join(", ") : "") };
+      setSync("busy", "Importing " + (step + 1) + "/" + chunks.length);
+      api(payload).then(function (j) { importId = j.importId; written += j.written; step++; bar.style.width = Math.round(step / chunks.length * 100) + "%"; next(); })
+        .catch(function (e) { $("impDone").innerHTML = '<div class="notice bad">Import stopped at part ' + (step + 1) + " of " + chunks.length + ": " + esc(errText(e)) + " Dates already sent are saved; run the import again to finish — it is safe to repeat.</div>"; setSync("err", "Import failed"); $("impGo").disabled = false; });
+    }
+    next();
+  }
+
+  /* ---------------- admin ---------------- */
+  function renderAdmin() {
+    var d = S.data, c = S.cfg, el = $("v-admin");
+    var thr = Object.keys(c.thr).map(function (k) { var t = c.thr[k]; return [esc(k), esc(t.dir), t.green < 1.5 && t.green > 0 && k.indexOf("hrs") < 0 && k.indexOf("per") < 0 ? pct(t.green, 0) : t.green, t.amber < 1.5 && t.amber > 0 && k.indexOf("hrs") < 0 && k.indexOf("per") < 0 ? pct(t.amber, 0) : t.amber, esc(t.note || "")]; });
+    var lb = d.lastBackup;
+    el.innerHTML = '<div class="section-title"><h2>Stations &amp; settings</h2>' + (SHEET_URL ? '<a class="btn ghost" target="_blank" rel="noopener" href="' + esc(SHEET_URL) + '">Open the Google Sheet</a>' : "") + "</div>" +
+      '<p class="muted" style="margin-top:0">These lists are read from the Google Sheet. To change them, edit the <b>Stations</b>, <b>StationMap</b>, <b>Chargers</b> or <b>Settings</b> tab in the Sheet, then select Refresh here.</p>' +
+      '<div class="grid2"><div class="panel"><h3>Data safety</h3><p style="margin-top:0">Last backup: <b>' + (lb ? esc(fDT(lb.at)) + "</b> — " + esc(lb.name) : "none yet</b>") + "</p>" +
+      '<p class="small muted">Backups are full copies of the Sheet in the “Daily Ops DB – Backups” Drive folder. A backup also runs automatically before an import when the last one is over 24 h old, and weekly once the trigger is installed (see guide). Voided records stay in the Sheet; every create, edit, void and import is written to the Audit_Log tab.</p>' +
+      (S.role === "manager" ? '<button class="btn" type="button" id="btnBackup">Back up now</button>' : '<p class="small muted">Managers can run a backup from here.</p>') +
+      '<p class="small muted" style="margin-bottom:0">Server ' + esc(d.version) + " · server time " + esc(fDT(d.serverTime)) + " · signed in as " + esc(S.user) + " (" + esc(S.role) + ")</p></div>" +
+      '<div class="panel"><h3>Import history</h3><div class="tbl-wrap" style="max-height:260px;overflow:auto" id="tImp"></div></div></div>' +
+      '<div class="panel" style="margin-top:16px"><h3>Stations</h3><div class="tbl-wrap" id="tSt"></div></div>' +
+      '<div class="grid2" style="margin-top:16px"><div class="panel"><h3>KPI thresholds</h3><div class="tbl-wrap" id="tThr"></div></div>' +
+      '<div class="panel"><h3>Incident severity targets</h3><div class="tbl-wrap" id="tSev"></div></div></div>' +
+      '<div class="grid3" style="margin-top:16px"><div class="panel"><h3>Complaint categories &amp; SLA</h3><div class="tbl-wrap" id="tCC"></div><p class="small muted">Partner SLA: station types “' + esc(c.partnerTypes.join(", ")) + "” get at least " + c.partnerHrs + ' hrs.</p></div>' +
+      '<div class="panel"><h3>Fault categories · channels · customer types</h3><div class="tbl-wrap" id="tLists"></div></div>' +
+      '<div class="panel"><h3>Incident types</h3><div class="tbl-wrap" id="tIT"></div></div></div>';
+    simpleTable("tImp", ["Import", "When", "By", "Dates", "Orders"], d.imports.map(function (x) { return [esc(x.id), fDT(x.at), esc(x.by), fDate(x.first) + " – " + fDate(x.last), n0(x.orders)]; }), 4);
+    simpleTable("tSt", ["ID", "Name", "Short name", "Type", "Province", "Chargers", "Connectors", "kW", "Hrs/day", "Opened", "Active", "Notes"], d.stations.map(function (s) { return [esc(s.id), esc(s.name), esc(s.short), esc(s.type), esc(s.province), s.chargers, s.connectors, s.kw, s.hrs, fDate(s.opened), s.active ? "Y" : "N", '<span class="small">' + esc(s.notes) + "</span>"]; }), 5);
+    simpleTable("tThr", ["KPI", "Better", "Green if", "Amber if", "Note"], thr, 2);
+    simpleTable("tSev", ["Severity", "Report within (hrs)", "Close within (days)", "Meaning"], c.sev.map(function (s) { return [esc(s.name), s.reportHrs, s.closeDays, '<span class="small">' + esc(s.note) + "</span>"]; }), 1);
+    simpleTable("tCC", ["Category", "SLA hrs"], c.compCats.map(function (x) { return [esc(x.name), x.sla]; }));
+    var mx = Math.max(c.faultCats.length, c.channels.length, c.custTypes.length), lr = [];
+    for (var i = 0; i < mx; i++) lr.push([esc(c.faultCats[i] || ""), esc(c.channels[i] || ""), esc(c.custTypes[i] || "")]);
+    simpleTable("tLists", ["Fault category", "Channel", "Customer type"], lr, 9);
+    simpleTable("tIT", ["Incident type"], c.incTypes.map(function (x) { return [esc(x)]; }), 9);
+    var bb = $("btnBackup");
+    if (bb) bb.onclick = function () { bb.disabled = true; bb.textContent = "Backing up…"; api({ action: "backup" }).then(function (j) { S.data.lastBackup = j.backup; renderAdmin(); setSync("ok", "Backup done " + timeNow()); }).catch(function (e) { bb.disabled = false; bb.textContent = "Back up now"; notice(esc(errText(e)), "bad"); }); };
+  }
+
+  /* ---------------- views, loading, sign-in ---------------- */
+  function show(v) {
+    S.view = v;
+    document.querySelectorAll("#tabs button").forEach(function (b) { b.setAttribute("aria-selected", b.getAttribute("data-v") === v ? "true" : "false"); });
+    ["dash", "faults", "complaints", "incidents", "nonsys", "import", "admin"].forEach(function (x) { $("v-" + x).hidden = x !== v; });
+    if (!S.data) return;
+    if (v === "dash") renderDash();
+    else if (KINDS[v]) buildListView(v);
+    else if (v === "admin") renderAdmin();
+    else if (v === "import") $("impManagerOnly").hidden = S.role === "manager";
+  }
+
+  function fillStationFilter() {
+    var sel = $("fStation"), cur = sel.value || "*";
+    var h = '<option value="*">All stations</option><option value="type:VET-owned">VET-owned stations</option><option value="type:Franchised (PNP)">Franchised (PNP) stations</option><option value="type:HSP">Host-site (HSP) stations</option>';
+    S.data.stations.forEach(function (s) { h += '<option value="' + esc(s.id) + '">' + esc(s.id + " · " + s.short) + "</option>"; });
+    sel.innerHTML = h; sel.value = cur; if (!sel.value) sel.value = "*";
+  }
+
+  function loadAll() {
+    if (S.busy) return Promise.resolve();
+    S.busy = true;
+    setSync("busy", "Loading…");
+    return api({ action: "bootstrap" }).then(function (j) {
+      S.data = j; S.role = j.role; S.cfg = buildCfg(j);
+      $("whoName").textContent = S.user + " · " + (S.role === "manager" ? "Manager" : "Staff");
+      fillStationFilter();
+      notice("");
+      setSync("ok", "Up to date " + timeNow());
+      updateCounts();
+      show(S.view);
+    }).catch(function (e) { handleError(e, "Loading"); }).then(function () { S.busy = false; });
+  }
+
+  function signOut(msg) {
+    S.key = ""; S.data = null;
+    try { localStorage.removeItem(LS_KEY); } catch (e) {}
+    $("siErr").textContent = msg || "";
+    $("siName").value = S.user || "";
+    if (!$("dlgSignIn").open) $("dlgSignIn").showModal();
+  }
+
+  function init() {
+    if (!API_URL || API_URL.indexOf("PASTE_") === 0) {
+      notice("Setup needed: open this file, find <b>API_URL</b> near the bottom, and paste your Apps Script web app URL. See SETUP-GUIDE.md.");
+      setSync("err", "Not set up"); return;
+    }
+    try { S.key = localStorage.getItem(LS_KEY) || ""; S.user = localStorage.getItem(LS_USER) || ""; } catch (e) {}
+    try {
+      var p = JSON.parse(localStorage.getItem(LS_PRESET) || "null");
+      if (p) { $("fPreset").value = p.p || "last7"; if (p.p === "custom") { $("fFrom").value = p.f; $("fTo").value = p.t; } $("fCompare").value = p.c || "prev"; S.pendingStation = p.s; }
+      else $("fPreset").value = "last7";
+    } catch (e) { $("fPreset").value = "last7"; }
+    if (!S.key || !S.user) { signOut(""); return; }
+    loadAll().then(function () { if (S.pendingStation && S.data) { $("fStation").value = S.pendingStation; if (!$("fStation").value) $("fStation").value = "*"; if (S.view === "dash") renderDash(); } });
+  }
+
+  /* ---------------- events ---------------- */
+  $("formSignIn").addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var name = $("siName").value.trim(), key = $("siKey").value.trim();
+    if (!name || !key) { $("siErr").textContent = "Enter your name and the passcode."; return; }
+    S.key = key; S.user = name;
+    $("siErr").textContent = "Checking…";
+    api({ action: "ping" }).then(function () {
+      try { localStorage.setItem(LS_USER, name); if ($("siRemember").checked) localStorage.setItem(LS_KEY, key); else localStorage.removeItem(LS_KEY); } catch (e) {}
+      $("siKey").value = ""; $("dlgSignIn").close(); loadAll();
+    }).catch(function (e) { S.key = ""; $("siErr").textContent = errText(e); });
+  });
+  $("dlgSignIn").addEventListener("cancel", function (ev) { ev.preventDefault(); });
+  $("btnSignOut").addEventListener("click", function () { signOut(""); });
+  $("btnRefresh").addEventListener("click", function () { S.sales = null; loadAll(); });
+  $("tabs").addEventListener("click", function (ev) { var b = ev.target.closest("button[data-v]"); if (b) show(b.getAttribute("data-v")); });
+  ["fFrom", "fTo"].forEach(function (id) { $(id).addEventListener("change", function () { $("fPreset").value = "custom"; renderDash(); }); });
+  ["fPreset", "fCompare", "fStation"].forEach(function (id) { $(id).addEventListener("change", renderDash); });
+  $("btnExport").addEventListener("click", exportReport);
+  document.querySelectorAll("[data-st]").forEach(function (b) { b.addEventListener("click", function () {
+    S.stationTable = b.getAttribute("data-st");
+    document.querySelectorAll("[data-st]").forEach(function (x) { x.className = "btn small" + (x === b ? "" : " ghost"); });
+    if (S.lastCalc) drawStationTable(S.lastCalc.A, Object.keys(S.lastCalc.A.st));
+  }); });
+  document.addEventListener("click", function (ev) {
+    var o = ev.target.closest("[data-open]");
+    if (o && S.data) { ev.preventDefault(); openRecord(o.getAttribute("data-open"), o.getAttribute("data-id")); return; }
+    var n = ev.target.closest("[data-new]"); if (n) { openRecord(n.getAttribute("data-new"), null); return; }
+    var c = ev.target.closest("[data-csv]"); if (c) { downloadCSV(c.getAttribute("data-csv")); return; }
+    var nw = ev.target.closest("[data-now]"); if (nw) { $("formRec").elements[nw.getAttribute("data-now")].value = nowStr().replace(" ", "T"); refreshDynamic(); return; }
+    if (ev.target.closest("[data-close]")) { $("dlgRec").close(); return; }
+    if (ev.target.closest("[data-void]")) { voidRecord(false); return; }
+    if (ev.target.closest("[data-restore]")) { voidRecord(true); return; }
+    var q = ev.target.closest("[data-quick]"); if (q) { $("formRec").elements[q.getAttribute("data-quick")].value = nowStr().replace(" ", "T"); refreshDynamic(); $("formRec").requestSubmit(); return; }
+    var t = ev.target.closest("[data-tick]");
+    if (t) { var mode = t.getAttribute("data-tick"); $("impPreview").querySelectorAll("[data-date]").forEach(function (cb) { cb.checked = mode === "all" ? true : !IMP.existing[cb.getAttribute("data-date")]; }); $("impPreview").dispatchEvent(new Event("change")); return; }
+    if (ev.target.id === "impGo") runImport();
+  });
+  $("formRec").addEventListener("submit", saveRecord);
+  $("formRec").addEventListener("change", refreshDynamic);
+  $("impFile").addEventListener("change", onImportFile);
+  // keep the open-item ages fresh and pick up teammates' entries
+  setInterval(function () {
+    if (!S.data || document.hidden || $("dlgRec").open || S.view === "import") return;
+    loadAll();
+  }, 180000);
+  document.addEventListener("visibilitychange", function () { if (!document.hidden && S.data && !$("dlgRec").open && Date.now() - (S.lastLoad || 0) > 60000) { S.lastLoad = Date.now(); loadAll(); } });
+
+  window.addEventListener("load", init);
+})();
+</script>
+</body>
+</html>
