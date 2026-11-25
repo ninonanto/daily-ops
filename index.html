@@ -148,7 +148,7 @@ td.rag.G { background: var(--ok-soft); color: var(--ok); } td.rag.A { background
 .aud-sec { margin-top: 14px; }
 .aud-sec > h3 { background: var(--accent); color: var(--accent-ink); padding: 6px 10px; border-radius: 6px; margin: 0 0 6px; font-size: 13px; }
 .aud-item { display: grid; grid-template-columns: 36px minmax(0, 1fr) 250px; gap: 10px; padding: 8px 6px; border-bottom: 1px solid var(--line); align-items: start; }
-.aud-item.nc { background: var(--crit-soft); } .aud-item.na { opacity: .75; }
+.aud-item.nc { background: var(--crit-soft); } .aud-item.pc { background: var(--warn-soft); } .aud-item.na { opacity: .75; }
 .aud-item .no { font-weight: 600; color: var(--accent); }
 .aud-item .txt { white-space: pre-line; font-size: 13px; }
 .aud-item details { font-size: 12px; color: var(--muted); }
@@ -157,7 +157,7 @@ td.rag.G { background: var(--ok-soft); color: var(--ok); } td.rag.A { background
 .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
 .seg button { border: none; background: var(--surface); padding: 5px 10px; font-size: 12px; font-weight: 600; color: var(--muted); }
 .seg button + button { border-left: 1px solid var(--line); }
-.seg button.on[data-e="C"] { background: var(--ok); color: #fff; } .seg button.on[data-e="NC"] { background: var(--crit); color: #fff; } .seg button.on[data-e="NA"] { background: var(--idle); color: #fff; }
+.seg button.on[data-e="C"] { background: var(--ok); color: #fff; } .seg button.on[data-e="NC"] { background: var(--crit); color: #fff; } .seg button.on[data-e="NA"] { background: var(--idle); color: #fff; } .seg button.on[data-e="PC"] { background: var(--warn); color: #fff; }
 .seg button:disabled { cursor: default; }
 .bar { height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; } .bar > i { display: block; height: 100%; }
 .big-score { font-family: var(--font-display); font-size: 40px; line-height: 1; }
@@ -166,13 +166,34 @@ td.rag.G { background: var(--ok-soft); color: var(--ok); } td.rag.A { background
 body.printing .wrap, body.printing .band, body.printing .tabbar { display: none !important; }
 body.printing { background: #fff; }
 body.printing #printArea { display: block; padding: 0 8mm; }
-.rep { --rep: #e96500; --rep-soft: #fde8d7; --rep-line: #f3c8a5; color: #1f1a17; }
-.rep h1 { font-size: 22px; color: var(--rep); border-bottom: 3px solid var(--rep); padding-bottom: 6px; margin-bottom: 4px; }
-.rep table { font-size: 11px; } .rep th { background: var(--rep); color: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-.rep td, .rep th { border-bottom: 1px solid var(--rep-line); }
-.rep tr.total td { background: var(--rep-soft); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-.rep .meta td { border: 1px solid var(--rep-line); } .rep .meta td:nth-child(odd) { background: var(--rep-soft); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-.rep h2 { font-size: 15px; margin: 14px 0 6px; color: var(--rep); }
+.rep { --rep: #e96500; --rep-soft: #fde8d7; --rep-line: #f3c8a5; color: #1f1a17; font-family: "IBM Plex Sans", "Noto Sans Khmer", Arial, sans-serif; font-size: 11px; max-width: 190mm; margin: 0 auto; }
+.rep * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.rep-head { display: flex; justify-content: space-between; align-items: center; background: var(--rep); color: #fff; padding: 10px 14px; border-radius: 6px; }
+.rep-org { font-size: 10px; letter-spacing: .08em; font-weight: 600; opacity: .9; } .rep-title { font-size: 20px; font-weight: 600; }
+.rep-code { text-align: right; font-size: 11px; line-height: 1.4; }
+.rep-top { display: grid; grid-template-columns: 1fr 150px; gap: 10px; margin-top: 10px; align-items: stretch; }
+.rep-info { width: 100%; border-collapse: collapse; } .rep-info th, .rep-info td { border: 1px solid var(--rep-line); padding: 4px 7px; text-align: left; position: static; font-size: 11px; }
+.rep-info th { background: var(--rep-soft); color: #5a2a00; width: 17%; font-weight: 600; }
+.rep-score { border: 2px solid; border-radius: 6px; text-align: center; padding: 8px 6px; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+.rep-score .lbl { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: #667085; } .rep-score .val { font-size: 30px; font-weight: 700; line-height: 1; }
+.rep-score .rat { color: #fff; font-size: 10px; font-weight: 600; border-radius: 4px; padding: 3px 4px; }
+.rep-counts { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0 2px; font-size: 10.5px; align-items: center; }
+.rep h2 { font-size: 13px; margin: 14px 0 6px; color: var(--rep); border-bottom: 2px solid var(--rep); padding-bottom: 3px; }
+.rep-t { width: 100%; border-collapse: collapse; font-size: 10.5px; } .rep-t th { background: var(--rep); color: #fff; padding: 5px 6px; text-align: left; position: static; border: 1px solid var(--rep); font-weight: 600; }
+.rep-t td { border: 1px solid var(--rep-line); padding: 4px 6px; vertical-align: top; overflow-wrap: anywhere; } .rep-t.fixed { table-layout: fixed; } .rep-t.fixed th { white-space: normal; font-size: 10px; } .rep-t .n { text-align: center; } .rep-t tbody tr:nth-child(even) td { background: #fffaf6; }
+.rep-t tr.total td { background: var(--rep-soft); font-weight: 700; } .rep-t tr.sec td { background: var(--rep-soft); color: #7a3500; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; font-size: 10px; }
+.rep-ck td.txt { white-space: pre-line; } .rep-ck tr { break-inside: avoid; }
+.rep-bar { display: inline-block; width: 62%; height: 8px; background: #eee; border-radius: 4px; overflow: hidden; vertical-align: middle; margin-right: 6px; } .rep-bar i { display: block; height: 100%; }
+.rep-pct { font-weight: 600; }
+.rep .ev { display: inline-block; border-radius: 10px; padding: 1px 8px; font-weight: 600; font-size: 10px; white-space: nowrap; }
+.rep .ev.c { background: #dff1e5; color: #1e7b4a; } .rep .ev.pc { background: #fff1d6; color: #8a5300; } .rep .ev.nc { background: #fde2df; color: #b42318; } .rep .ev.na { background: #eef0f3; color: #475467; }
+.rep .risk { display: inline-block; border-radius: 10px; padding: 1px 7px; font-weight: 600; font-size: 10px; } .rep .risk.high { background: #fde2df; color: #b42318; } .rep .risk.medium { background: #fff1d6; color: #8a5300; } .rep .risk.low { background: #dff1e5; color: #1e7b4a; }
+.rep .prev { margin-top: 3px; color: #475467; }
+.rep-note { font-size: 9.5px; color: #667085; margin: 5px 0 0; }
+.rep-box { border: 1px solid var(--rep-line); border-radius: 4px; padding: 8px 10px; min-height: 48px; white-space: pre-line; }
+.rep-sign { width: 100%; border-collapse: separate; border-spacing: 12px 0; margin-top: 22px; font-size: 10.5px; } .rep-sign td { width: 33%; vertical-align: top; } .rep-sign .ln { border-bottom: 1px solid #1f1a17; height: 42px; margin-bottom: 4px; }
+.rep-foot { font-size: 9px; color: #98a2b3; margin-top: 14px; text-align: center; }
+@media print { @page { size: A4; margin: 12mm 10mm; } .rep-break { break-before: page; } .rep h2, .rep-t thead { break-after: avoid; } body.printing #printArea { padding: 0; } }
 @media print {
   nav.tabs, .tools, .who button, .noprint, .tabbar { display: none !important; }
   .band { background: #fff; color: #000; } .band h1 { color: #0b6e75; }
@@ -1823,14 +1844,14 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
   function enOf(t) { var p = String(t || "").split("\n").map(function (x) { return x.trim(); }).filter(String); return p.length ? p[p.length - 1] : ""; }
   function audScore(answers) {
     var c = {}; AUD_CATS.forEach(function (k) { c[k[0]] = { n: 0, ok: 0, w: k[2] }; });
-    var scored = 0, nc = 0, blank = 0;
+    var scored = 0, nc = 0, pcs = 0, blank = 0;
     (S.data.checklist || []).forEach(function (it) {
       var a = answers[it.no] || {}, x = c[it.cat]; if (!x) return;
-      if (a.e === "C") { x.n++; x.ok++; scored++; } else if (a.e === "NC") { x.n++; scored++; nc++; } else if (a.e !== "NA") blank++;
+      if (a.e === "C") { x.n++; x.ok++; scored++; } else if (a.e === "PC") { x.n++; x.ok += 0.5; scored++; pcs++; } else if (a.e === "NC") { x.n++; scored++; nc++; } else if (a.e !== "NA") blank++;
     });
     var tot = 0, any = false, pc = {};
     Object.keys(c).forEach(function (k) { pc[k] = c[k].n ? c[k].ok / c[k].n : ""; if (c[k].n) { tot += c[k].w * pc[k]; any = true; } });
-    return { score: any ? tot : "", pct: pc, n: c, scored: scored, nc: nc, blank: blank };
+    return { score: any ? tot : "", pct: pc, n: c, scored: scored, nc: nc, pc: pcs, blank: blank };
   }
   function audEditable(a) {
     if (!can("kpi") || !a) return false;
@@ -1872,13 +1893,13 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       kpi("Open CAPs", n0(capsOpen.length), n0(capsOpen.filter(function (c) { return capInfo(c).overdue; }).length) + " overdue", null, "", capsOpen.some(function (c) { return capInfo(c).overdue; }) ? "r" : capsOpen.length ? "a" : "g"),
       kpi("Drafts", n0((S.data.audits || []).filter(function (a) { return active(a) && a.auditStatus === "Draft"; }).length), "not yet submitted", null, "", "plain")
     ].join("");
-    $("audT").innerHTML = "<table><thead><tr><th>ID</th><th>Station</th><th>Audit date</th><th>Auditor</th><th class=\"num\">Score</th><th>Rating</th><th class=\"num\">Items</th><th class=\"num\">Non-compl.</th><th>CAPs (open / all)</th><th>Status</th></tr></thead><tbody>" +
+    $("audT").innerHTML = "<table><thead><tr><th>ID</th><th>Station</th><th>Audit date</th><th>Auditor</th><th class=\"num\">Score</th><th>Rating</th><th class=\"num\">Items</th><th class=\"num\">Partial</th><th class=\"num\">Non-compl.</th><th>CAPs (open / all)</th><th>Status</th></tr></thead><tbody>" +
       (list.length ? list.map(function (a) {
         var caps = (S.data.caps || []).filter(function (c) { return active(c) && c.auditId === a.id; }), op = caps.filter(function (c) { return !capClosed(c); }).length;
         var b = audBand(a.score);
         return '<tr class="click' + (active(a) ? "" : " void") + '" data-aud="' + esc(a.id) + '"><td>' + esc(a.id) + "</td><td>" + esc(stName(a.station)) + "</td><td>" + fDate(a.date) + "</td><td>" + esc(a.auditor) + '</td><td class="num"><b>' + pct(a.score) + "</b></td><td>" + (b ? '<span class="chip ' + (b[2] === "G" ? "ok" : b[2] === "A" ? "warn" : "bad") + '">' + esc(b[1]) + "</span>" : "—") +
-          '</td><td class="num">' + n0(a.scored) + '</td><td class="num">' + n0(a.nc) + "</td><td>" + op + " / " + caps.length + "</td><td>" + audStatusChip(a) + "</td></tr>";
-      }).join("") : '<tr><td colspan="10" class="muted">No audits match.</td></tr>') + "</tbody></table>";
+          '</td><td class="num">' + n0(a.scored) + '</td><td class="num">' + n0(a.pc || 0) + '</td><td class="num">' + n0(a.nc) + "</td><td>" + op + " / " + caps.length + "</td><td>" + audStatusChip(a) + "</td></tr>";
+      }).join("") : '<tr><td colspan="11" class="muted">No audits match.</td></tr>') + "</tbody></table>";
     $("audT").querySelectorAll("[data-aud]").forEach(function (tr) { tr.onclick = function () { openAudit(tr.getAttribute("data-aud")); }; });
   }
   function openAudit(id) {
@@ -1895,12 +1916,12 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
   }
   function syncFindings(a) {
     var ck = {}; (S.data.checklist || []).forEach(function (it) { ck[it.no] = it; });
-    var nc = {}; Object.keys(a.answers).forEach(function (k) { if (a.answers[k].e === "NC") nc[+k] = 1; });
+    var nc = {}; Object.keys(a.answers).forEach(function (k) { if (a.answers[k].e === "NC" || a.answers[k].e === "PC") nc[+k] = a.answers[k].e; });
     a.findings = a.findings.filter(function (f) { return f.capId || !f.item || nc[f.item]; });
     Object.keys(nc).map(Number).sort(function (p, q) { return p - q; }).forEach(function (n) {
       if (a.findings.some(function (f) { return f.item === n; })) return;
       var it = ck[n] || {}, rem = (a.answers[n] || {}).r;
-      a.findings.push({ item: n, nonconf: enOf(it.text) + (rem ? " — " + rem : ""), risk: "", rootCause: "", corrective: "", preventive: "", responsible: "", target: "", capId: "" });
+      a.findings.push({ item: n, nonconf: (nc[n] === "PC" ? "Partially compliant: " : "") + enOf(it.text) + (rem ? " — " + rem : ""), risk: "", rootCause: "", corrective: "", preventive: "", responsible: "", target: "", capId: "" });
     });
     a.findings.sort(function (p, q) { return (p.item || 99) - (q.item || 99); });
   }
@@ -1926,14 +1947,14 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       h += '<div class="aud-sec"><h3>' + esc(sec.name) + "</h3>";
       sec.items.forEach(function (it) {
         var an = a.answers[it.no] || {};
-        h += '<div class="aud-item' + (an.e === "NC" ? " nc" : an.e === "NA" ? " na" : "") + '" data-item="' + it.no + '"><div class="no">' + it.no + '<div class="small muted">' + esc(it.cat) + '</div></div><div><div class="txt">' + esc(it.text) + '</div><details><summary>Criteria · ' + esc(it.sop) + " · " + esc(it.type) + '</summary><div class="txt">' + esc(it.criteria) + "</div></details></div>" +
-          '<div class="ans"><div class="seg">' + [["C", "Compliant"], ["NC", "Non-compl."], ["NA", "N/A"]].map(function (o) { return '<button type="button" data-e="' + o[0] + '" class="' + (an.e === o[0] ? "on" : "") + '"' + dis + ">" + o[1] + "</button>"; }).join("") + "</div>" +
+        h += '<div class="aud-item' + (an.e === "NC" ? " nc" : an.e === "PC" ? " pc" : an.e === "NA" ? " na" : "") + '" data-item="' + it.no + '"><div class="no">' + it.no + '<div class="small muted">' + esc(it.cat) + '</div></div><div><div class="txt">' + esc(it.text) + '</div><details><summary>Criteria · ' + esc(it.sop) + " · " + esc(it.type) + '</summary><div class="txt">' + esc(it.criteria) + "</div></details></div>" +
+          '<div class="ans"><div class="seg">' + [["C", "Compliant"], ["PC", "Partial"], ["NC", "Non-compl."], ["NA", "N/A"]].map(function (o) { return '<button type="button" data-e="' + o[0] + '" class="' + (an.e === o[0] ? "on" : "") + '"' + dis + ">" + o[1] + "</button>"; }).join("") + "</div>" +
           '<input data-rem="' + it.no + '" placeholder="Remark / evidence" maxlength="500" value="' + esc(an.r || "") + '" style="margin-top:6px"' + dis + "></div></div>";
       });
       h += "</div>";
     });
     h += "</div>";
-    h += '<div class="panel" style="margin-top:12px"><h3>Findings &amp; corrective actions</h3><p class="small muted" style="margin-top:0">One finding per non-compliant item is added for you. Give each a risk level; the target date fills in from the risk (High ' + S.cfg.capRisk.High + " d · Medium " + S.cfg.capRisk.Medium + " d · Low " + S.cfg.capRisk.Low + ' d) and can be changed. After submitting, follow the actions up in the CAP list.</p><div id="auFind"></div>' +
+    h += '<div class="panel" style="margin-top:12px"><h3>Findings &amp; corrective actions</h3><p class="small muted" style="margin-top:0">One finding per non-compliant or partially compliant item is added for you. Give each a risk level; the target date fills in from the risk (High ' + S.cfg.capRisk.High + " d · Medium " + S.cfg.capRisk.Medium + " d · Low " + S.cfg.capRisk.Low + ' d) and can be changed. After submitting, follow the actions up in the CAP list.</p><div id="auFind"></div>' +
       (ed ? '<button class="btn ghost small" type="button" id="auAddF" style="margin-top:10px"><i class="ti ti-plus"></i> Add another finding</button>' : "") + "</div>";
     h += '<div class="panel" style="margin-top:12px"><label class="f"><span>Auditor\'s overall assessment &amp; comments</span><textarea data-h="assessment" rows="4" maxlength="3000"' + dis + ">" + esc(a.assessment) + "</textarea></label></div>";
     h += '</div><div class="aud-side"><div class="panel accent" id="auScore"></div>';
@@ -1958,7 +1979,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
         var e = b.getAttribute("data-e"), an = a.answers[no] || (a.answers[no] = { e: "", r: "" });
         an.e = an.e === e ? "" : e; AU.dirty = true;
         row.querySelectorAll("[data-e]").forEach(function (x) { x.className = x.getAttribute("data-e") === an.e ? "on" : ""; });
-        row.className = "aud-item" + (an.e === "NC" ? " nc" : an.e === "NA" ? " na" : "");
+        row.className = "aud-item" + (an.e === "NC" ? " nc" : an.e === "PC" ? " pc" : an.e === "NA" ? " na" : "");
         syncFindings(a); drawFindings(); drawAudScore();
       }; });
       row.querySelector("[data-rem]").addEventListener("input", function () { var an = a.answers[no] || (a.answers[no] = { e: "", r: "" }); an.r = this.value; AU.dirty = true; });
@@ -1978,7 +1999,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       var p = r.pct[c[0]], col = kNum(p) ? "var(--idle)" : p >= 0.9 ? "var(--ok)" : p >= 0.7 ? "var(--warn)" : "var(--crit)";
       h += '<div class="small" style="display:flex;justify-content:space-between;margin-top:6px"><span>' + c[0] + ". " + esc(c[1]) + " · " + Math.round(c[2] * 100) + '%</span><b>' + pct(p, 0) + '</b></div><div class="bar"><i style="width:' + (kNum(p) ? 0 : p * 100) + "%;background:" + col + '"></i></div>';
     });
-    h += '<p class="small muted" style="margin-bottom:0">' + r.scored + " scored · " + r.nc + " non-compliant · " + r.blank + " not answered</p>";
+    h += '<p class="small muted" style="margin-bottom:0">' + r.scored + " scored · " + r.pc + " partially compliant · " + r.nc + " non-compliant · " + r.blank + " not answered</p>";
     $("auScore").innerHTML = h;
   }
   function drawFindings() {
@@ -2054,33 +2075,190 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       AU.editing = JSON.parse(JSON.stringify(j.audit)); AU.dirty = false; setSync("ok", "Saved " + timeNow()); renderAuditEditor();
     }).catch(function (e) { $("auErr").textContent = errText(e); setSync("err", "Failed " + timeNow()); });
   }
+  var EVAL = { C: ["Compliant", 1, "c"], PC: ["Partially Compliant", 0.5, "pc"], NC: ["Non-Compliant", 0, "nc"], NA: ["N/A", "", "na"] };
   function auditRows(a) {
     var ck = S.data.checklist || [];
-    return ck.map(function (it) { var an = a.answers[it.no] || {}; return { it: it, e: an.e === "C" ? "Compliant" : an.e === "NC" ? "Non-Compliant" : an.e === "NA" ? "N/A" : "", r: an.r || "" }; });
+    return ck.map(function (it) { var an = a.answers[it.no] || {}, ev = EVAL[an.e]; return { it: it, code: an.e || "", e: ev ? ev[0] : "", pts: ev ? ev[1] : "", r: an.r || "" }; });
   }
+  function bandColor(b) { return !b ? "#667085" : b[2] === "G" ? "#1e7b4a" : b[2] === "A" ? "#b26a00" : "#b42318"; }
   function printAudit(a) {
     var r = audScore(a.answers), b = audBand(r.score), s = S.cfg.stById[a.station] || {};
     var caps = {}; (S.data.caps || []).forEach(function (c) { caps[c.id] = c; });
-    var h = '<div class="rep"><h1>Station Audit Report (AUD-R01)</h1><p class="small">VET-ENERGY EV Charging Network · ' + esc(a.id) + " · " + esc(a.auditStatus) + (a.verifiedBy ? " — verified by " + esc(a.verifiedBy) + " on " + fDate(a.verifiedOn) : "") + "</p>" +
-      '<table class="meta"><tr><td><b>Station</b></td><td>' + esc(s.name || a.station) + '</td><td><b>Auditor</b></td><td>' + esc(a.auditor) + '</td></tr><tr><td><b>Audit date</b></td><td>' + fDate(a.date) + '</td><td><b>Attendant on duty</b></td><td>' + esc(a.attendant) + '</td></tr><tr><td><b>Chargers</b></td><td>' + esc(a.chargers) + '</td><td><b>Functional chargers</b></td><td>' + esc(a.functional) + '</td></tr>' +
-      '<tr><td><b>Overall score</b></td><td><b>' + pct(r.score) + '</b></td><td><b>Rating</b></td><td><b>' + esc(b ? b[1] : "—") + '</b></td></tr><tr><td><b>Items scored</b></td><td>' + r.scored + '</td><td><b>Non-compliant</b></td><td>' + r.nc + "</td></tr></table>" +
-      "<h2>Score by category</h2><table><thead><tr><th>Category</th><th>Weight</th><th>Items scored</th><th>Compliant</th><th>Score</th><th>Weighted</th></tr></thead><tbody>" +
-      AUD_CATS.map(function (c) { var x = r.n[c[0]], p = r.pct[c[0]]; return "<tr><td>" + c[0] + ". " + esc(c[1]) + "</td><td>" + Math.round(c[2] * 100) + "%</td><td>" + x.n + "</td><td>" + x.ok + "</td><td>" + pct(p) + "</td><td>" + (kNum(p) ? "—" : pct(p * c[2])) + "</td></tr>"; }).join("") +
-      '<tr class="total"><td>Overall</td><td>100%</td><td>' + r.scored + "</td><td>" + (r.scored - r.nc) + "</td><td></td><td><b>" + pct(r.score) + "</b></td></tr></tbody></table>" +
-      "<h2>Findings &amp; corrective action plan (CAP-F01)</h2>" + (a.findings.length ? "<table><thead><tr><th>CAP ID</th><th>Item</th><th>Non-conformance</th><th>Risk</th><th>Root cause</th><th>Corrective / preventive action</th><th>Responsible</th><th>Target</th><th>Status</th></tr></thead><tbody>" +
-      a.findings.map(function (f) { var c = caps[f.capId]; return "<tr><td>" + esc(f.capId || "—") + "</td><td>" + esc(f.item) + "</td><td>" + esc(c ? c.nonconf : f.nonconf) + "</td><td>" + esc(c ? c.risk : f.risk) + "</td><td>" + esc(c ? c.rootCause : f.rootCause) + "</td><td>" + esc(c ? c.corrective : f.corrective) + (((c ? c.preventive : f.preventive)) ? "<br><i>Prev.:</i> " + esc(c ? c.preventive : f.preventive) : "") + "</td><td>" + esc(c ? c.responsible : f.responsible) + "</td><td>" + fDate(c ? c.target : f.target) + "</td><td>" + esc(c ? capInfo(c).label : "Not yet raised") + "</td></tr>"; }).join("") + "</tbody></table>" : "<p>No findings.</p>") +
-      (a.assessment ? "<h2>Auditor's overall assessment</h2><p style=\"white-space:pre-line\">" + esc(a.assessment) + "</p>" : "") +
-      "<h2>Checklist results</h2><table><thead><tr><th>No</th><th>Item</th><th>SOP</th><th>Type</th><th>Evaluation</th><th>Remark</th></tr></thead><tbody>" +
-      auditRows(a).map(function (x) { return "<tr><td>" + x.it.no + '</td><td style="white-space:pre-line">' + esc(x.it.text) + "</td><td>" + esc(x.it.sop) + "</td><td>" + esc(x.it.type) + "</td><td><b>" + esc(x.e || "—") + "</b></td><td>" + esc(x.r) + "</td></tr>"; }).join("") + "</tbody></table>" +
-      '<table class="meta" style="margin-top:18px"><tr><td style="height:60px;width:33%"><b>Auditor</b><br>' + esc(a.auditor) + '</td><td style="width:33%"><b>Station representative</b><br>' + esc(a.attendant) + '</td><td><b>Verified by</b><br>' + esc(a.verifiedBy || "") + "</td></tr></table>" +
-      '<p class="small muted">Printed ' + esc(nowStr()) + " by " + esc(S.user) + " from the Daily Operation Record.</p></div>";
+    var rows = auditRows(a), secs = [];
+    rows.forEach(function (x) { if (!secs.length || secs[secs.length - 1].name !== x.it.section) secs.push({ name: x.it.section, items: [] }); secs[secs.length - 1].items.push(x); });
+    var cnt = { C: 0, PC: 0, NC: 0, NA: 0 }; rows.forEach(function (x) { if (cnt[x.code] !== undefined) cnt[x.code]++; });
+    var h = '<div class="rep">' +
+      '<div class="rep-head"><div><div class="rep-org">VET-ENERGY EV CHARGING NETWORK</div><div class="rep-title">Station Audit Report</div></div>' +
+      '<div class="rep-code"><b>AUD-R01</b><br>' + esc(a.id) + "<br>" + esc(a.auditStatus) + "</div></div>" +
+      '<div class="rep-top"><table class="rep-info">' +
+      "<tr><th>Station</th><td>" + esc(s.name || a.station) + "</td><th>Auditor</th><td>" + esc(a.auditor) + "</td></tr>" +
+      "<tr><th>Station ID</th><td>" + esc(a.station) + (s.type ? " · " + esc(s.type) : "") + "</td><th>Attendant on duty</th><td>" + esc(a.attendant || "—") + "</td></tr>" +
+      "<tr><th>Audit date</th><td>" + fDate(a.date) + "</td><th>Chargers / functional</th><td>" + esc(a.chargers === "" ? "—" : a.chargers) + " / " + esc(a.functional === "" ? "—" : a.functional) + "</td></tr>" +
+      "<tr><th>Verified</th><td colspan=\"3\">" + (a.verifiedBy ? esc(a.verifiedBy) + " on " + fDate(a.verifiedOn) : "Not yet verified") + "</td></tr></table>" +
+      '<div class="rep-score" style="border-color:' + bandColor(b) + '"><div class="lbl">Overall score</div><div class="val" style="color:' + bandColor(b) + '">' + pct(r.score) + '</div><div class="rat" style="background:' + bandColor(b) + '">' + esc(b ? b[1] : "Not scored") + "</div></div></div>" +
+      '<div class="rep-counts"><span class="ev c">Compliant ' + cnt.C + '</span><span class="ev pc">Partially compliant ' + cnt.PC + '</span><span class="ev nc">Non-compliant ' + cnt.NC + '</span><span class="ev na">N/A ' + cnt.NA + "</span><span>" + r.scored + " items scored</span></div>" +
+      "<h2>1. Score by category</h2><table class=\"rep-t\"><thead><tr><th>Category</th><th class=\"n\">Weight</th><th class=\"n\">Items scored</th><th class=\"n\">Points</th><th style=\"width:30%\">Score</th><th class=\"n\">Weighted</th></tr></thead><tbody>" +
+      AUD_CATS.map(function (c) {
+        var x = r.n[c[0]], p = r.pct[c[0]], col = kNum(p) ? "#98a2b3" : p >= 0.9 ? "#1e7b4a" : p >= 0.7 ? "#b26a00" : "#b42318";
+        return "<tr><td><b>" + c[0] + ".</b> " + esc(c[1]) + '</td><td class="n">' + Math.round(c[2] * 100) + '%</td><td class="n">' + x.n + '</td><td class="n">' + (Math.round(x.ok * 10) / 10) + '</td><td><div class="rep-bar"><i style="width:' + (kNum(p) ? 0 : p * 100) + "%;background:" + col + '"></i></div><span class="rep-pct">' + pct(p) + '</span></td><td class="n">' + (kNum(p) ? "—" : pct(p * c[2])) + "</td></tr>";
+      }).join("") +
+      '<tr class="total"><td>Overall</td><td class="n">100%</td><td class="n">' + r.scored + '</td><td class="n">' + (Math.round(AUD_CATS.reduce(function (t, c) { return t + r.n[c[0]].ok; }, 0) * 10) / 10) + '</td><td></td><td class="n">' + pct(r.score) + "</td></tr></tbody></table>" +
+      '<p class="rep-note">Compliant = 1 point, Partially compliant = 0.5, Non-compliant = 0; N/A items are not scored. Overall = Σ category weight × category score. Bands: ≥ 90% Fully Compliant · 80–89% Compliant · 70–79% Partial Compliance (CAP required) · &lt; 70% Non-Compliant (escalate).</p>' +
+      "<h2>2. Findings &amp; corrective action plan (CAP-F01)</h2>" + (a.findings.length ? '<table class="rep-t fixed"><colgroup><col style="width:12%"><col style="width:5%"><col style="width:20%"><col style="width:9%"><col style="width:13%"><col style="width:19%"><col style="width:8%"><col style="width:7%"><col style="width:7%"></colgroup><thead><tr><th>CAP ID</th><th class="n">Item</th><th>Non-conformance</th><th>Risk</th><th>Root cause</th><th>Corrective / preventive action</th><th>Responsible</th><th>Target</th><th>Status</th></tr></thead><tbody>' +
+      a.findings.map(function (f) {
+        var c = caps[f.capId], g = function (k) { return c ? c[k] : f[k]; }, risk = String(g("risk") || "");
+        return "<tr><td><b>" + esc(f.capId || "—") + '</b></td><td class="n">' + esc(f.item) + "</td><td>" + esc(g("nonconf")) + '</td><td><span class="risk ' + risk.toLowerCase() + '">' + esc(risk || "—") + "</span></td><td>" + esc(g("rootCause")) + "</td><td>" + esc(g("corrective")) + (g("preventive") ? '<div class="prev"><i>Preventive:</i> ' + esc(g("preventive")) + "</div>" : "") + "</td><td>" + esc(g("responsible")) + "</td><td>" + fDate(g("target")) + "</td><td>" + esc(c ? capInfo(c).label : "Not yet raised") + "</td></tr>";
+      }).join("") + "</tbody></table>" : '<p>No findings — every scored item is compliant.</p>') +
+      "<h2>3. Auditor's overall assessment</h2><div class=\"rep-box\">" + (a.assessment ? esc(a.assessment) : '<span class="muted">—</span>') + "</div>" +
+      '<h2 class="rep-break">4. Checklist results</h2><table class="rep-t rep-ck fixed"><colgroup><col style="width:4%"><col style="width:37%"><col style="width:9%"><col style="width:7%"><col style="width:16%"><col style="width:6%"><col style="width:21%"></colgroup><thead><tr><th class="n">No</th><th>Item</th><th>SOP</th><th>Type</th><th>Evaluation</th><th class="n">Score</th><th>Remark / evidence</th></tr></thead><tbody>' +
+      secs.map(function (sec) {
+        return '<tr class="sec"><td colspan="7">' + esc(sec.name) + "</td></tr>" + sec.items.map(function (x) {
+          return '<tr><td class="n">' + x.it.no + '</td><td class="txt">' + esc(x.it.text) + "</td><td>" + esc(x.it.sop) + "</td><td>" + esc(x.it.type) + "</td><td>" + (x.code ? '<span class="ev ' + EVAL[x.code][2] + '">' + esc(x.e) + "</span>" : "—") + '</td><td class="n">' + (x.pts === "" ? "—" : x.pts) + "</td><td>" + esc(x.r) + "</td></tr>";
+        }).join("");
+      }).join("") + "</tbody></table>" +
+      '<table class="rep-sign"><tr><td><div class="ln"></div><b>Auditor</b><br>' + esc(a.auditor) + '<br>Date: ' + fDate(a.date) + '</td><td><div class="ln"></div><b>Station representative</b><br>' + esc(a.attendant || "") + '<br>Date:</td><td><div class="ln"></div><b>Verified by</b><br>' + esc(a.verifiedBy || "") + "<br>Date: " + (a.verifiedOn ? fDate(a.verifiedOn) : "") + "</td></tr></table>" +
+      '<p class="rep-foot">Printed ' + esc(nowStr()) + " by " + esc(S.user) + " from the VET-ENERGY Daily Operation Record · " + esc(a.id) + "</p></div>";
     $("printArea").innerHTML = h;
     document.body.classList.add("printing");
     var done = function () { document.body.classList.remove("printing"); window.removeEventListener("afterprint", done); };
     window.addEventListener("afterprint", done);
-    setTimeout(function () { window.print(); setTimeout(done, 500); }, 50);
+    setTimeout(function () { window.print(); setTimeout(done, 500); }, 80);
+  }
+
+  /* Styled Excel export (xlsx-js-style, loaded only when needed) */
+  var XLSX_STYLE_URL = "https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js";
+  function loadStyledXlsx() {
+    if (window.__XLSXS) return Promise.resolve(window.__XLSXS);
+    return new Promise(function (res, rej) {
+      var orig = window.XLSX, sc = document.createElement("script");
+      sc.src = XLSX_STYLE_URL;
+      sc.onload = function () { window.__XLSXS = window.XLSX; window.XLSX = orig; res(window.__XLSXS); };
+      sc.onerror = function () { window.XLSX = orig; rej(new Error("styled library")); };
+      document.head.appendChild(sc);
+    });
   }
   function exportAudit(a) {
+    loadStyledXlsx().then(function (X) { exportAuditStyled(X, a); }).catch(function () {
+      if (typeof XLSX === "undefined") { notice("The spreadsheet library couldn't load. Check the internet connection and try again.", "bad"); return; }
+      exportAuditPlain(a);
+    });
+  }
+  function exportAuditStyled(X, a) {
+    var r = audScore(a.answers), b = audBand(r.score), s = S.cfg.stById[a.station] || {};
+    var caps = {}; (S.data.caps || []).forEach(function (c) { caps[c.id] = c; });
+    var OR = "E96500", SOFT = "FDE8D7", LINE = "F3C8A5", WHITE = "FFFFFF";
+    var thin = { style: "thin", color: { rgb: LINE } }, box = { top: thin, bottom: thin, left: thin, right: thin };
+    var font = function (o) { var f = { name: "Arial", sz: 10 }; for (var k in o) f[k] = o[k]; return f; };
+    var st = {
+      org: { font: font({ sz: 10, bold: true, color: { rgb: WHITE } }), fill: { fgColor: { rgb: OR } }, alignment: { vertical: "center", indent: 1 } },
+      title: { font: font({ sz: 16, bold: true, color: { rgb: WHITE } }), fill: { fgColor: { rgb: OR } }, alignment: { vertical: "center", indent: 1 } },
+      code: { font: font({ sz: 10, bold: true, color: { rgb: WHITE } }), fill: { fgColor: { rgb: OR } }, alignment: { horizontal: "right", vertical: "center", wrapText: true } },
+      lbl: { font: font({ bold: true }), fill: { fgColor: { rgb: SOFT } }, border: box, alignment: { vertical: "center", wrapText: true } },
+      val: { font: font(), border: box, alignment: { vertical: "center", wrapText: true } },
+      h2: { font: font({ sz: 12, bold: true, color: { rgb: OR } }), border: { bottom: { style: "medium", color: { rgb: OR } } } },
+      th: { font: font({ bold: true, color: { rgb: WHITE } }), fill: { fgColor: { rgb: OR } }, border: box, alignment: { vertical: "center", horizontal: "center", wrapText: true } },
+      td: { font: font(), border: box, alignment: { vertical: "top", wrapText: true } },
+      tdc: { font: font(), border: box, alignment: { vertical: "top", horizontal: "center" } },
+      pct: { font: font(), border: box, alignment: { vertical: "top", horizontal: "center" }, numFmt: "0.0%" },
+      tot: { font: font({ bold: true }), fill: { fgColor: { rgb: SOFT } }, border: box, alignment: { horizontal: "center" } },
+      totp: { font: font({ bold: true }), fill: { fgColor: { rgb: SOFT } }, border: box, alignment: { horizontal: "center" }, numFmt: "0.0%" },
+      sec: { font: font({ bold: true, color: { rgb: "7A3500" } }), fill: { fgColor: { rgb: SOFT } }, border: box },
+      note: { font: font({ sz: 9, italic: true, color: { rgb: "667085" } }), alignment: { wrapText: true, vertical: "top" } },
+      box: { font: font(), border: box, alignment: { wrapText: true, vertical: "top" } }
+    };
+    var bandRgb = (bandColor(b) || "#667085").slice(1).toUpperCase();
+    st.score = { font: font({ sz: 20, bold: true, color: { rgb: bandRgb } }), border: { top: { style: "medium", color: { rgb: bandRgb } }, bottom: { style: "medium", color: { rgb: bandRgb } }, left: { style: "medium", color: { rgb: bandRgb } }, right: { style: "medium", color: { rgb: bandRgb } } }, alignment: { horizontal: "center", vertical: "center" }, numFmt: "0.0%" };
+    st.rating = { font: font({ bold: true, color: { rgb: WHITE } }), fill: { fgColor: { rgb: bandRgb } }, alignment: { horizontal: "center", vertical: "center", wrapText: true } };
+    var EVS = { C: ["1E7B4A", "DFF1E5"], PC: ["8A5300", "FFF1D6"], NC: ["B42318", "FDE2DF"], NA: ["475467", "EEF0F3"] };
+    var evStyle = function (code) { var c = EVS[code]; return c ? { font: font({ bold: true, color: { rgb: c[0] } }), fill: { fgColor: { rgb: c[1] } }, border: box, alignment: { horizontal: "center", vertical: "top", wrapText: true } } : st.tdc; };
+    var riskStyle = function (rk) { var c = rk === "High" ? EVS.NC : rk === "Medium" ? EVS.PC : rk === "Low" ? EVS.C : EVS.NA; return { font: font({ bold: true, color: { rgb: c[0] } }), fill: { fgColor: { rgb: c[1] } }, border: box, alignment: { horizontal: "center", vertical: "top" } }; };
+
+    // Sheet builder: put(row, col, value, style); merge(r1,c1,r2,c2)
+    function Sheet(widths) { this.ws = {}; this.merges = []; this.maxR = 0; this.maxC = widths.length - 1; this.ws["!cols"] = widths.map(function (w) { return { wch: w }; }); this.rows = []; }
+    Sheet.prototype.put = function (rr, cc, v, s) {
+      var ref = X.utils.encode_cell({ r: rr, c: cc }), cell = { v: v === null || v === undefined ? "" : v, t: typeof v === "number" ? "n" : "s" };
+      if (s) { cell.s = s; if (s.numFmt) cell.z = s.numFmt; }
+      this.ws[ref] = cell; if (rr > this.maxR) this.maxR = rr; if (cc > this.maxC) this.maxC = cc;
+    };
+    Sheet.prototype.merge = function (r1, c1, r2, c2, s) { this.merges.push({ s: { r: r1, c: c1 }, e: { r: r2, c: c2 } }); if (s) for (var rr = r1; rr <= r2; rr++) for (var cc = c1; cc <= c2; cc++) if (!this.ws[X.utils.encode_cell({ r: rr, c: cc })]) this.put(rr, cc, "", s); };
+    Sheet.prototype.h = function (rr, pt) { (this.rows[rr] = this.rows[rr] || {}).hpt = pt; };
+    Sheet.prototype.done = function () { this.ws["!ref"] = X.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: this.maxR, c: this.maxC } }); this.ws["!merges"] = this.merges; this.ws["!rows"] = this.rows; return this.ws; };
+
+    // ---- Sheet 1: report form
+    var R = new Sheet([30, 30, 14, 26, 30, 14]), y = 0;
+    R.put(0, 0, "VET-ENERGY EV CHARGING NETWORK", st.org); R.merge(0, 0, 0, 3, st.org); R.put(0, 4, "AUD-R01 · " + a.id, st.code); R.merge(0, 4, 0, 5, st.code); R.h(0, 20);
+    R.put(1, 0, "STATION AUDIT REPORT", st.title); R.merge(1, 0, 1, 3, st.title); R.put(1, 4, a.auditStatus + (a.verifiedBy ? " · verified by " + a.verifiedBy : ""), st.code); R.merge(1, 4, 1, 5, st.code); R.h(1, 30);
+    y = 3;
+    [["Station", s.name || a.station, "Auditor", a.auditor], ["Station ID / type", a.station + (s.type ? " · " + s.type : ""), "Attendant on duty", a.attendant || "—"],
+      ["Audit date", fDate(a.date), "Chargers / functional", (a.chargers === "" ? "—" : a.chargers) + " / " + (a.functional === "" ? "—" : a.functional)]].forEach(function (row) {
+      R.put(y, 0, row[0], st.lbl); R.put(y, 1, row[1], st.val); R.merge(y, 1, y, 2, st.val); R.put(y, 3, row[2], st.lbl); R.put(y, 4, row[3], st.val); R.merge(y, 4, y, 5, st.val); R.h(y, 18); y++;
+    });
+    y++;
+    R.put(y, 0, "OVERALL SCORE", st.lbl); R.put(y, 1, kNum(r.score) ? "—" : r.score, st.score); R.merge(y, 1, y + 1, 1, st.score);
+    R.put(y, 3, "RATING", st.lbl); R.put(y, 4, b ? b[1] : "Not scored", st.rating); R.merge(y, 4, y + 1, 5, st.rating);
+    R.put(y + 1, 0, r.scored + " items scored", st.val); R.put(y + 1, 3, "C " + (r.scored - r.nc - r.pc) + " · PC " + r.pc + " · NC " + r.nc, st.val); R.h(y, 22); R.h(y + 1, 22);
+    y += 3;
+    R.put(y, 0, "1. Score by category", st.h2); R.merge(y, 0, y, 5, st.h2); y++;
+    ["Category", "Weight", "Items scored", "Points", "Score", "Weighted"].forEach(function (t, i) { R.put(y, i, t, st.th); }); y++;
+    AUD_CATS.forEach(function (c) {
+      var x = r.n[c[0]], p = r.pct[c[0]];
+      R.put(y, 0, c[0] + ". " + c[1], st.td); R.put(y, 1, c[2], st.pct); R.put(y, 2, x.n, st.tdc); R.put(y, 3, Math.round(x.ok * 10) / 10, st.tdc);
+      R.put(y, 4, kNum(p) ? "—" : p, kNum(p) ? st.tdc : st.pct); R.put(y, 5, kNum(p) ? "—" : p * c[2], kNum(p) ? st.tdc : st.pct); y++;
+    });
+    R.put(y, 0, "Overall", st.tot); R.put(y, 1, 1, st.totp); R.put(y, 2, r.scored, st.tot); R.put(y, 3, Math.round(AUD_CATS.reduce(function (t, c) { return t + r.n[c[0]].ok; }, 0) * 10) / 10, st.tot); R.put(y, 4, "", st.tot); R.put(y, 5, kNum(r.score) ? "—" : r.score, st.totp); y++;
+    R.put(y, 0, "Compliant = 1 point, Partially compliant = 0.5, Non-compliant = 0; N/A not scored. Overall = Σ weight × category score. ≥ 90% Fully Compliant · 80–89% Compliant · 70–79% Partial (CAP required) · < 70% Non-Compliant (escalate).", st.note); R.merge(y, 0, y, 5, st.note); R.h(y, 28); y += 2;
+    R.put(y, 0, "2. Findings & corrective actions (CAP-F01)", st.h2); R.merge(y, 0, y, 5, st.h2); y++;
+    ["CAP ID · item", "Non-conformance", "Risk", "Corrective / preventive action", "Responsible", "Target · status"].forEach(function (t, i) { R.put(y, i, t, st.th); }); y++;
+    if (!a.findings.length) { R.put(y, 0, "No findings — every scored item is compliant.", st.td); R.merge(y, 0, y, 5, st.td); y++; }
+    a.findings.forEach(function (f) {
+      var c = caps[f.capId], g = function (k) { return (c ? c[k] : f[k]) || ""; };
+      R.put(y, 0, (f.capId || "not yet raised") + (f.item ? " · item " + f.item : ""), st.td); R.put(y, 1, g("nonconf") + (g("rootCause") ? "\nRoot cause: " + g("rootCause") : ""), st.td);
+      R.put(y, 2, g("risk") || "—", riskStyle(g("risk"))); R.put(y, 3, g("corrective") + (g("preventive") ? "\nPreventive: " + g("preventive") : ""), st.td);
+      R.put(y, 4, g("responsible"), st.td); R.put(y, 5, (g("target") ? fDate(g("target")) : "no target") + "\n" + (c ? capInfo(c).label : "—"), st.td);
+      R.h(y, Math.min(120, 16 + 13 * Math.ceil(Math.max(String(g("nonconf")).length + String(g("rootCause")).length, String(g("corrective")).length + String(g("preventive")).length) / 34))); y++;
+    });
+    y++;
+    R.put(y, 0, "3. Auditor's overall assessment", st.h2); R.merge(y, 0, y, 5, st.h2); y++;
+    R.put(y, 0, a.assessment || "—", st.box); R.merge(y, 0, y + 3, 5, st.box); y += 5;
+    ["Auditor", "Station representative", "Verified by"].forEach(function (t, i) { R.put(y, i * 2, t, st.lbl); R.merge(y, i * 2, y, i * 2 + 1, st.lbl); });
+    [a.auditor, a.attendant || "", a.verifiedBy || ""].forEach(function (t, i) { R.put(y + 1, i * 2, t + "\n\nSignature / date:", st.box); R.merge(y + 1, i * 2, y + 1, i * 2 + 1, st.box); });
+    R.h(y + 1, 58);
+    var ws1 = R.done();
+    ws1["!print"] = { orientation: "portrait" };
+
+    // ---- Sheet 2: checklist
+    var C = new Sheet([6, 70, 12, 12, 18, 8, 40]), cy = 0, sec = "";
+    C.put(0, 0, "AUD-R01 checklist — " + (s.name || a.station) + " · " + fDate(a.date) + " · " + a.id, st.title); C.merge(0, 0, 0, 6, st.title); C.h(0, 26);
+    ["No", "Item (Khmer / English)", "SOP ref", "Type", "Evaluation", "Score", "Remark / evidence"].forEach(function (t, i) { C.put(2, i, t, st.th); }); cy = 3;
+    auditRows(a).forEach(function (x) {
+      if (x.it.section !== sec) { sec = x.it.section; C.put(cy, 0, sec, st.sec); C.merge(cy, 0, cy, 6, st.sec); cy++; }
+      C.put(cy, 0, x.it.no, st.tdc); C.put(cy, 1, x.it.text, st.td); C.put(cy, 2, x.it.sop, st.tdc); C.put(cy, 3, x.it.type, st.tdc);
+      C.put(cy, 4, x.e || "—", evStyle(x.code)); C.put(cy, 5, x.pts === "" ? "—" : x.pts, st.tdc); C.put(cy, 6, x.r, st.td);
+      C.h(cy, Math.min(90, 14 + 13 * Math.ceil(String(x.it.text).length / 60))); cy++;
+    });
+    var ws2 = C.done();
+
+    // ---- Sheet 3: CAP-F01
+    var P = new Sheet([14, 22, 11, 7, 12, 12, 40, 9, 32, 32, 32, 16, 11, 11, 13, 10, 18, 16, 12, 30]);
+    P.put(0, 0, "CAP-F01 — Corrective Action Plan · " + (s.name || a.station) + " · audit " + fDate(a.date), st.title); P.merge(0, 0, 0, 19, st.title); P.h(0, 26);
+    ["CAP ID", "Station", "Audit date", "Item #", "SOP ref", "Category", "Non-conformance", "Risk", "Root cause", "Corrective action", "Preventive action", "Responsible", "Date raised", "Target date", "Status", "Days overdue", "Verification method", "Verified by", "Verification date", "Evidence / comments"].forEach(function (t, i) { P.put(2, i, t, st.th); });
+    P.h(2, 30);
+    a.findings.forEach(function (f, i) {
+      var c = caps[f.capId] || f, inf = caps[f.capId] ? capInfo(caps[f.capId]) : null, row = 3 + i;
+      [f.capId || "", s.name || a.station, fDate(a.date), f.item, c.sop || "", c.category || "", c.nonconf, c.risk, c.rootCause, c.corrective, c.preventive, c.responsible, fDate(c.raised || a.date), fDate(c.target), inf ? (c.capStatus || "") : "Not yet raised", inf && inf.days ? inf.days : "", c.verifyMethod || "", c.verifiedBy || "", fDate(c.verifiedOn || ""), c.evidence || ""].forEach(function (v, k) {
+        P.put(row, k, v === undefined || v === null ? "" : v, k === 7 ? riskStyle(c.risk) : (k === 3 || k === 12 || k === 13 || k === 15 || k === 18) ? st.tdc : st.td);
+      });
+      P.h(row, Math.min(120, 16 + 13 * Math.ceil(Math.max(String(c.nonconf || "").length, String(c.corrective || "").length, String(c.rootCause || "").length) / 30)));
+    });
+    var ws3 = P.done();
+
+    var wb = X.utils.book_new();
+    X.utils.book_append_sheet(wb, ws1, "Audit Report Form");
+    X.utils.book_append_sheet(wb, ws2, "Audit Checklist");
+    X.utils.book_append_sheet(wb, ws3, "CAP-F01 Corrective Action");
+    X.writeFile(wb, "Audit_" + a.id + "_" + (s.short || a.station).replace(/[^A-Za-z0-9]+/g, "_") + "_" + a.date + ".xlsx");
+  }
+  function exportAuditPlain(a) {
     if (typeof XLSX === "undefined") { notice("The spreadsheet library hasn't loaded yet. Try again in a moment.", "bad"); return; }
     var r = audScore(a.answers), b = audBand(r.score), s = S.cfg.stById[a.station] || {};
     var caps = {}; (S.data.caps || []).forEach(function (c) { caps[c.id] = c; });
@@ -2089,7 +2267,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     AUD_CATS.forEach(function (c) { var x = r.n[c[0]], p = r.pct[c[0]]; rep.push([c[0] + ". " + c[1], c[2], x.n, x.ok, kNum(p) ? "" : p, kNum(p) ? "" : p * c[2]]); });
     rep.push(["Overall", 1, r.scored, r.scored - r.nc, "", kNum(r.score) ? "" : r.score]); rep.push([]); rep.push(["Auditor's overall assessment"]); rep.push([a.assessment || ""]);
     var chk = [["No", "Section", "Item", "SOP ref", "Type", "Criteria", "Evaluation", "Score", "Remark"]];
-    auditRows(a).forEach(function (x) { chk.push([x.it.no, x.it.section, x.it.text, x.it.sop, x.it.type, x.it.criteria, x.e, x.e === "Compliant" ? 1 : x.e === "Non-Compliant" ? 0 : "", x.r]); });
+    auditRows(a).forEach(function (x) { chk.push([x.it.no, x.it.section, x.it.text, x.it.sop, x.it.type, x.it.criteria, x.e, x.pts, x.r]); });
     var cp = [["CAP ID", "Station", "Audit date", "Item #", "SOP ref", "Category", "Non-conformance", "Risk", "Root cause", "Corrective action", "Preventive action", "Responsible", "Date raised", "Target date", "Status", "Days overdue", "Verification method", "Verified by", "Verification date", "Evidence / comments"]];
     a.findings.forEach(function (f) { var c = caps[f.capId] || f, i = caps[f.capId] ? capInfo(caps[f.capId]) : null; cp.push([f.capId || "", s.name || a.station, a.date, f.item, c.sop || "", c.category || "", c.nonconf, c.risk, c.rootCause, c.corrective, c.preventive, c.responsible, c.raised || a.date, c.target, i ? (c.capStatus || "") : "Not yet raised", i ? i.days || "" : "", c.verifyMethod || "", c.verifiedBy || "", c.verifiedOn || "", c.evidence || ""]); });
     var wb = XLSX.utils.book_new(), ws = XLSX.utils.aoa_to_sheet(rep);
@@ -2103,9 +2281,9 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
   }
   function exportAuditList() {
     if (typeof XLSX === "undefined") { notice("The spreadsheet library hasn't loaded yet. Try again in a moment.", "bad"); return; }
-    var rows = [["Audit ID", "Station ID", "Station", "Audit date", "Auditor", "Status", "Overall score", "Rating"].concat(AUD_CATS.map(function (c) { return "Cat " + c[0] + " %"; })).concat(["Items scored", "Non-compliant", "CAPs", "Open CAPs", "Record status"])];
+    var rows = [["Audit ID", "Station ID", "Station", "Audit date", "Auditor", "Status", "Overall score", "Rating"].concat(AUD_CATS.map(function (c) { return "Cat " + c[0] + " %"; })).concat(["Items scored", "Partially compliant", "Non-compliant", "CAPs", "Open CAPs", "Record status"])];
     (S.data.audits || []).forEach(function (a) { var caps = (S.data.caps || []).filter(function (c) { return active(c) && c.auditId === a.id; }); var b = audBand(a.score);
-      rows.push([a.id, a.station, stName(a.station), a.date, a.auditor, a.auditStatus, a.score, b ? b[1] : "", a.catA, a.catB, a.catC, a.catD, a.catE, a.scored, a.nc, caps.length, caps.filter(function (c) { return !capClosed(c); }).length, a.status]); });
+      rows.push([a.id, a.station, stName(a.station), a.date, a.auditor, a.auditStatus, a.score, b ? b[1] : "", a.catA, a.catB, a.catC, a.catD, a.catE, a.scored, a.pc || 0, a.nc, caps.length, caps.filter(function (c) { return !capClosed(c); }).length, a.status]); });
     var cp = [["CAP ID", "Audit ID", "Station ID", "Station", "Audit date", "Item #", "SOP ref", "Category", "Non-conformance", "Risk", "Root cause", "Corrective action", "Preventive action", "Responsible", "Date raised", "Target date", "CAP status", "Closed on", "Status (calc)", "Days overdue", "Verification method", "Verified by", "Verified on", "Evidence / comments"]];
     (S.data.caps || []).filter(active).forEach(function (c) { var i = capInfo(c); cp.push([c.id, c.auditId, c.station, stName(c.station), c.auditDate, c.item, c.sop, c.category, c.nonconf, c.risk, c.rootCause, c.corrective, c.preventive, c.responsible, c.raised, c.target, c.capStatus, c.closedOn, i.label, i.days || "", c.verifyMethod, c.verifiedBy, c.verifiedOn, c.evidence]); });
     var wb = XLSX.utils.book_new();
