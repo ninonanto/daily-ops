@@ -123,6 +123,7 @@ td.g { color: var(--ok); } td.a { color: var(--warn); font-weight: 600; } td.r {
 .heat td { text-align: center; padding: 3px 0; font-size: 11px; min-width: 26px; border: 1px solid var(--surface); }
 .heat th { font-size: 11px; padding: 3px 4px; }
 .chart-box { position: relative; height: 260px; }
+.kc-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; } @media (max-width: 900px) { .kc-grid { grid-template-columns: 1fr; } }
 
 /* dialog */
 dialog { border: 1px solid var(--line); border-radius: 8px; padding: 0; width: min(860px, 96vw); background: var(--surface); color: var(--ink); }
@@ -167,6 +168,29 @@ td.rag.G { background: var(--ok-soft); color: var(--ok); } td.rag.A { background
 .big-score { font-family: var(--font-display); font-size: 40px; line-height: 1; }
 .finding { border: 1px solid var(--line); border-left: 4px solid var(--crit); border-radius: 8px; padding: 10px; margin-top: 10px; background: var(--surface); }
 #printArea { display: none; }
+/* dashboard print */
+body.printing-dash #printArea { padding: 0; font-size: 11px; }
+html:has(body.printing-dash), body.printing-dash, body.printing-dash #printArea { background: #fff !important; }
+.pd-frame { width: 100%; border-collapse: collapse; }
+.pd-frame > * > tr, .pd-frame > * > tr:hover { background: none !important; } .pd-frame > * > tr > td { border: 0; white-space: normal; vertical-align: top; }
+.pd-panel tbody tr:hover { background: none; }
+.pd-frame > thead > tr > td { padding: 8mm 10mm 3mm; } .pd-frame > tfoot > tr > td { padding: 2mm 10mm 6mm; } .pd-frame > tbody > tr > td.pd-body { padding: 0 10mm; }
+.pd-head { display: grid; grid-template-columns: 26% 1fr 26%; border: 1px solid #E96500; border-radius: 6px; overflow: hidden; }
+.pd-logo { background: #fff; display: flex; align-items: center; justify-content: center; padding: 4px 8px; } .pd-logo img { max-height: 40px; max-width: 100%; }
+.pd-title { background: #E96500; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 700; letter-spacing: .02em; text-align: center; }
+.pd-doc { background: #E96500; color: #fff; font-size: 9.5px; font-weight: 700; line-height: 1.5; padding: 5px 10px; display: flex; flex-direction: column; justify-content: center; }
+.pd-foot { display: flex; justify-content: space-between; gap: 12px; border-top: 1px solid #E96500; padding-top: 3px; font-size: 9px; color: #475467; }
+.pd-info { margin: 0 0 6px; color: #475467; }
+.pd-blk { margin-top: 6px; } .pd-break { break-before: page; }
+.pd-kpis { grid-template-columns: repeat(6, 1fr); gap: 6px; } .pd-kpis .kpi { min-height: 0; padding: 6px 8px; break-inside: avoid; } .pd-kpis .kpi .v { font-size: 18px; }
+.pd-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; } .pd-grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.pd-panel { border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; break-inside: avoid; } .pd-panel h3 { margin: 0 0 4px; font-size: 12px; }
+.pd-panel img { width: 100%; height: auto; display: block; }
+.pd-panel table { width: 100%; font-size: 10px; } .pd-panel th, .pd-panel td { padding: 2px 4px; }
+.pd-st { break-inside: auto; } .pd-st table { font-size: 8.5px; } .pd-st tr { break-inside: avoid; }
+.pd-heat table { font-size: 8px; }
+body.printing-dash .group-label { margin: 6px 0 4px; break-after: avoid; }
+
 body.printing .wrap, body.printing .band, body.printing .tabbar { display: none !important; }
 body.printing { background: #fff; }
 body.printing #printArea { display: block; padding: 0 8mm; }
@@ -238,7 +262,7 @@ body.printing #printArea { display: block; padding: 0 8mm; }
     <button type="button" data-v="audit" data-need="kpi" hidden><i class="ti ti-clipboard-check"></i>Audits</button>
     <button type="button" data-v="caps" data-need="kpi" hidden><i class="ti ti-checklist"></i>CAP list <span class="count" id="cntCaps" hidden></span></button>
     <button type="button" data-v="inputs" data-need="kpi" hidden><i class="ti ti-file-invoice"></i>Bills, expenses &amp; CSAT</button>
-    <button type="button" data-v="import" data-need="admin" hidden><i class="ti ti-file-import"></i>Import sales</button>
+    <button type="button" data-v="import" data-need="entry" hidden><i class="ti ti-file-import"></i>Import sales</button>
     <button type="button" data-v="admin" data-need="admin" hidden><i class="ti ti-settings"></i>Users &amp; settings</button>
   </nav>
   </div>
@@ -268,7 +292,7 @@ body.printing #printArea { display: block; padding: 0 8mm; }
       <label class="f"><span>Stations</span><select id="fStation"></select></label>
       <div class="inrow" style="align-self:end">
         <button class="btn ghost" type="button" id="btnExport">Export report (.xlsx)</button>
-        <button class="btn ghost" type="button" onclick="window.print()">Print</button>
+        <button class="btn ghost" type="button" id="btnPrintDash">Print</button>
       </div>
     </div>
     <p class="muted small" id="periodLabel" style="margin:8px 0 0"></p>
@@ -418,7 +442,7 @@ body.printing #printArea { display: block; padding: 0 8mm; }
       <div class="form">
         <label class="f req"><span>Username</span><input name="username" maxlength="40" autocapitalize="none" spellcheck="false"><span class="hint">3–40 letters, numbers, . _ -</span></label>
         <label class="f req w2"><span>Full name</span><input name="name" maxlength="60"></label>
-        <label class="f req"><span>Role</span><select name="role"><option value="admin">Admin — full control</option><option value="ops01">Ops01 — KPI, audits + data entry</option><option value="ops02">Ops02 — data entry</option></select></label>
+        <label class="f req"><span>Role</span><select name="role"><option value="admin">Admin — full control</option><option value="ops01">Ops01 — KPI, audits, data entry + sales import</option><option value="ops02">Ops02 — data entry + sales import</option></select></label>
         <label class="f"><span>Active</span><select name="active"><option value="Y">Yes</option><option value="N">No — can't sign in</option></select></label>
         <label class="f"><span id="userPwLabel">Temporary password</span><input name="password" type="text" autocomplete="off"><span class="hint" id="userPwHint">They must change it at first sign-in</span></label>
       </div>
@@ -1749,7 +1773,95 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     }
     return opts;
   }
-  var KS = { type: "month", key: "", sel: "" };
+  /* ---------- Station KPI: station filter + charts (like the workbook's M-Dashboard) ---------- */
+  function kpiIds(v) {
+    var ids = S.data.stations.map(function (s) { return s.id; });
+    if (!v || v === "*") return ids;
+    if (v.indexOf("type:") === 0) { var g = v.slice(5); return ids.filter(function (id) { return typeGroup(stType(id)) === g; }); }
+    return [v];
+  }
+  function kpiFilter(K, v) {
+    var set = {}; kpiIds(v).forEach(function (id) { set[id] = 1; });
+    var out = {}; for (var k in K) out[k] = K[k];
+    out.rows = K.rows.filter(function (x) { return set[x.id]; });
+    var net = { revUsd: 0, elecUsd: 0, opexUsd: 0, sessions: 0, kwh: 0 };
+    out.rows.forEach(function (x) { net.revUsd += x.revUsd; net.elecUsd += x.elecUsd; net.opexUsd += x.opexUsd; net.sessions += x.sessions; net.kwh += x.kwh; });
+    net.margin = net.revUsd ? (net.revUsd - net.elecUsd - net.opexUsd) / net.revUsd : "";
+    out.net = net; out.stFilter = v || "*";
+    var sel = $("kpiSt"); out.stTxt = sel && sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : "All stations";
+    return out;
+  }
+  function kpiMonthCache(m) {
+    KS.mcache = KS.mcache || {};
+    if (!KS.mcache[m]) KS.mcache[m] = kpiCompute("month", m);
+    return KS.mcache[m];
+  }
+  function drawKpiCharts(K) {
+    var css = getComputedStyle(document.body), C = function (v) { return css.getPropertyValue(v).trim(); };
+    var G = C("--ok"), A = C("--warn"), R = C("--crit"), ACC = C("--accent"), MUT = C("--muted"), BAND = { G: G, A: A, R: R, N: MUT };
+    S.kcharts = S.kcharts || {};
+    try { Chart.defaults.datasets.bar.maxBarThickness = 34; } catch (e) {}
+    var mk = function (id, cfg) { if (S.kcharts[id]) S.kcharts[id].destroy(); var el = $(id); if (!el) return; S.kcharts[id] = new Chart(el, cfg); };
+    var legend = { position: "bottom", labels: { boxWidth: 12 } };
+    var nameOf = function (x) { return x.id + " " + x.name; };
+    var setH = function (id, n) { var b = $(id) && $(id).parentElement; if (b) b.style.height = Math.max(220, 60 + n * 20) + "px"; };
+    // 1. overall score by station
+    var sc = K.rows.filter(function (x) { return !kNum(x.overall); }).sort(function (a, b) { return b.overall - a.overall; });
+    setH("kc1", sc.length);
+    mk("kc1", { type: "bar", data: { labels: sc.map(nameOf), datasets: [{ label: "Overall score", data: sc.map(function (x) { return +x.overall.toFixed(1); }), backgroundColor: sc.map(function (x) { return BAND[x.band]; }) }] },
+      options: { indexAxis: "y", maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { min: 0, max: 100 } } } });
+    // 2. stations per KPI by RAG
+    var D = K.defs.filter(function (d) { return d.scored; });
+    var cnt = function (code) { return D.map(function (d) { return K.rows.filter(function (x) { return x.rag[d.id] === code; }).length; }); };
+    setH("kc2", D.length);
+    mk("kc2", { type: "bar", data: { labels: D.map(function (d) { return d.id + " " + d.name; }), datasets: [{ label: "Green", data: cnt("G"), backgroundColor: G }, { label: "Amber", data: cnt("A"), backgroundColor: A }, { label: "Red", data: cnt("R"), backgroundColor: R }] },
+      options: { indexAxis: "y", maintainAspectRatio: false, plugins: { legend: legend }, scales: { x: { stacked: true, ticks: { precision: 0 } }, y: { stacked: true } } } });
+    // 3. revenue vs target by station (USD)
+    var P = K.P, nMonths = monthsBetween(P.from, P.to).length, pDays = daysBetween(P.from, P.to) + 1;
+    var rv = K.rows.filter(function (x) { return x.revUsd > 0 || +((S.cfg.stById[x.id] || {}).target) > 0; }).sort(function (a, b) { return b.revUsd - a.revUsd; });
+    setH("kc3", rv.length * 1.4);
+    mk("kc3", { type: "bar", data: { labels: rv.map(nameOf), datasets: [
+        { label: "Revenue (USD)", data: rv.map(function (x) { return Math.round(x.revUsd); }), backgroundColor: ACC },
+        { label: "Target (USD, pro-rated)", data: rv.map(function (x) { var t = +((S.cfg.stById[x.id] || {}).target) || 0; return t ? Math.round(t * nMonths * x.active / pDays) : null; }), backgroundColor: "rgba(150,150,150,.55)" }] },
+      options: { indexAxis: "y", maintainAspectRatio: false, plugins: { legend: legend }, scales: { x: { beginAtZero: true } } } });
+    // 4. energy utilisation by station (C1)
+    var c1d = K.defs.filter(function (d) { return d.id === "C1"; })[0];
+    var eu = K.rows.filter(function (x) { return !kNum(x.v.C1); }).sort(function (a, b) { return b.v.C1 - a.v.C1; });
+    setH("kc4", eu.length);
+    mk("kc4", { type: "bar", data: { labels: eu.map(nameOf), datasets: [{ label: c1d ? c1d.name : "Energy utilisation", data: eu.map(function (x) { return +(x.v.C1 * 100).toFixed(1); }), backgroundColor: eu.map(function (x) { return BAND[x.rag.C1 || "N"]; }) }] },
+      options: { indexAxis: "y", maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: function (c) { return c.parsed.x + "%"; } } } }, scales: { x: { beginAtZero: true, ticks: { callback: function (v) { return v + "%"; } } } } } });
+    // 5-8. trends for the selected stations
+    var set = {}; K.rows.forEach(function (x) { set[x.id] = 1; });
+    var endM = P.to.slice(0, 7), last = (S.data.salesRange || {}).last || "";
+    var m12 = []; for (var i = 11; i >= 0; i--) m12.push(monthAdd(endM + "-01", -i).slice(0, 7));
+    var yr = P.from.slice(0, 4), yM = []; for (var q = 1; q <= 12; q++) yM.push(yr + "-" + ("0" + q).slice(-2));
+    var need = m12.concat(yM).filter(function (m, k, a) { return a.indexOf(m) === k && m + "-01" <= (last || "0000"); });
+    var agg = {};
+    need.forEach(function (m) {
+      var Km = kpiMonthCache(m), o = { rev: 0, kwh: 0, elec: 0, lk: 0, lb: 0 };
+      Km.rows.forEach(function (x) { if (!set[x.id]) return; o.rev += x.revUsd; o.kwh += x.kwh + x.nsKwh; o.elec += x.elecUsd; if (!kNum(x.v.C4)) { o.lk += x.kwh + x.nsKwh; o.lb += x.billKwh; } });
+      agg[m] = o;
+    });
+    var lab = function (m) { return MON[+m.slice(5) - 1] + " " + m.slice(2, 4); }, g = function (m, k) { return agg[m] ? agg[m][k] : null; };
+    mk("kc5", { type: "bar", data: { labels: m12.map(lab), datasets: [{ label: "Revenue (USD)", data: m12.map(function (m) { var v = g(m, "rev"); return v === null ? null : Math.round(v); }), backgroundColor: ACC }] }, options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } } });
+    mk("kc6", { type: "bar", data: { labels: m12.map(lab), datasets: [{ label: "Energy delivered (kWh)", data: m12.map(function (m) { var v = g(m, "kwh"); return v === null ? null : Math.round(v); }), backgroundColor: G }] }, options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } } });
+    mk("kc7", { type: "bar", data: { labels: m12.map(lab), datasets: [
+        { label: "Gross margin %", data: m12.map(function (m) { var o = agg[m]; return o && o.rev ? +((o.rev - o.elec) / o.rev * 100).toFixed(1) : null; }), backgroundColor: ACC },
+        { label: "Energy loss %", data: m12.map(function (m) { var o = agg[m]; return o && o.lb ? +((1 - o.lk / o.lb) * 100).toFixed(1) : null; }), backgroundColor: R }] },
+      options: { maintainAspectRatio: false, plugins: { legend: legend, tooltip: { callbacks: { label: function (c) { return c.dataset.label + ": " + c.parsed.y + "%"; } } } }, scales: { y: { ticks: { callback: function (v) { return v + "%"; } } } } } });
+    var qs = [1, 2, 3, 4].map(function (qq) { var t = 0, any = false; for (var k = 0; k < 3; k++) { var m = yr + "-" + ("0" + ((qq - 1) * 3 + k + 1)).slice(-2); if (agg[m]) { t += agg[m].rev; any = true; } } return any ? Math.round(t) : null; });
+    mk("kc8", { type: "bar", data: { labels: ["Q1 " + yr, "Q2 " + yr, "Q3 " + yr, "Q4 " + yr], datasets: [{ label: "Revenue (USD)", data: qs, backgroundColor: ACC }] }, options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } } });
+    var note = $("kcNote"); if (note) note.textContent = "Trend charts use the selected stations. Revenue and electricity in USD at " + n0(S.cfg.khrUsd) + " KHR per USD; gross margin = (revenue − electricity) ÷ revenue; energy loss = 1 − kWh delivered ÷ kWh billed, for stations with a full set of bills. Months after " + (last ? fDate(last) : "the last sales date") + " have no data yet.";
+  }
+  function kpiChartsHtml() {
+    var box = function (id, title, h) { return '<div class="panel"><h3>' + title + '</h3><div class="chart-box"' + (h ? ' style="height:' + h + 'px"' : "") + '><canvas id="' + id + '"></canvas></div></div>'; };
+    return '<div class="group-label" style="margin-top:16px"><i class="ti ti-chart-histogram"></i>Selected period — by station</div>' +
+      '<div class="kc-grid">' + box("kc1", "Overall KPI score by station (sorted)") + box("kc2", "Where the stations stand — stations per KPI by RAG") + box("kc3", "Revenue vs target by station (USD, sorted)") + box("kc4", "Energy utilisation by station (C1, sorted)") + "</div>" +
+      '<div class="group-label" style="margin-top:16px"><i class="ti ti-chart-line"></i>Trends — selected stations</div>' +
+      '<div class="kc-grid">' + box("kc5", "Revenue by month (USD) — last 12 months") + box("kc6", "Energy delivered by month (kWh) — last 12 months") + box("kc7", "Gross margin % and energy loss % by month") + box("kc8", "Revenue by quarter (USD) — selected year") + "</div>" +
+      '<p class="small muted" id="kcNote" style="margin:6px 0 0"></p>';
+  }
+  var KS = { type: "month", key: "", sel: "", st: "*", mcache: {} };
   function renderKpi() {
     var el = $("v-kpi");
     var opts = kpiPeriodOptions(KS.type);
@@ -1763,22 +1875,25 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       '<button class="btn ghost" type="button" id="kpiXlsx"><i class="ti ti-file-spreadsheet"></i> Export (.xlsx)</button><button class="btn ghost" type="button" id="kpiPrint"><i class="ti ti-printer"></i> Print</button></div></div>' +
       '<div class="panel tools noprint"><label class="f"><span>Period type</span><select id="kpiType"><option value="month">Month</option><option value="quarter">Quarter</option></select></label>' +
       '<label class="f"><span>Period</span><select id="kpiKey">' + opts.map(function (o) { return '<option value="' + o[0] + '">' + esc(o[1]) + "</option>"; }).join("") + "</select></label>" +
+      '<label class="f"><span>Stations</span><select id="kpiSt"><option value="*">All stations</option><option value="type:VET-owned">VET-owned stations</option><option value="type:Franchised (PNP)">Franchised (PNP) stations</option><option value="type:HSP">Host-site (HSP) stations</option>' + S.data.stations.map(function (s) { return '<option value="' + esc(s.id) + '">' + esc(s.id + " · " + s.short) + "</option>"; }).join("") + "</select></label>" +
       '<p class="small muted grow" style="margin:0 0 6px">13 KPIs in 4 areas, with the targets, weights and RAG points of the VET-ENERGY Station KPI workbook. A KPI with no data is left out and the weights are re-shared. Operating margin is shown for information and is <b>not weighted</b>.</p></div>' +
-      '<div id="kpiNote"></div><div class="kpis" id="kpiTiles" style="margin-top:12px"></div>' +
+      '<div id="kpiNote"></div><div class="kpis" id="kpiTiles" style="margin-top:12px"></div>' + kpiChartsHtml() +
       '<div class="panel" style="margin-top:16px"><div class="section-title"><h3 style="margin:0">Scorecard by station</h3><span class="small muted">Select a station for the detail</span></div><div class="tbl-wrap" id="kpiTable"></div></div>' +
       '<div class="panel accent" style="margin-top:16px" id="kpiDetail" hidden></div>' +
       '<details class="panel" style="margin-top:16px"><summary>KPI definitions, targets and weights</summary><div class="tbl-wrap" id="kpiDefsT" style="margin-top:8px"></div></details>';
-    $("kpiType").value = KS.type; $("kpiKey").value = KS.key;
+    $("kpiType").value = KS.type; $("kpiKey").value = KS.key; $("kpiSt").value = KS.st; if (!$("kpiSt").value) { KS.st = "*"; $("kpiSt").value = "*"; }
+    KS.mcache = {};
+    $("kpiSt").onchange = function () { KS.st = this.value; if (KS.sel && kpiIds(KS.st).indexOf(KS.sel) < 0) KS.sel = ""; drawKpi(); };
     $("kpiType").onchange = function () { KS.type = this.value; KS.key = ""; renderKpi(); };
     $("kpiKey").onchange = function () { KS.key = this.value; drawKpi(); };
     $("kpiXlsx").onclick = exportKpi;
     $("kpiPrint").onclick = function () { window.print(); };
-    var P = kpiRange(KS.type, KS.key);
-    ensureSales(P.from, P.to).then(drawKpi).catch(function (e) { handleError(e, "Loading sales"); drawKpi(); });
+    var P = kpiRange(KS.type, KS.key), lo = monthAdd(P.to.slice(0, 7) + "-01", -11); if (P.from.slice(0, 4) + "-01-01" < lo) lo = P.from.slice(0, 4) + "-01-01";
+    ensureSales(lo, P.to).then(drawKpi).catch(function (e) { handleError(e, "Loading sales"); drawKpi(); });
   }
   function drawKpi() {
     if (!KS.key) { $("kpiTable").innerHTML = '<p class="muted">No sales data yet.</p>'; return; }
-    var K = kpiCompute(KS.type, KS.key); S.lastKpi = K;
+    var K = kpiFilter(KS.type === "month" ? kpiMonthCache(KS.key) : kpiCompute(KS.type, KS.key), KS.st); S.lastKpi = K;
     $("kpiNote").innerHTML = !K.last ? '<div class="notice">No system sales are stored yet.</div>' : !K.complete ? '<div class="notice" style="margin-top:8px">' + esc(K.P.label) + " is not complete: system sales are stored up to <b>" + fDate(K.last) + "</b>. Scores use the days so far; C4 Energy loss waits for the full period.</div>" : "";
     var scored = K.rows.filter(function (x) { return !kNum(x.overall); });
     var cnt = { G: 0, A: 0, R: 0 }; scored.forEach(function (x) { cnt[x.band]++; });
@@ -1813,7 +1928,8 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       var f = function (v) { return d.unit === "%" ? pct(v, 0) : v; };
       return [esc(d.id), esc(d.name), esc(d.area), esc(d.dir), (d.dir === "higher" ? "≥ " : "≤ ") + f(d.green), (d.dir === "higher" ? "≥ " : "≤ ") + f(d.amber), d.scored ? d.weight : "not weighted", '<span class="small">' + esc(d.definition) + "</span>"];
     }), 9);
-    if (KS.sel) drawKpiDetail();
+    try { drawKpiCharts(K); } catch (e) { if (window.console) console.error(e); }
+    if (KS.sel) drawKpiDetail(); else $("kpiDetail").hidden = true;
   }
   function drawKpiDetail() {
     var K = S.lastKpi, x = K && K.rows.filter(function (r) { return r.id === KS.sel; })[0], el = $("kpiDetail");
@@ -2385,18 +2501,14 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       if (!m) return v === undefined || v === null ? "" : v;
       return new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], withTime ? +(m[4] || 0) : 0, withTime ? +(m[5] || 0) : 0));
     }
-    // cols: [{h, w, f (FMT key), wrap, center}]
-    function sheet(name, o) {
-      var cols = o.cols, n = cols.length, ws = wb.addWorksheet(name.slice(0, 31), { views: [{ state: "frozen", ySplit: 0, zoomScale: 90 }] });
-      cols.forEach(function (c, i) { ws.getColumn(i + 1).width = c.w || 12; });
-      var W = cols.map(function (c) { return c.w || 12; }), tot = W.reduce(function (a, b) { return a + b; }, 0);
+    function drawBand(ws, W, n, o) {
+      var cell = function (r, c) { return ws.getCell(r, c); };
       // header band: logo | title | document control
       var spanL = 1, acc = W[0]; while (acc < 34 && spanL < n - 2) acc += W[spanL++];
       var spanR = 1; acc = W[n - 1]; while (acc < 34 && spanR < n - spanL - 1) acc += W[n - 1 - spanR++];
       var titleFrom = spanL + 1, titleTo = n - spanR, doc = reportDoc(o.docKey);
       var titleW = 0; for (var q = titleFrom; q <= titleTo; q++) titleW += W[q - 1];
       if (titleW < 32 && titleTo >= titleFrom) { spanR = n - spanL; titleFrom = spanL + 1; titleTo = spanL; } // too narrow: title moves to its own band below
-      var cell = function (r, c) { return ws.getCell(r, c); };
       var mergeFill = function (r1, c1, r2, c2, v, st) { for (var r = r1; r <= r2; r++) for (var c = c1; c <= c2; c++) { var x = cell(r, c); if (st.fill) x.fill = st.fill; } var t = cell(r1, c1); t.value = v; t.font = st.font; t.alignment = st.alignment; if (r2 > r1 || c2 > c1) ws.mergeCells(r1, c1, r2, c2); };
       var titleSt = { font: { name: "Arial", size: 16, bold: true, color: { argb: WHITE } }, fill: fill(OR), alignment: { horizontal: "center", vertical: "middle", wrapText: true } };
       var docSt = { font: { name: "Aptos Display", size: 10, bold: true, color: { argb: WHITE } }, fill: fill(OR), alignment: { horizontal: "left", vertical: "middle", wrapText: true, indent: 1 } };
@@ -2411,6 +2523,15 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
         mergeFill(r, 1, r, n, line, { font: { name: "Arial", size: 10, color: { argb: "FF475467" } }, alignment: { vertical: "middle" } }); ws.getRow(r).height = 16; r++;
       });
       r++;
+      return r;
+    }
+    // cols: [{h, w, f (FMT key), wrap, center}]
+    function sheet(name, o) {
+      var cols = o.cols, n = cols.length, ws = wb.addWorksheet(name.slice(0, 31), { views: [{ state: "frozen", ySplit: 0, zoomScale: 90 }] });
+      cols.forEach(function (c, i) { ws.getColumn(i + 1).width = c.w || 12; });
+      var W = cols.map(function (c) { return c.w || 12; }), tot = W.reduce(function (a, b) { return a + b; }, 0);
+      var cell = function (r, c) { return ws.getCell(r, c); };
+      var r = drawBand(ws, W, n, o);
       var hr = r;
       cols.forEach(function (c, i) { var x = cell(hr, i + 1); x.value = c.h; x.font = { name: "Arial", size: 10, bold: true, color: { argb: WHITE } }; x.fill = fill(OR); x.border = box; x.alignment = { horizontal: "center", vertical: "middle", wrapText: true }; });
       ws.getRow(hr).height = Math.min(60, 15 * Math.max.apply(null, cols.map(function (c) { return Math.ceil(String(c.h).length / Math.max(4, (c.w || 12) - 1)); })) + 6);
@@ -2442,7 +2563,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
         if (cur > row0 && o.filter !== false) ws.autoFilter = { from: { row: hr, column: 1 }, to: { row: last, column: n } };
         ws.pageSetup = { paperSize: 9, orientation: tot > 110 ? "landscape" : "portrait", fitToPage: true, fitToWidth: 1, fitToHeight: 0,
           margins: { left: 0.4, right: 0.4, top: 0.5, bottom: 0.5, header: 0.3, footer: 0.3 }, printArea: "A1:" + ws.getColumn(n).letter + last, printTitlesRow: hr + ":" + hr };
-        ws.headerFooter = { oddFooter: "&8" + o.title.replace(/&/g, "&&") + " · page &P of &N" };
+        ws.headerFooter = { oddFooter: '&"Arial,Regular"&8' + o.title.replace(/&/g, "&&") + " · page &P of &N" };
       }
       return { ws: ws, add: add, rag: rag, tint: tint, done: done, headerRow: hr, cell: cell, fill: fill, SOFT: SOFT };
     }
@@ -2454,7 +2575,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
         setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
       });
     }
-    return { wb: wb, sheet: sheet, save: save, SOFT: SOFT };
+    return { wb: wb, sheet: sheet, save: save, SOFT: SOFT, drawBand: drawBand, fill: fill, box: box };
   }
   var FMT_OF = { date: "date", dt: "dt", num: "n2", int: "int" };
   function kindCols(K) {
@@ -2465,6 +2586,219 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     })).concat([{ h: "Status (calc)", w: 22, wrap: true }]);
   }
 
+  /* ---------- Dashboard sheet (mirrors the website Dashboard) ---------- */
+  function domTable(el) {
+    var t = el && el.querySelector("table"); if (!t) return null;
+    var head = [].map.call(t.querySelectorAll("thead tr:first-child th"), function (th) { return th.textContent.trim(); });
+    var rows = [].map.call(t.querySelectorAll("tbody tr"), function (tr) {
+      return { total: tr.classList.contains("total"), cells: [].map.call(tr.children, function (td) {
+        var cls = td.className || "", g = / g\b|^g\b/.test(cls) ? "G" : / a\b|^a\b/.test(cls) ? "A" : / r\b|^r\b/.test(cls) ? "R" : "";
+        var chip = td.querySelector(".chip"); if (chip) g = chip.classList.contains("ok") ? "G" : chip.classList.contains("warn") ? "A" : chip.classList.contains("crit") || chip.classList.contains("bad") ? "R" : g;
+        return { t: td.textContent.trim(), span: +(td.getAttribute("colspan") || 1), num: cls.indexOf("num") >= 0, g: g };
+      }) };
+    });
+    return { head: head, rows: rows };
+  }
+  function cellNum(t) {
+    var s = String(t).trim();
+    if (/^[+-]?[\d,]+(\.\d+)?%$/.test(s)) { var d = (s.split(".")[1] || "").replace("%", "").length; return { v: +s.replace(/[,%]/g, "") / 100, f: d ? "0." + "0".repeat(d) + "%" : "0%" }; }
+    if (/^[+-]?[\d,]+(\.\d+)?$/.test(s)) { var d2 = (s.split(".")[1] || "").length; return { v: +s.replace(/,/g, ""), f: d2 ? "#,##0." + "0".repeat(d2) : "#,##0" }; }
+    return null;
+  }
+  function addDashboardSheet(X, info) {
+    var ws = X.wb.addWorksheet("Dashboard", { views: [{ showGridLines: false, zoomScale: 90 }] });
+    var NC = 12, CW = 12.5, W = []; for (var i = 0; i < NC; i++) { W.push(CW); ws.getColumn(i + 1).width = CW; }
+    var r = X.drawBand(ws, W, NC, { title: "CONSOLIDATED KPI DASHBOARD REPORT", docKey: "Period report", info: info });
+    var F = function (o) { var f = { name: "Arial", size: 10 }; for (var k in o) f[k] = o[k]; return f; };
+    var GC = { G: ["FF1E7B4A", "FFDFF1E5"], A: ["FF8A5300", "FFFFF1D6"], R: ["FFB42318", "FFFDE2DF"] };
+    var TEAL = "FF0B6E75", MUTED = "FF667085", BR = "FFE4E7EC";
+    var thin = { style: "thin", color: { argb: BR } };
+    var CAP = 560, used = 62 + 20 * (info.length + 1), blocks = [];
+    var startBlock = function (h) { if (used + h > CAP && r > 6) { ws.getRow(r - 1).addPageBreak(); used = 0; } used += h; };
+    var label = function (txt) {
+      ws.mergeCells(r, 1, r, NC); var c = ws.getCell(r, 1); c.value = txt.toUpperCase();
+      c.font = F({ bold: true, color: { argb: "FF7A3500" } }); c.fill = X.fill(X.SOFT); c.alignment = { vertical: "middle", indent: 1 };
+      ws.getRow(r).height = 18; r++;
+    };
+    // --- tiles
+    var groups = [["kComplianceWrap", "kComp"], [null, "kSales"], [null, "kOps"], [null, "kInc"]];
+    groups.forEach(function (g) {
+      if (g[0] && $(g[0]).hidden) return;
+      var box = $(g[1]), tiles = box ? box.querySelectorAll(".kpi") : [];
+      if (!tiles.length) return;
+      var lbl = (g[0] ? $(g[0]) : box).previousElementSibling; if (g[0]) lbl = $(g[0]).querySelector(".group-label");
+      var PER = 6, TW = 2, nRows = Math.ceil(tiles.length / PER);
+      startBlock(18 + nRows * 84);
+      label(lbl ? lbl.textContent.trim() : "");
+      [].forEach.call(tiles, function (t, i) {
+        var row = r + Math.floor(i / PER) * 5, col = (i % PER) * TW + 1;
+        var grade = t.classList.contains("g") ? "G" : t.classList.contains("a") ? "A" : t.classList.contains("r") ? "R" : "";
+        var bg = grade ? GC[grade][1] : "FFF7F9FA", ink = grade ? GC[grade][0] : TEAL;
+        var txt = function (sel) { var e = t.querySelector(sel); return e ? e.textContent.trim() : ""; };
+        var put = function (dr, v, font, h, align) { ws.mergeCells(row + dr, col, row + dr, col + TW - 1); var c = ws.getCell(row + dr, col); c.value = v; c.font = font; c.alignment = align || { vertical: "middle", indent: 1, wrapText: true }; };
+        for (var rr = 0; rr < 4; rr++) for (var cc = 0; cc < TW; cc++) {
+          var x = ws.getCell(row + rr, col + cc); x.fill = X.fill(bg);
+          x.border = { top: rr === 0 ? thin : undefined, bottom: rr === 3 ? thin : undefined, left: cc === 0 ? { style: "thick", color: { argb: grade ? GC[grade][0] : "FF0B6E75" } } : undefined, right: cc === TW - 1 ? thin : undefined };
+        }
+        put(0, txt(".t"), F({ size: 9, color: { argb: MUTED }, bold: true }));
+        put(1, txt(".v"), F({ size: 16, bold: true, color: { argb: ink } }));
+        put(2, txt(".s"), F({ size: 8.5, color: { argb: MUTED } }), 0, { vertical: "top", indent: 1, wrapText: true });
+        var d = t.querySelector(".d");
+        put(3, d ? d.textContent.trim() : "", F({ size: 8.5, bold: true, color: { argb: d && d.classList.contains("up") ? "FF1E7B4A" : d && d.classList.contains("down") ? "FFB42318" : MUTED } }));
+      });
+      for (var k = 0; k < nRows; k++) { var b0 = r + k * 5; ws.getRow(b0).height = 16; ws.getRow(b0 + 1).height = 24; ws.getRow(b0 + 2).height = 26; ws.getRow(b0 + 3).height = 14; ws.getRow(b0 + 4).height = 6; }
+      r += nRows * 5;
+    });
+    // --- charts (pictures of the website charts)
+    var charts = [["cDaily", 1], ["cMonthly", 7]], chartRows = 0, imgs = [];
+    charts.forEach(function (c) {
+      var cv = $(c[0]); if (!cv || !cv.width) return;
+      var url; try { var tmp = document.createElement("canvas"); tmp.width = cv.width; tmp.height = cv.height; var cx = tmp.getContext("2d"); cx.fillStyle = "#fff"; cx.fillRect(0, 0, tmp.width, tmp.height); cx.drawImage(cv, 0, 0); url = tmp.toDataURL("image/png"); } catch (e) { return; }
+      var wpx = 6 * (CW * 7 + 5) - 12, hpx = Math.round(wpx * cv.height / cv.width);
+      imgs.push({ id: X.wb.addImage({ base64: url, extension: "png" }), col: c[1], w: wpx, h: hpx, title: cv.closest(".panel").querySelector("h3").textContent.trim() });
+      chartRows = Math.max(chartRows, Math.ceil(hpx / 20) + 1);
+    });
+    if (imgs.length) {
+      startBlock(18 + 18 + chartRows * 15);
+      label("Trends");
+      imgs.forEach(function (m) { ws.mergeCells(r, m.col, r, m.col + 5); var c = ws.getCell(r, m.col); c.value = m.title; c.font = F({ bold: true }); });
+      r++;
+      imgs.forEach(function (m) { ws.addImage(m.id, { tl: { col: m.col - 1 + 0.05, row: r - 1 + 0.1 }, ext: { width: m.w, height: m.h }, editAs: "oneCell" }); });
+      r += chartRows + 1;
+    }
+    // --- tables
+    var tableH = function (T) { return 18 + 18 + Math.max(1, T.rows.length) * 16; };
+    var drawTable = function (T, title, c0, span, r0) {
+      var k = T.head.length, labelSpan = Math.max(1, span - (k - 1)), rr = r0;
+      ws.mergeCells(rr, c0, rr, c0 + span - 1); var tc = ws.getCell(rr, c0); tc.value = title; tc.font = F({ bold: true }); rr++;
+      var colAt = function (j) { return j === 0 ? c0 : c0 + labelSpan + j - 1; };
+      T.head.forEach(function (h, j) {
+        if (j === 0 && labelSpan > 1) ws.mergeCells(rr, c0, rr, c0 + labelSpan - 1);
+        var c = ws.getCell(rr, colAt(j)); c.value = h; c.font = F({ bold: true, size: 9, color: { argb: "FFFFFFFF" } }); c.fill = X.fill("FFE96500"); c.alignment = { horizontal: j ? "center" : "left", vertical: "middle", wrapText: true, indent: j ? 0 : 1 }; c.border = X.box;
+        if (j === 0) for (var q = 1; q < labelSpan; q++) { ws.getCell(rr, c0 + q).fill = X.fill("FFE96500"); ws.getCell(rr, c0 + q).border = X.box; }
+      });
+      ws.getRow(rr).height = Math.max(ws.getRow(rr).height || 0, 26); rr++;
+      T.rows.forEach(function (row) {
+        var j = 0, lines = 1;
+        row.cells.forEach(function (cd) {
+          var a = colAt(j), b = cd.span > 1 ? colAt(Math.min(k - 1, j + cd.span - 1)) + (j + cd.span - 1 >= k - 1 ? 0 : 0) : (j === 0 ? c0 + labelSpan - 1 : a);
+          if (cd.span > 1) b = c0 + span - 1;
+          if (b > a) ws.mergeCells(rr, a, rr, b);
+          var c = ws.getCell(rr, a), n = j > 0 && cd.span === 1 ? cellNum(cd.t) : null;
+          c.value = n ? n.v : cd.t; if (n) c.numFmt = n.f;
+          c.font = F({ size: 9, bold: row.total, color: cd.g ? { argb: GC[cd.g][0] } : undefined });
+          c.alignment = { horizontal: n ? "right" : cd.span > 1 ? "left" : j ? "center" : "left", vertical: "middle", indent: j ? 0 : 1, wrapText: !n };
+          if (!n) lines = Math.max(lines, Math.ceil(String(cd.t).length / Math.max(4, (b - a + 1) * CW * 1.15)));
+          for (var q = a; q <= b; q++) { var z = ws.getCell(rr, q); z.border = X.box; if (row.total) z.fill = X.fill(X.SOFT); else if (cd.g) z.fill = X.fill(GC[cd.g][1]); }
+          j += cd.span;
+        });
+        if (lines > 1) ws.getRow(rr).height = Math.min(60, 12 * lines + 4);
+        rr++;
+      });
+      return rr;
+    };
+    var pairs = [[["tByType"], ["tByCust"]], [["tIncSev"], ["tFaultCat"]], [["tCompCat"], ["tIncType"]], [["tCompCh"], null]];
+    var titleOf = function (id) { var p = $(id).closest(".panel"); var h = p && p.querySelector("h3"); return h ? h.textContent.trim() : id; };
+    var firstTables = true;
+    pairs.forEach(function (pr) {
+      var L = domTable($(pr[0][0])), R2 = pr[1] ? domTable($(pr[1][0])) : null;
+      if (!L && !R2) return;
+      if ((L && L.head.length > 6) || (R2 && R2.head.length > 6)) {
+        [[L, pr[0][0]], [R2, pr[1] && pr[1][0]]].forEach(function (z) {
+          if (!z[0]) return; startBlock(tableH(z[0]) + (firstTables ? 18 : 0));
+          if (firstTables) { label("Breakdowns"); firstTables = false; }
+          r = drawTable(z[0], titleOf(z[1]), 1, 12, r) + 1;
+        });
+        return;
+      }
+      var h = Math.max(L ? tableH(L) : 0, R2 ? tableH(R2) : 0);
+      startBlock(h + (firstTables ? 18 : 0));
+      if (firstTables) { label("Breakdowns"); firstTables = false; }
+      var e1 = L ? drawTable(L, titleOf(pr[0][0]), 1, 6, r) : r, e2 = R2 ? drawTable(R2, titleOf(pr[1][0]), 7, 6, r) : r;
+      r = Math.max(e1, e2) + 1;
+    });
+    // open now
+    var OF = [["tOpenF", "Open charger faults"], ["tOpenC", "Open complaints"], ["tOpenI", "Open incidents"]].map(function (x) { return [domTable($(x[0])), x[1]]; }).filter(function (x) { return x[0]; });
+    for (var q = 0; q < OF.length; q += 2) {
+      var A1 = OF[q], B1 = OF[q + 1], hh = Math.max(tableH(A1[0]), B1 ? tableH(B1[0]) : 0);
+      startBlock(hh + (q === 0 ? 18 : 0)); if (q === 0) label("Open now");
+      var x1 = drawTable(A1[0], A1[1], 1, 6, r), x2 = B1 ? drawTable(B1[0], B1[1], 7, 6, r) : r; r = Math.max(x1, x2) + 1;
+    }
+    // compact by-station table
+    var A = S.lastCalc.A, nz = function (v) { return kNum(v) ? "—" : v; };
+    var ST = { head: ["Station", "Type", "Revenue KHR", "Sessions", "Success", "Uptime", "Faults", "Complaints", "Incidents", "Red flags", "Status"], rows: [] };
+    Object.keys(A.st).forEach(function (id) {
+      var x = A.st[id], s0 = S.cfg.stById[id];
+      ST.rows.push({ total: false, cells: [id + " " + s0.short, s0.type, n0(x.rev), n0(x.sessions), kNum(x.success) ? "—" : (x.success * 100).toFixed(1) + "%", kNum(x.uptime) ? "—" : (x.uptime * 100).toFixed(1) + "%", n0(x.faults), n0(x.comp), n0(x.inc), x.flags ? String(x.flags) : "0", x.statusTxt || ""].map(function (t, j) {
+        var g = ""; if (j === 10) g = /crit|red|action/i.test(t) ? "R" : /watch|amber/i.test(t) ? "A" : t ? "G" : "";
+        return { t: t, span: 1, num: j > 1 && j < 10, g: g };
+      }) });
+    });
+    var an = A.net;
+    ST.rows.push({ total: true, cells: ["Network", "", n0(an.rev), n0(an.sessions), kNum(an.success) ? "—" : (an.success * 100).toFixed(1) + "%", kNum(an.uptime) ? "—" : (an.uptime * 100).toFixed(1) + "%", n0(an.faults), n0(an.comp), n0(an.inc), "", ""].map(function (t) { return { t: t, span: 1, g: "" }; }) });
+    startBlock(tableH(ST) + 18); label("By station");
+    r = drawTable(ST, "Station summary (full detail on the Stations sheet)", 1, 12, r) + 1;
+    ws.pageSetup = { paperSize: 9, orientation: "landscape", fitToPage: true, fitToWidth: 1, fitToHeight: 0,
+      margins: { left: 0.4, right: 0.4, top: 0.4, bottom: 0.5, header: 0.2, footer: 0.25 }, printArea: "A1:L" + (r - 1) };
+    ws.headerFooter = { oddFooter: '&"Arial,Regular"&8CONSOLIDATED KPI DASHBOARD REPORT · page &P of &N' };
+    // heat map sheet
+    var HT = domTable($("tHeat"));
+    if (HT) {
+      var hs = X.wb.addWorksheet("Peak hours", { views: [{ showGridLines: false }] });
+      var HW = [8].concat(Array(24).fill(5.2)); HW.forEach(function (w, i) { hs.getColumn(i + 1).width = w; });
+      var hr0 = X.drawBand(hs, HW, 25, { title: "WHEN DRIVERS CHARGE — SESSIONS BY WEEKDAY AND HOUR", docKey: "Period report", info: info });
+      var tbl = $("tHeat").querySelector("table");
+      HT.head.forEach(function (h, j) { var c = hs.getCell(hr0, j + 1); c.value = h; c.font = F({ bold: true, size: 9, color: { argb: "FFFFFFFF" } }); c.fill = X.fill("FFE96500"); c.alignment = { horizontal: "center" }; c.border = X.box; });
+      [].forEach.call(tbl.querySelectorAll("tbody tr"), function (tr, i) {
+        var rr = hr0 + 1 + i;
+        [].forEach.call(tr.children, function (td, j) {
+          var c = hs.getCell(rr, j + 1), n = cellNum(td.textContent.trim());
+          c.value = n ? n.v : td.textContent.trim(); if (n) c.numFmt = "#,##0";
+          c.alignment = { horizontal: "center", vertical: "middle" }; c.border = X.box; c.font = F({ size: 9, bold: j === 0 });
+          var m = (td.getAttribute("style") || "").match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+          if (m) { var al = m[4] === undefined ? 1 : +m[4], hx = [1, 2, 3].map(function (k) { return ("0" + Math.round(255 + (+m[k] - 255) * al).toString(16)).slice(-2); }).join("").toUpperCase(); c.fill = X.fill("FF" + hx); if (al > 0.6) c.font = F({ size: 9, color: { argb: "FFFFFFFF" } }); }
+        });
+        hs.getRow(rr).height = 20;
+      });
+      var last = hr0 + HT.rows.length, note = $("tHeat").parentElement.querySelector("p");
+      if (note) { hs.mergeCells(last + 2, 1, last + 2, 25); var nc = hs.getCell(last + 2, 1); nc.value = note.textContent.trim(); nc.font = F({ size: 9, color: { argb: MUTED } }); nc.alignment = { wrapText: true }; hs.getRow(last + 2).height = 28; }
+      hs.pageSetup = { paperSize: 9, orientation: "landscape", fitToPage: true, fitToWidth: 1, fitToHeight: 0, margins: { left: 0.4, right: 0.4, top: 0.4, bottom: 0.5, header: 0.2, footer: 0.25 } };
+      hs.headerFooter = { oddFooter: '&"Arial,Regular"&8WHEN DRIVERS CHARGE · page &P of &N' };
+    }
+  }
+  /* ---------- Dashboard print (landscape, own header/footer on every page) ---------- */
+  function printDash() {
+    if (!S.lastCalc) return;
+    var P = S.lastCalc.P, doc = reportDoc("Period report"), stTxt = $("fStation").options[$("fStation").selectedIndex].text;
+    var info = "Stations: " + esc(stTxt) + " · Period: " + fDate(P.from) + " to " + fDate(P.to) + " · Compared with: " + (P.cmp ? fDate(P.cmp[0]) + " to " + fDate(P.cmp[1]) : "—");
+    var grab = function (id) { var e = $(id); return e ? e.innerHTML : ""; };
+    var img = function (id) { var cv = $(id); if (!cv || !cv.width) return ""; try { var t = document.createElement("canvas"); t.width = cv.width; t.height = cv.height; var c = t.getContext("2d"); c.fillStyle = "#fff"; c.fillRect(0, 0, t.width, t.height); c.drawImage(cv, 0, 0); return '<img src="' + t.toDataURL("image/png") + '" alt="">'; } catch (e) { return ""; } };
+    var grp = function (wrap, id) {
+      if (wrap && $(wrap).hidden) return ""; var box = $(id); if (!box || !box.children.length) return "";
+      var lbl = wrap ? $(wrap).querySelector(".group-label") : box.previousElementSibling;
+      return '<section class="pd-blk"><div class="group-label">' + (lbl ? lbl.innerHTML : "") + '</div><div class="kpis pd-kpis">' + box.innerHTML + "</div></section>";
+    };
+    var panel = function (id, cls) { var p = $(id) && $(id).closest(".panel"); if (!p) return ""; var h = p.querySelector("h3"); return '<div class="pd-panel ' + (cls || "") + '"><h3>' + (h ? esc(h.textContent) : "") + "</h3>" + grab(id) + "</div>"; };
+    var body =
+      '<p class="pd-info">' + info + "</p>" +
+      grp("kComplianceWrap", "kComp") + grp(null, "kSales") + grp(null, "kOps") + grp(null, "kInc") +
+      '<section class="pd-blk"><div class="group-label">Open now</div><div class="pd-grid3">' +
+        [["tOpenF", "Charger faults"], ["tOpenC", "Complaints"], ["tOpenI", "Incidents"]].map(function (x) { return '<div class="pd-panel"><h3>' + x[1] + "</h3>" + grab(x[0]) + "</div>"; }).join("") + "</div></section>" +
+      '<section class="pd-blk pd-break"><div class="group-label">Trends</div><div class="pd-grid2">' +
+        '<div class="pd-panel"><h3>' + esc($("cDaily").closest(".panel").querySelector("h3").textContent) + "</h3>" + img("cDaily") + "</div>" +
+        '<div class="pd-panel"><h3>' + esc($("cMonthly").closest(".panel").querySelector("h3").textContent) + "</h3>" + img("cMonthly") + "</div></div></section>" +
+      '<section class="pd-blk"><div class="group-label">Breakdowns</div><div class="pd-grid3">' + ["tByType", "tByCust", "tIncSev", "tFaultCat", "tCompCat", "tIncType", "tCompCh"].map(function (id) { return panel(id); }).join("") + "</div></section>" +
+      '<section class="pd-blk">' + panel("tHeat", "pd-heat") + "</section>" +
+      '<section class="pd-blk pd-break"><div class="group-label">By station</div><div class="pd-panel pd-st">' + grab("tStations") + "</div></section>";
+    var head = '<div class="pd-head"><div class="pd-logo"><img src="' + VET_LOGO + '" alt="VET Energy"></div><div class="pd-title">CONSOLIDATED KPI DASHBOARD REPORT</div><div class="pd-doc">' + doc.lines.map(esc).join("<br>") + "</div></div>";
+    var foot = '<div class="pd-foot"><span>' + esc(doc.code || "") + " · Consolidated KPI Dashboard Report · " + fDate(P.from) + " to " + fDate(P.to) + "</span><span>Printed " + esc(nowStr()) + " by " + esc(S.user) + "</span></div>";
+    $("printArea").innerHTML = '<table class="pd-frame"><thead><tr><td>' + head + '</td></tr></thead><tfoot><tr><td>' + foot + '</td></tr></tfoot><tbody><tr><td class="pd-body">' + body + "</td></tr></tbody></table>";
+    var st = document.createElement("style"); st.id = "pdPage"; st.textContent = "@page { size: A4 landscape; margin: 0; }"; document.head.appendChild(st);
+    document.body.classList.add("printing", "printing-dash");
+    var done = function () { document.body.classList.remove("printing", "printing-dash"); var x = $("pdPage"); if (x) x.remove(); window.removeEventListener("afterprint", done); };
+    window.addEventListener("afterprint", done);
+    setTimeout(function () { window.print(); setTimeout(done, 500); }, 120);
+  }
   function exportReport() {
     if (!S.lastCalc) return;
     withExcel(exportReportXl, exportReportPlain);
@@ -2482,6 +2816,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       ["Open items now"], ["Open faults", "openF", "int"], ["Open complaints", "openC", "int"], ["Overdue complaints", "overC", "int"], ["Open incidents", "openI", "int"], ["Overdue incidents", "overI", "int"]
     ];
     var val = function (x, m) { if (!x || x.sessions === undefined) return ""; var v = m[3] ? m[3](x) : x[m[1]]; return v === "" || v === null || v === undefined || isNaN(v) ? "" : v; };
+    addDashboardSheet(X, info);
     var sm = X.sheet("Summary", { title: "CONSOLIDATED KPI DASHBOARD REPORT", docKey: "Period report", info: info, filter: false,
       cols: [{ h: "Metric", w: 40 }, { h: "Period", w: 18 }, { h: "Compare", w: 18 }, { h: "Change", w: 18 }] });
     M.forEach(function (m) {
@@ -2524,7 +2859,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
   }
   function exportKpiXl(EJ) {
     var K = S.lastKpi, D = K.defs, areas = Object.keys(S.cfg.kpiArea), nz = function (v) { return kNum(v) ? "" : v; };
-    var X = XBook(EJ), info = ["Period: " + K.P.label + " (" + fDate(K.P.from) + " to " + fDate(K.P.to) + ")" + (K.complete ? "" : " — sales loaded to " + fDate(K.last)), "Exported " + nowStr() + " by " + S.user];
+    var X = XBook(EJ), info = ["Stations: " + (K.stTxt || "All stations") + "   ·   Period: " + K.P.label + " (" + fDate(K.P.from) + " to " + fDate(K.P.to) + ")" + (K.complete ? "" : " — sales loaded to " + fDate(K.last)), "Exported " + nowStr() + " by " + S.user];
     var fOf = function (d) { return d.unit === "%" ? "pct" : d.unit === "#" ? null : "n1"; };
     var cols = [{ h: "Station ID", w: 10 }, { h: "Station", w: 22, wrap: true }, { h: "Type", w: 7, center: true }, { h: "Active days", w: 8, f: "int" }]
       .concat(D.map(function (d) { return { h: d.id + " " + d.name, w: 11, f: fOf(d) }; }))
@@ -2540,6 +2875,23 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     });
     sc.add(["Network", "All stations", "", ""].concat(D.map(function () { return ""; })).concat(areas.map(function () { return ""; })).concat(["", "", K.net.revUsd, K.net.elecUsd, K.net.opexUsd, nz(K.net.margin)]), { bold: true, fill: sc.SOFT });
     sc.done();
+    // charts sheet: pictures of the on-screen KPI charts
+    var cv = ["kc1", "kc2", "kc3", "kc4", "kc5", "kc6", "kc7", "kc8"].map(function (id) { return $(id); }).filter(function (c) { return c && c.width; });
+    if (cv.length) {
+      var cs = X.wb.addWorksheet("Charts", { views: [{ showGridLines: false }] }), CW = 12.5, NC = 12, Wc = []; for (var ci = 0; ci < NC; ci++) { Wc.push(CW); cs.getColumn(ci + 1).width = CW; }
+      var rr = X.drawBand(cs, Wc, NC, { title: "STATION KPI — CHARTS", docKey: "Station KPI", info: info }), rowMax = 0;
+      cv.forEach(function (c, k) {
+        var t = document.createElement("canvas"); t.width = c.width; t.height = c.height; var g = t.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, t.width, t.height); g.drawImage(c, 0, 0);
+        var wpx = 6 * (CW * 7 + 5) - 14, hpx = Math.round(wpx * c.height / c.width), col = k % 2 ? 6 : 0;
+        var title = c.closest(".panel").querySelector("h3").textContent;
+        cs.mergeCells(rr, col + 1, rr, col + 6); var tc = cs.getCell(rr, col + 1); tc.value = title; tc.font = { name: "Arial", size: 10, bold: true };
+        cs.addImage(X.wb.addImage({ base64: t.toDataURL("image/png"), extension: "png" }), { tl: { col: col + 0.05, row: rr + 0.1 }, ext: { width: wpx, height: hpx }, editAs: "oneCell" });
+        rowMax = Math.max(rowMax, Math.ceil(hpx / 20) + 2);
+        if (k % 2) { rr += rowMax + 1; rowMax = 0; }
+      });
+      cs.pageSetup = { paperSize: 9, orientation: "landscape", fitToPage: true, fitToWidth: 1, fitToHeight: 0, margins: { left: 0.4, right: 0.4, top: 0.4, bottom: 0.5, header: 0.2, footer: 0.25 } };
+      cs.headerFooter = { oddFooter: '&"Arial,Regular"&8STATION KPI — CHARTS · page &P of &N' };
+    }
     var IC = [["Station ID", 10], ["Station", 22, 0, 1], ["Active days", 8, "int"], ["Sessions (system)", 10, "int"], ["Failed + canceled", 10, "int"], ["kWh delivered (system)", 12, "n1"], ["Revenue KHR (system)", 15, "khr"], ["Revenue KHR (non-system)", 14, "khr"], ["Non-system sessions", 10, "int"], ["Non-system failed + canceled", 11, "int"], ["Non-system kWh", 10, "n1"], ["Downtime hrs", 10, "n1"], ["Faults", 8, "int"], ["kWh billed", 11, "n1"], ["Bill months", 8, "int"], ["Months open", 8, "int"], ["Latest audit", 11], ["Audit score", 9, "pct"], ["CAPs due", 8, "int"], ["CAPs on time", 8, "int"], ["Safety incidents", 9, "int"], ["CSAT responses", 10, "int"], ["CSAT satisfied", 10, "int"], ["Complaints", 10, "int"], ["Complaints in SLA", 10, "int"], ["Complaints late", 10, "int"]];
     var ip = X.sheet("Inputs", { title: "STATION KPI — INPUTS", docKey: "Station KPI", info: info, freezeCols: 2, cols: IC.map(function (c) { return { h: c[0], w: c[1], f: c[2] || null, wrap: !!c[3] }; }) });
     K.rows.forEach(function (x) { ip.add([x.id, x.name, x.active, x.sessions, x.bad, x.kwh, x.revKhr, x.nsRevKhr, x.nsSessions, x.nsBad, x.nsKwh, x.downHrs, x.faults, x.billKwh, x.billMonths, x.monthsOpen, x.audit ? x.audit.id : "", x.audit ? x.audit.score : "", x.capDue, x.capOnTime, x.safety, x.csatResp, x.csatSat, x.comp, x.slaY, x.slaN]); });
@@ -2747,6 +3099,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
   }
 
   /* ---------------- events ---------------- */
+  $("btnPrintDash").addEventListener("click", printDash);
   $("formSignIn").addEventListener("submit", function (ev) {
     ev.preventDefault();
     var name = $("siName").value.trim().toLowerCase(), key = $("siKey").value;
