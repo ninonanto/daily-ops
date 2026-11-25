@@ -166,11 +166,13 @@ td.rag.G { background: var(--ok-soft); color: var(--ok); } td.rag.A { background
 body.printing .wrap, body.printing .band, body.printing .tabbar { display: none !important; }
 body.printing { background: #fff; }
 body.printing #printArea { display: block; padding: 0 8mm; }
-.rep { --rep: #e96500; --rep-soft: #fde8d7; --rep-line: #f3c8a5; color: #1f1a17; font-family: "IBM Plex Sans", "Noto Sans Khmer", Arial, sans-serif; font-size: 11px; max-width: 190mm; margin: 0 auto; }
+.rep { --rep: #e96500; --rep-soft: #fde8d7; --rep-line: #f3c8a5; color: #1f1a17; font-family: "IBM Plex Sans", "Khmer OS Siemreap", "Khmer UI", "Noto Sans Khmer", "Leelawadee UI", Arial, sans-serif; font-size: 11px; max-width: 190mm; margin: 0 auto; }
 .rep * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-.rep-head { display: flex; justify-content: space-between; align-items: center; background: var(--rep); color: #fff; padding: 10px 14px; border-radius: 6px; }
-.rep-org { font-size: 10px; letter-spacing: .08em; font-weight: 600; opacity: .9; } .rep-title { font-size: 20px; font-weight: 600; }
-.rep-code { text-align: right; font-size: 11px; line-height: 1.4; }
+.rep-head { display: grid; grid-template-columns: 34% 1fr 30%; align-items: stretch; border: 1px solid var(--rep); border-radius: 6px; overflow: hidden; }
+.rep-logo { background: #fff; display: flex; align-items: center; justify-content: center; padding: 6px 10px; } .rep-logo img { max-width: 100%; max-height: 54px; }
+.rep-head .rep-title { background: var(--rep); color: #fff; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 19px; font-weight: 700; letter-spacing: .02em; }
+.rep-head .rep-code { background: var(--rep); color: #fff; display: flex; flex-direction: column; justify-content: center; text-align: left; font-weight: 700; padding: 6px 10px; }
+.rep-code { font-size: 10px; line-height: 1.5; }
 .rep-top { display: grid; grid-template-columns: 1fr 150px; gap: 10px; margin-top: 10px; align-items: stretch; }
 .rep-info { width: 100%; border-collapse: collapse; } .rep-info th, .rep-info td { border: 1px solid var(--rep-line); padding: 4px 7px; text-align: left; position: static; font-size: 11px; }
 .rep-info th { background: var(--rep-soft); color: #5a2a00; width: 17%; font-weight: 600; }
@@ -191,7 +193,7 @@ body.printing #printArea { display: block; padding: 0 8mm; }
 .rep .prev { margin-top: 3px; color: #475467; }
 .rep-note { font-size: 9.5px; color: #667085; margin: 5px 0 0; }
 .rep-box { border: 1px solid var(--rep-line); border-radius: 4px; padding: 8px 10px; min-height: 48px; white-space: pre-line; }
-.rep-sign { width: 100%; border-collapse: separate; border-spacing: 12px 0; margin-top: 22px; font-size: 10.5px; } .rep-sign td { width: 33%; vertical-align: top; } .rep-sign .ln { border-bottom: 1px solid #1f1a17; height: 42px; margin-bottom: 4px; }
+.rep-sign { width: 100%; border-collapse: separate; border-spacing: 12px 0; margin-top: 22px; font-size: 10.5px; } .rep-sign td { vertical-align: top; text-align: center; } .rep-sign .ln { border-bottom: 1px solid #1f1a17; height: 56px; margin-bottom: 4px; }
 .rep-foot { font-size: 9px; color: #98a2b3; margin-top: 14px; text-align: center; }
 @media print { @page { size: A4; margin: 12mm 10mm; } .rep-break { break-before: page; } .rep h2, .rep-t thead { break-after: avoid; } body.printing #printArea { padding: 0; } }
 @media print {
@@ -493,8 +495,23 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
   }
 
   /* ---------------- settings & helpers on the data ---------------- */
+  var MONL = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  function docVal(v) {
+    if (v === null || v === undefined) return "";
+    var t = String(v).trim().replace(/^'/, "");
+    if (/^\d{4}-\d{2}-\d{2}T/.test(t)) { var d = new Date(t); if (!isNaN(d)) return ("0" + d.getDate()).slice(-2) + " " + MONL[d.getMonth()] + ", " + d.getFullYear(); }
+    if (/^\d{4}-\d{2}-\d{2}$/.test(t)) return t.slice(8, 10) + " " + MONL[+t.slice(5, 7) - 1] + ", " + t.slice(0, 4);
+    return t;
+  }
+  /* document-control text for audit forms: code = "Report" | "Checklist" | "CAP form" */
+  function docCtl(key) {
+    var d = S.cfg.auditDoc;
+    var rev = String(d["Revision"]); if (/^\d$/.test(rev)) rev = "0" + rev;
+    var l = ["ID. (" + d[key] + ")", "Rev. " + rev + "   date: " + d["Revision date"], "Effective date: " + d["Effective date"]];
+    return { code: d[key], lines: l, text: l.join("\n") };
+  }
   function buildCfg(d) {
-    var c = { thr: {}, compCats: [], partnerTypes: [], partnerHrs: 168, faultCats: [], channels: [], custTypes: [], incTypes: [], sev: [], general: {},
+    var c = { thr: {}, compCats: [], partnerTypes: [], partnerHrs: 168, faultCats: [], channels: [], custTypes: [], incTypes: [], sev: [], general: {}, auditDoc: {}, auditSign: [],
       expCats: [], capStatus: [], capRisk: { High: 7, Medium: 14, Low: 30 }, kpiArea: {}, kpiBand: { green: 85, amber: 70 }, kpiPoints: { G: 100, A: 60, R: 0 } };
     d.settings.forEach(function (r) {
       var g = r[0], it = r[1];
@@ -513,9 +530,15 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       else if (g === "CAPRisk") c.capRisk[it] = +r[2] || 30;
       else if (g === "KPIArea") c.kpiArea[it] = +r[2] || 0;
       else if (g === "KPIBand") c.kpiBand[it.toLowerCase()] = +r[2];
+      else if (g === "AuditDoc") c.auditDoc[it] = docVal(r[2]);
+      else if (g === "AuditSign") c.auditSign.push({ role: it, name: String(r[2] || "").trim(), title: String(r[3] || "").trim() });
       else if (g === "KPIPoints") c.kpiPoints[it.charAt(0).toUpperCase()] = +r[2];
     });
     if (!Object.keys(c.kpiArea).length) c.kpiArea = { Availability: 0.35, Commercial: 0.25, Compliance: 0.20, Customer: 0.20 };
+    var dd = { "Report": "AUD-R01", "Checklist": "AUD-C01", "CAP form": "CAP-F01", "Revision": "02", "Revision date": "25 November, 2026", "Effective date": "01 December, 2026" };
+    for (var dk in dd) if (c.auditDoc[dk] === undefined || c.auditDoc[dk] === "") c.auditDoc[dk] = dd[dk];
+    c.auditSign = c.auditSign.filter(function (x) { return x.role; });
+    if (!c.auditSign.length) c.auditSign = [{ role: "Auditor", name: "Tun Chandara", title: "ROM" }, { role: "Verified by", name: "Seng DaraVichhay", title: "COO" }];
     if (!c.capStatus.length) c.capStatus = ["Open", "In Progress", "Closed", "Verified"];
     if (!c.expCats.length) c.expCats = ["Staff salaries", "Rent / land lease", "Internet & SIM", "Repairs & maintenance", "Cleaning & consumables", "Security", "Transport & travel", "Other"];
     c.openAlert = +c.general["Fault open alert (hrs)"] || 24;
@@ -2088,13 +2111,14 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     rows.forEach(function (x) { if (!secs.length || secs[secs.length - 1].name !== x.it.section) secs.push({ name: x.it.section, items: [] }); secs[secs.length - 1].items.push(x); });
     var cnt = { C: 0, PC: 0, NC: 0, NA: 0 }; rows.forEach(function (x) { if (cnt[x.code] !== undefined) cnt[x.code]++; });
     var h = '<div class="rep">' +
-      '<div class="rep-head"><div><div class="rep-org">VET-ENERGY EV CHARGING NETWORK</div><div class="rep-title">Station Audit Report</div></div>' +
-      '<div class="rep-code"><b>AUD-R01</b><br>' + esc(a.id) + "<br>" + esc(a.auditStatus) + "</div></div>" +
+      '<div class="rep-head"><div class="rep-logo"><img src="' + VET_LOGO + '" alt="VET Energy"></div><div class="rep-title">STATION AUDIT REPORT' + (audStatusText(a) === "Draft" ? "<br>— DRAFT —" : "") + '</div>' +
+      '<div class="rep-code">' + docCtl("Report").lines.map(esc).join("<br>") + "</div></div>" +
       '<div class="rep-top"><table class="rep-info">' +
       "<tr><th>Station</th><td>" + esc(s.name || a.station) + "</td><th>Auditor</th><td>" + esc(a.auditor) + "</td></tr>" +
       "<tr><th>Station ID</th><td>" + esc(a.station) + (s.type ? " · " + esc(s.type) : "") + "</td><th>Attendant on duty</th><td>" + esc(a.attendant || "—") + "</td></tr>" +
-      "<tr><th>Audit date</th><td>" + fDate(a.date) + "</td><th>Chargers / functional</th><td>" + esc(a.chargers === "" ? "—" : a.chargers) + " / " + esc(a.functional === "" ? "—" : a.functional) + "</td></tr>" +
-      "<tr><th>Verified</th><td colspan=\"3\">" + (a.verifiedBy ? esc(a.verifiedBy) + " on " + fDate(a.verifiedOn) : "Not yet verified") + "</td></tr></table>" +
+      "<tr><th>Audit date / no.</th><td>" + fDate(a.date) + " · " + esc(a.id) + "</td><th>Chargers / functional</th><td>" + esc(a.chargers === "" ? "—" : a.chargers) + " / " + esc(a.functional === "" ? "—" : a.functional) + "</td></tr>" +
+      "<tr><th>Status</th><td>" + esc(audStatusText(a)) + "</td><th>Verified by / on</th><td>" + esc(audVerText(a)) + "</td></tr>" +
+      "</table>" +
       '<div class="rep-score" style="border-color:' + bandColor(b) + '"><div class="lbl">Overall score</div><div class="val" style="color:' + bandColor(b) + '">' + pct(r.score) + '</div><div class="rat" style="background:' + bandColor(b) + '">' + esc(b ? b[1] : "Not scored") + "</div></div></div>" +
       '<div class="rep-counts"><span class="ev c">Compliant ' + cnt.C + '</span><span class="ev pc">Partially compliant ' + cnt.PC + '</span><span class="ev nc">Non-compliant ' + cnt.NC + '</span><span class="ev na">N/A ' + cnt.NA + "</span><span>" + r.scored + " items scored</span></div>" +
       "<h2>1. Score by category</h2><table class=\"rep-t\"><thead><tr><th>Category</th><th class=\"n\">Weight</th><th class=\"n\">Items scored</th><th class=\"n\">Points</th><th style=\"width:30%\">Score</th><th class=\"n\">Weighted</th></tr></thead><tbody>" +
@@ -2104,19 +2128,19 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       }).join("") +
       '<tr class="total"><td>Overall</td><td class="n">100%</td><td class="n">' + r.scored + '</td><td class="n">' + (Math.round(AUD_CATS.reduce(function (t, c) { return t + r.n[c[0]].ok; }, 0) * 10) / 10) + '</td><td></td><td class="n">' + pct(r.score) + "</td></tr></tbody></table>" +
       '<p class="rep-note">Compliant = 1 point, Partially compliant = 0.5, Non-compliant = 0; N/A items are not scored. Overall = Σ category weight × category score. Bands: ≥ 90% Fully Compliant · 80–89% Compliant · 70–79% Partial Compliance (CAP required) · &lt; 70% Non-Compliant (escalate).</p>' +
-      "<h2>2. Findings &amp; corrective action plan (CAP-F01)</h2>" + (a.findings.length ? '<table class="rep-t fixed"><colgroup><col style="width:12%"><col style="width:5%"><col style="width:20%"><col style="width:9%"><col style="width:13%"><col style="width:19%"><col style="width:8%"><col style="width:7%"><col style="width:7%"></colgroup><thead><tr><th>CAP ID</th><th class="n">Item</th><th>Non-conformance</th><th>Risk</th><th>Root cause</th><th>Corrective / preventive action</th><th>Responsible</th><th>Target</th><th>Status</th></tr></thead><tbody>' +
+      "<h2>2. Findings &amp; corrective action plan (" + esc(S.cfg.auditDoc["CAP form"]) + ")</h2>" + (a.findings.length ? '<table class="rep-t fixed"><colgroup><col style="width:12%"><col style="width:5%"><col style="width:20%"><col style="width:9%"><col style="width:13%"><col style="width:19%"><col style="width:8%"><col style="width:7%"><col style="width:7%"></colgroup><thead><tr><th>CAP ID</th><th class="n">Item</th><th>Non-conformance</th><th>Risk</th><th>Root cause</th><th>Corrective / preventive action</th><th>Responsible</th><th>Target</th><th>Status</th></tr></thead><tbody>' +
       a.findings.map(function (f) {
         var c = caps[f.capId], g = function (k) { return c ? c[k] : f[k]; }, risk = String(g("risk") || "");
         return "<tr><td><b>" + esc(f.capId || "—") + '</b></td><td class="n">' + esc(f.item) + "</td><td>" + esc(g("nonconf")) + '</td><td><span class="risk ' + risk.toLowerCase() + '">' + esc(risk || "—") + "</span></td><td>" + esc(g("rootCause")) + "</td><td>" + esc(g("corrective")) + (g("preventive") ? '<div class="prev"><i>Preventive:</i> ' + esc(g("preventive")) + "</div>" : "") + "</td><td>" + esc(g("responsible")) + "</td><td>" + fDate(g("target")) + "</td><td>" + esc(c ? capInfo(c).label : "Not yet raised") + "</td></tr>";
       }).join("") + "</tbody></table>" : '<p>No findings — every scored item is compliant.</p>') +
       "<h2>3. Auditor's overall assessment</h2><div class=\"rep-box\">" + (a.assessment ? esc(a.assessment) : '<span class="muted">—</span>') + "</div>" +
-      '<h2 class="rep-break">4. Checklist results</h2><table class="rep-t rep-ck fixed"><colgroup><col style="width:4%"><col style="width:37%"><col style="width:9%"><col style="width:7%"><col style="width:16%"><col style="width:6%"><col style="width:21%"></colgroup><thead><tr><th class="n">No</th><th>Item</th><th>SOP</th><th>Type</th><th>Evaluation</th><th class="n">Score</th><th>Remark / evidence</th></tr></thead><tbody>' +
+      '<h2 class="rep-break">4. Checklist results (' + esc(S.cfg.auditDoc["Checklist"]) + ')</h2><table class="rep-t rep-ck fixed"><colgroup><col style="width:4%"><col style="width:37%"><col style="width:9%"><col style="width:7%"><col style="width:16%"><col style="width:6%"><col style="width:21%"></colgroup><thead><tr><th class="n">No</th><th>Item</th><th>SOP</th><th>Type</th><th>Evaluation</th><th class="n">Score</th><th>Remark / evidence</th></tr></thead><tbody>' +
       secs.map(function (sec) {
         return '<tr class="sec"><td colspan="7">' + esc(sec.name) + "</td></tr>" + sec.items.map(function (x) {
           return '<tr><td class="n">' + x.it.no + '</td><td class="txt">' + esc(x.it.text) + "</td><td>" + esc(x.it.sop) + "</td><td>" + esc(x.it.type) + "</td><td>" + (x.code ? '<span class="ev ' + EVAL[x.code][2] + '">' + esc(x.e) + "</span>" : "—") + '</td><td class="n">' + (x.pts === "" ? "—" : x.pts) + "</td><td>" + esc(x.r) + "</td></tr>";
         }).join("");
       }).join("") + "</tbody></table>" +
-      '<table class="rep-sign"><tr><td><div class="ln"></div><b>Auditor</b><br>' + esc(a.auditor) + '<br>Date: ' + fDate(a.date) + '</td><td><div class="ln"></div><b>Station representative</b><br>' + esc(a.attendant || "") + '<br>Date:</td><td><div class="ln"></div><b>Verified by</b><br>' + esc(a.verifiedBy || "") + "<br>Date: " + (a.verifiedOn ? fDate(a.verifiedOn) : "") + "</td></tr></table>" +
+      '<table class="rep-sign"><tr>' + S.cfg.auditSign.slice(0, 3).map(function (x) { return '<td><div class="ln"></div><b>' + esc(x.role) + "</b><br>" + esc(signText(x)) + "<br>Signature / date:</td>"; }).join("") + "</tr></table>" +
       '<p class="rep-foot">Printed ' + esc(nowStr()) + " by " + esc(S.user) + " from the VET-ENERGY Daily Operation Record · " + esc(a.id) + "</p></div>";
     $("printArea").innerHTML = h;
     document.body.classList.add("printing");
@@ -2125,138 +2149,203 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     setTimeout(function () { window.print(); setTimeout(done, 500); }, 80);
   }
 
-  /* Styled Excel export (xlsx-js-style, loaded only when needed) */
-  var XLSX_STYLE_URL = "https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js";
-  function loadStyledXlsx() {
-    if (window.__XLSXS) return Promise.resolve(window.__XLSXS);
+  /* Audit Excel export — follows the approved AUD-R01 / AUD-C01 / CAP-F01 layout (ExcelJS, loaded only when needed) */
+  var VET_LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAsIAAACxCAYAAADOO9ufAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAIdUAACHVAQSctJ0AACjHSURBVHhe7d0LeFxnfefxSWJLcwnQkiahfaABGkKQFZPYQEgiaSTHjp1YDck+ErE1M7rMjAULXQo8dJ/l6S6GXViWhRQSyyYhISTxNS1l6babUtpuKIQ26dICwVBwJOdCrBkpcciN3HzRvsf5H+to5n/mes6ZGen7eZ7fY1vznvc9OnP7aTw6EwIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIvS3GDotNlsuDufjX348Uys1y3W5dXE3m5mJHrh/sFQmyzXdLpv614lf0UNrNvPQyOh38iNtL/Rykw2eqGd2XT0IudtyC3a7cfrzIxG12tr+53DW8KXOo+JFntszuSB9FmX3JXuvGRkJNE7MjKyVPNhl9w+Ojr6Qzvm33ckEomNyWQyJjdHAAAql9sSvXdmy+lzQSS/JXY0n43+Z1m6KfTcfmnfBdsowpWayYQ/nstEJ2cysee165hUnscyrzry30c3zH1gdPNRU+rmSN15rr+/Pyo3VQAASjOF5oD2BB1EHs2EXiu70TA9t/Zc8o5beo/IP1EgNxa5OJ+N/W/t+iO15X+NrjiiFDjiYYaHh/9AbsIAAOj2d4TatCfqQDO2/O2yO4HrvqX7Xev3xOdWfLmvYfvQjHKZyGAuEzuiXl+k5mRGh49rpY34E7k5AwCgm03H/lB7wg46D8VDYdmlwKzZ2ZXcuC8+d8GONTxhGlb5zadjv9auH1J7ptKvPTI+mlCLGvE3IyMjB+XmDQBAsXwmul178g46uUzsmOxSIOJfu7j39/9USvD1r4/Il5ecAxtC7fktp+/XrhNSX3LZ04+/f2QzrwA3OHJTBwCg2OxY9ErtSbwhyYT/o+yWr9be0ZWySvA7vtI71zHROyVfXlKss3eYHz4eU68HUnd+nD77Ra2UkeBz9dVXv0pu9gAAFNOeyBsV2SXf9N7RFbdK8LrdS/MtEQf+Q6h9NhvLaceeeJOJscs4+0MTJZFI/Lbc/AEAKGads1R7Qm9IspEfy255bs2dXYNWCbbfEtG5vfenctGSkM+E71aPOfEsHxp9L2+FaLJQhAEAZc1kmueXpJ7y4ZRql+/q6neW4BOvBm/taNoP9/BSPrN8pXacibfRShhpfCjCAICyjidDMe3JvRHJZWPHZbc8sW5n94hdgi+8qe9ECe6Y6P1HuXhRy2cjP9WOMfE2Y6PDagkjjQ9FGABQkZlM7D7tSb4RmR6LXim7VZc1O7s/bJfgy3c5Xg1e5KyPOtaOK/E+lODmDkUYAFAx7Ym+UZFdqtk6x3uC+++aL8ErJnpvlCGL0mx2Wbd2PIn3+dDoe9XyRZonFGEAQMVmM5EPaU/4jUguHd0hu1W1tY5Xgq1csOOVt0Qs9leD85noXu1YEu9z42icX4xrgVCEAQBVyWVjR7Un/kbEtNZTZLcq5jw7hBXrfMF2Ce7YHv+4DFt08unYI9oxJN7nJ5mzKcEtEoowAKAqB4fC52hP/o1ILh3+oexWRS7fGf8jZwk2/z5Zghfzq8G5TPQp7fgRf6IVLtKcoQgDAKo2k44d1ApAIzI3HorKbpW0ZlfPZ50leKPjfcFWOiZ6EzJ0UZnORJ/VjhvxJ3880n9MK1ykOUMRBgDURCsBjUg+c/r/lV1ydfmd3Z9ylmArzhJsRYYuKrlM7Jh2zIg/+WX2VbwlosVCEQYA1CS3JfpxrQwEmelsZLfsjqt1e7r/R2EJdr4v2Mp5N3a/SYYvGqYET2vHjPgXrWiR5g5FGABQM60MBJVcJvod2Q1Xa+7o+ePCErxud+FbIvqel+GLxvRY9EHtmBH/8oPMG9SiRZo7FGEAQM2mx0JnaqXA70xnol+SXXC1bnfxK8GF7wu2cu4N8dfLJovCbCa6XTtmxN+k+eCMlgxFGABQl1zQrz5WUILX7uz5ZmEJtlJYgjt3rHlWNlkUcun2PvWYEV/zSObVR7SSRZo/g4ODr5O7DwAA1bPO5auVAz+Sz0ZvkGVdXbG7+0+1ErzqpoXvC7by5s9fcpZs1vLm4qFl2jEj/ic7PMSZIlo0iUTi1XIXAgCgNjPp2Ke0guBlcunon8hyrtbt6rpLK8FrCs4XbKVzW++jstmioB0z4n8OZU8/qhUs0hqRuw8AAPXRSoJXmU7HbpFlXK3b1fN1rQRbKSzBVmSzRYGPTm5cvjr27l9pBYs0f0ZGRp6TuxAAAPWZybSfqxWFepPLln8leP3u+G6tAFu5YEdfUQnu3N53r2za8o5vCLVrx40EE61gkdZIKpV6m9yNAACoXz4bPqyVhVozm4lmZWpXa+7s+nOtAFu56KbiEmxFNl0UctnYce3YEf8znTmd9wa3aIaHh78mdyEAALzx0EgorBWGWpLLxD4k07pav7v7Xq0AW+m7U39LxIrtfX8nm7e8/Fjsdu3YkWDyyZGNnC2iBZNMJi+WuxAAAN6a9uL9qpnIH8h0rtbt6vmFVoCt9CvnC7Yjm7e8ufHQcvXYtUjMDzpHZjKxR8x1/UAuG713Zkvsm/mx6DY75t+fcf676ZKN3qCVLDKfkZGRI8PDww/YSaVS9wYVs973neua/fmA3HUAAPCXVnwqzeNbTi/7hLVud9c/awXYjva+YCudE32fkylaniliL2jHr1kznQ6nHk9Hfkd2v+WZgtVXWPyCjCl3u+Lx+DLZnbK0OfyOOUZTsjwAAEtHrR/sMJuNfFimcLV+Z8/9Wvm1s/rm4vMF25EpWl5+LLxZO37NlHwm+p3ZLdFF+6ldWvELKolEoupPQ9Tm8TsUYQDAkqWVo1LJp6NbZFNX63Z1u74dworb+4KtrNje8+9kmpanHb9myXQ6fI7s5qKmFb8gkkqlPim7UBVtLr9DEa7O1NrQa6aSkadLRYZ6QpvfmceuCZ0hQ096MBF5SBvrR2TJBbRxQUSWX2BkZOTpIML9CGhRB6o4rddsNvxR2czVFXvj/6qVXztX7XMvwR0T8aMyTcvLZaLf045hI2OdueLQSNv5souLXjKZvEkrfkFEdqFq2lx+hyfw6h1MRedKJtn2XRlal8mh8HZ1fslUIvKyDF1gKhF+QhvvR2TJBbRxQUSWX0C7zfsRcz+alSUBtJqZdPSbWnFy5pej7WtkuKsrdsWf18qvM1oBttNxQ3xApmppjw6EItoxbGiykS/I7i0Z2pNVEDFPiJ+WXaiaNp/foQhX78Fk21e1IuaMDK2LNq8zk4k29W1qS7EITybbD8vyC2i3eT9CEQZanFqeJNNjkbIF9Yo9XQ9oxdeZVTfrvxxnR6Zqebl07GXtODYqDycW73uA3aQM7ckqiIyPjy+X3aiaNp/foQjXRitjzky+d3mnDK3Jof5QVJvXGRlaZEm+IjzUrr5tT7vN+xGKMNDiZtPhHq1EHRqLXCtDXK3f1Z3Xiq8zl+8q/Wrwedu7Vsp0LS0/1r5WO46NiuzWUnOK9kQVVGQfaqLN53cowrWZTEaeVwuZIzK0JlOp8LPanHbM+j+XoUWWYhE+MBA6U5ZfQLvN+xGKMLAI5NLRp5wlKpdu2ygXuVq/t+uAVnyd2VjifMFWOrbHn5PpWl4uEzvmPIaNjHUOY9mtJWVkZOQx7YkqiKRSqXtkN2qizel3zPH6gSyPKjycaOvQCpkzMrQm2nzOTF4bOkuGFlmKRXhuMHSaLL+Adpv3IxRhYJGwS1RupL1XvuRq/e74z7TiWxit/DpzztZzwjJlS8tviX7CWUQbGdmlJSeZTP5Ye5IKKqZUXia7UhNtTr9DEa7dZCJyTCtldiaHwjfK0KpMJtvHtPnsTA3pvyRnW2pFeCoReUaWLqLd5v0IRRhYJPLZ2G1PJCJlz3965Z6eX2ultzArd7ifL9jKim19T8qULc86K4NWSoPOYyPRC2WXlox0On2OKXRHtSeoICO7UzNtTr9DEa7dg5sjJX9pbjIZOS5Dq1KuYJuim5ShqnJF+J54aJlXkSUXMF8PVxpt/04mGb5F26YwsqxKu83bMbf9O6wPvPEig4OD6ivSABahDXt7prTSW5jeO8q/GnzG5y59lUzb0maykW9rpTTo5LKR22WXyjIP3K8xTwSp4eHhT1UTs83thdHGFWSsyrzP5MS2Zv7PONb6jvnaAfMk9lDhk1ozRA5tzbQ5/Y45phThOqgFzhEZVhVtHmdkmKtyRViGNQVt/+w8lIzeJMNqpt3m7ViPKTKsYczjcJv8dckZGhr6TflrUzLXzenyV2Dexj3x41rpLUx/mfcFW+mcWPOCTNvSzLPKKVopDTr5TKzkf5faTJHcqj0pkPqSTCZH5RDXTJvX71CE63Mw2f6UVuKckaEVMSX2X7U57EylwmXfh04Rnqfd5u0EXYStM8qYNV9nHivude6HXHzChg0b2lOplOsP+uaylwcGBtRfDKyFeT64VlunIEfrXdMq/Js2bVph1nvEObdcfJI1zoz5y1Jj3Jjtfs+5nRbzfbxJhi9grWuul7eb4/tT53i5uIhZ6+pSkWFVSyQSVzjXd8bs22dkGBql0leCrVywo/Sp0qx03LCmY8X2tW/zMrKrgcpnI4e1Yhp09g+Gyr6yYB6En9buYKT+WP89Koe5Ztq8fociXJ8Dm5ZfpJU4Z2RoRay3U2hz2HlyMPQaGeqKIjxPu83bCaoIm5J1milHx7R9sCLDrN9x+IZ2uRaz7zOyWU3M9ju0eUvFbHPUFLV3yhQV2bx5829pc9mRYSeYY/Qv5cZozD6tMiXR9fgWxnwfx52v9pp1H9bGWZEhRcwce7Txdsx1+UEZWrFy178MQ6NctafnsFZ4tVx4U/kS7EdkVwP1eHb5aq2UBp18NrpVdsmVdsci3sQ8CP9aDnNdtLn9jnlApwjXqVx5PbCp9Ht6bb/YFLlY294ZGVoSRXiedpu3Y277gRRh8/hQ8q1c1hhTxvLaZeVS7Q/g1qvS2jzVxBy3+2W6ssz3/ow2hx0ZVvJ6kiEqUx7/TNumwrzhmmuuOUP5+snIMiptvDMyrGLaHHbMMT8iw9AIV+7tOaQVXi09t5d/S4QfCW0NnSq7GyitlAadXCZW9g5iHoy+rt25iDcxxzcth7ou2tx+hyJcvweT4ZK/NDeVjFT0JDY5FHlO297OVGJZtwwtiSI8T7vN2wmqCGtrO2P240Ht65XEbPu8LFMRbY4a84RMWZKy3YJYY8zj5wvaZXZOTKQwJXi/Nr6amLX7ta/bkaVU5oeXH2nb2JFhFTH7cZU2h53BwcGy/xMEn1y1t/JXgq/a16AS3CD5LdG7tGIadGZH294iu6QaGBiIaHcs4l3kUNdNm9vvUIS9oRU5Z2RYSdp2zsiwsijC87TbvJ1mKcL1xhSyHlmqJDOu4rcPVBLrBRaZ2pW2nTNmn/6r9nVnZKoFzHbv08Z6HVlOZYr4Wdo2dsw+PiJDy9K2d0aGIWimBL+kFV63aCXV75jdPOWVvQ2WWfg0rZQGnXw2WvbDSKxXDLQ7FvEm5sngr+VQ102b3+9QhL0xlYg+qpU5O5PJtn+SoaoDicgXtO3sTCYi35GhZZUrwg8PhS+rN7JU3bT9sxNAEb7b5LJ6I0u50tb2MtYrqrKUKzPGOtuOur0z5vv5pBnbb/Il7fLCyPSutG2qjUy1gDbOj8hyrszxOqJtZ0eGlaVta8cU6i/KMARp476eGa3sumVVwO8L7pyIvyS72hD5dOxFrZgGnUcHQhHZJZX5ifVS7Y5FvEtHR4dnpz/S5vc75oGcIuyBn29avlIrc87IUJX19gltGzvl7utO5YqwF5Gl6qbNbcfvIuxVZClX2jZuMQX0sCk+nzb3y0+YP0v+17sz1i/kyXJFrDMiaNs4Y54rLpbhC5h9WKGNt2Muf1GGqrRtqo1MdZJZ8/vaOGfMccxdffXV2ulZTzWX3aNto0W2cTU0NHSBtp2dRCJxrQx1Za7rz2vb2pFhCFL/vp6KTpFmp/fOYF8NbnQJPpQNd2ulNOjks5Gyp1HS7lTEu5gHVE9PAait4Xcowt7RypwzU8PLV8rQBQ4MhM7UxjsjQytCEZ6n3ea9jizlStumMOZ+6PrhK6b4vaxt44xVWGV4ETP3glOWFcZc/joZ6uY0bTs75nHwDBlXRBtfacx+vWS+r6dkqpO0sc6Y/blZhroy875X27YwMrwkbTtnZJgr8326vqpsXfcyDEHZuDc+q5XdUrHeG2znyr3xufV79KzdpUcru25Zsa236E4RNK2UNiKyO67MT/if0u5YxLvIofaMtobfMQ/CFGGPTA21f0ordHZMQVU/CvhgMnxAG29nclP7GhlaEYrwPO0273VkKVfaNoXp7++PynCVto0zpvy5/sKuNt6O2e6vZFhJ5nHiW9r2Vsxl35BhRbTxpWKK3+3W77XI5kWs8wBr29kx21f8abVm7Le1OZyRoSWZea7XtrUjw1TWq9baNnauu+66N8pQBGHjXT0va0XXz1RzqrXO7b0V/Zaqn2Yysa9opTTo5Mba+mWX3Jyi3amIdyn14F8rbR2/QxH2jnnGO1UrdM7I0AW0cc7IsIpRhOdpt3mvI0u50rZxxpTRP5GhrkzZ+oq2rR1zP1bPW5tMJt+ujbdjhlT80dDa9nZkSBFtrBaz/0/LJiWZ43Cjtr2dcj9QFNLmcEaGlaVta8fs8/dlWBFz2V5tGyvmsmMyDEG4sspfjPMil91W+avBnRO907KrDTM32By/IGdFdsmVuQP9QrtjEe8ih9pT2jp+hyLsralkZEordXYmk5HrZegJB1Ntg9q4+bS5Pom6oQjP027zXkeWcqVt44wMK8n6ZDdtWztuRdg8F/y5Nt6K2aaqc9Nqc9iRIUW0sVpkeFlmn1/Strcjwypm5pvR5rEjw8oyx7mmebSxdsycCx4r4KON+7pf0Iqqn7HeKqEVXi2d2+P7ZVcbKr8l9kutlAad/R2lP0Euk8m8VrtTEe9ifVSoHG5PaWv5HYqwtw5c1/57WqlzRoaecDARfkYbY0eGVYUiPE+7zXsdWcqVto0zMqwsbVs7bkVYG2vHbPOkyX+rNNocdmS5ItrYwqxevXq5DC9L296OKY4Py7CKme/rH7S57MiwsqxPqtO2t5NIJN4tQ08yzyO/o421I8Pgt6v2dR/Viqrf0Qqvls6Jvoa/EmzJvT90llZKg04+G/0H2SVX5o5d8nQupL6YB9t/lkPtOW09v2NuLxRhj2mlzhn7Y5K31vhWinLKFWHrDBT1Rpaqm7Z/dvwuwua2v9N6P2q9kaVcaWs7I8PK0ra1Y76XqouwlxkaGrpQllxAG+uMeTyt+LSAFm0OO2auH8mwiqVSqb/T5rIjwypi5vq1NocVc/0clWEnmfH3amOtmO+l4W8FXRKu3NPzvFZS/c7KHZW9L7hzorfsWRGCks/GXtKKadCR3XGVTCbXaXcq4l3kUPtCW8/vUIS9N5kKf0IrdiczFHnwxLhk+C/UyyVTQ2V/F0BVrgjLsKag7Z+dAIpwU3yghgwrS9vWTqOLsHnuuUaWXEAb64wMq5g2hx1zDCr+RTmb2eZn2lx2ZFhFTLHt0uawI8NO0sbYSSQSb5Vh8MvGu3qOaSXV77zzlspKcMeNPSX/i8MqhXPjoYr/O6UeT4yFhwsLaSOSS7eX/Rhf7Q5FvIl5wLROb1TxL5bUQlvX7wwPD/+LLA8PacXOmXJjJpMR19NplUMRnqfd5u1QhL2LKYHq85M21hkZVjFTuO/X5rEjwyqmzeGMDKuYNocdc4zukmElzxYhzzXwU9dXu86Mfy1+vpfRSm9h1uys7C0RKybiu2VXi8zFQ8tOlsNMrKrPWK+Vs4w2KrlsrOi/VQqZO8/d2p2KeBPzE/qr5VD7RlvX75giPCXLw0OTyfZDWrmzYy6/Xvu6ncmh9vtkqqpRhOdpt3k7FGHvYh4fV8mSC2hjnZFhFTNlMq7NY8cU5XEZWlYl/4MqQytmHk8/ps1jR4aVPC5mDn5JrtXE7+zapBVfZzbuq6wEd07E/0KmLWK9L62wIM6Ohd8rF/sin4l+p3DNRuSxRFvJ/yaxftlAu0MRb2IefM+TQ+0rbW2/QxH2xw/6Q1Gt3FUamaYmFOF52m3ezlIowubr39PG25FhvtHWdEaGVSwejy/T5nHG+sU1Ge5qfHy8oudMGV4VbR4711133RvKjTkxCVpLJZ9Ep5XewqzY1vcFmbJIPhM6O5eNHddKogzxXLOcLi2fjZb99DLzYPesdoci9SeZTJ4lh9l32vp+hyLsH63cVZREpOTH1pZDEZ6n3ebtLIUibB6/Sn7M/sDAwJky1Bfams7IsKqY7/VpbS5nEonE62V4kXIfYuGMbFKVVCr1kDaXFfN4+6K5fIt2mRVz+c9lGrSKtXvi12vF15mLKvjQjI5t8c/JlEVmRqKv0wqinXw6+l0Z6iltrUYklwyVLGLmTnWVdoci9cc8SbxWDnMgtH3wOxRh/xxMhP+LVvDK5cFN7RtkippQhOdpt3k7S6EIG2U/XEnG+UJbzxkZVhXzvV6ozaXFPL59zIxfbX4geLv5c9Sk5HmICyNLVk2bq5KY/XyTTIFWoRVfZyr50IyObb0jMl2RZzOhs7VyWJgDG0LtsoknDmXa12nrBJ1cNlr203a0OxOpL+bB0jrR/CmvHOHgaPvidyjC/tIKXrnIpjWjCM/TbvN2zP18KRRh68WSnLaNHascytCKJRKJy+VxsiRtPWdkWNXM9+R6qjIvI8tVTZurksjmaBUb9nT9o1Z+7Wyo4EMzOreveb9MVySfWb5SK4dukc08oc3fiMjuuDI/Pf6ZdmcitccUw1vl8AZO2x+/QxH2l3X2B63kuWUqGb5bNq1ZuSLsZaY2xVbKsjXR5rTjdxH2OrJkEW2sMzKsLG1bO6WKcLkPe7BjyuXNsonKPFYMmHX2O7eRi1w5x2qRYVXbunXrqWZfjmtzVhMzh2enT3Myx7LkqdS0mG3+SDZHS5gLnaKVX2e04uvMW7582dtltiKHUuHf1Yphqcxmw5tl87rk0tFvaPMHnXw6OiG7pDIPbqdpdyZSWyp5dcNv2n75HYqw/7SS55Z7QqFlslnNKMLztNu8X5Eli2hjnZFhZWnb2ilVhC2mZB3Qtqs3Mr0rbRtnZFjN6inD5pg8Y82hXWbnxCI1qnbfZDO0ivV7uh7Xyq+dch+a8dYben5fpiqSS7f3acWwksgUNds/GGrT5m1EZJdcmTvxr7Q7E6k+yWRyVA5rQ2n75ncowv7TSp6aRPusbFIXivA87TbvV2TJItpYZ2RYWdq2dsoVYYu5rx/Ttq0nMrUrbRtnZFjNrFeGzff1vDZ3qZjnzx/KFCX3UYbUxKzxn7Q5tZjrb79shlaw+ubVUa382nnXLb1q+bXz1i9e6noqsFy6baNWCqvIT2SqmuQysceUOQNPbnj5CtkllbmDnaHdmUjlsX5atx6o5JA2BW0//Q5F2H8Hk8s/rRW9wkwllnXLJnWhCM/TbvN+RZYsoo11RoaVpW1rp5IibPG6DMu0rrRtnJFhdTPf/2rzvZV937AZ99LmzZvfIpudoI2zI0Nqps2p5T3vec9vyCZoBRv2xp/UCrCVy8t8aMZbr++5QKYpks9GrtVKYbV5aCRU0w3qqaHQb2rzBZ1cNnriv2tKMXfm57Q7Eykfc+yOWr9BLIeyqWj763cowsHQil5hZGjdKMLztNu8X5Eli2hjnZFhZWnb2qm0CBtlzyJRTWROV9o2zsgwz5jjEE4kEr3mcW2fyWGr+KdSqXtNUtZp02TYSebLJc+6JMNqZvbnb7R5CyPD0QpWb3V/NXjjXaVL8Hk3drueFiSXDm/SSmEtyaejNZ2DM5+NvaTNF3T2d4TaZJdUpsSdq92RiHvMg9GkOW4ZOYRNS9t3v0MRDsbBZPgprezZmRpq/5IMrRtFeJ52m/crsmQRbawzMqwsbVs7VRThE0wB/IA2T6Ux2++RqUrStnVGhjWM+T4e0PbLjgyrWYUfdvUBGY5W0L8v7vrhGVr5tdMxEXf9pJeZbOSDWiGsJ7lMm+t7kDW50fB12jxBJ5+Jlv1YVfOAV/dvyi72mAe3e9Pp9DsGBgYicthagva9+B1ze3pCloePfnZt6Le1smflwUT4b2WYJyjC87TbvF+RJYtoY52RYWVp29qptgjbhoaGzjE/DFf0HluzxvNm/Jtl04po8zgjwxolkHMsa/M6I8PQCrpvu2S9VoCtrLrZ/X3BnV+6+GyZosjjW8If0wqhF5ElKqJt34iYnS557lpT8G7Q7khexzzYXWge9N7oZ8yDb19htHFW5Ntf9LTrwu+Y4/ukLA8A1ostLfO4a54Tvy5/rZrZ9kXtMdGOOQY7ZGhdtLntmDUOyjC0Aq0AW4nfrr8a3DnRdzy01f1UQLOZ2B1aGfQq+Uz0LlmqpJns6fdo2wed2dHIH8ouudLuSH6kWd9Du9hp14XfoQgDaFXOxzLrfMny5ZLGx8crebuC9T+LZ8gmrqy3PshfVea5dKc2tx0ZhlbQdVvXB7QSfOVe97dEnP35lTHZvIh1jlytDHodWa4kbbtGRHbHlblTPqrdkfyKWTLwT1Zb6rTrwe9QhAG0KpfHtCdM9gy/8gEg51sxhfRS8+8bTQ5r2xTGjHtWlijJzP0ta7z58ydmm0+b9FjrmefrlDVH4bzOWK9IyzRoBf13FZdgK1oBXjHRezR0w7muH3mcT0f+XiuC/iRS8tx8+jbB5/Bo6A2yS6qBgYHXanckvyPLIyDadeB3zIM2RRhAS9Ie07xIpb9fYhfhGlPyeR9N5PKd3Z/USrDbh2aEtoZOlU2L5MZif60VQT8zF9ffnmEK+TXa+KCTHwsfll1yZe5sJX+y9CvmJ9qnZBcQAO068DsUYQCtSntMqzepVKriM7jUWoTNGmWf99FEtBJ88a3FvxzXub33WGgwdJpsViQ/Fr1fK4JBRHZhAW1cIyK7U5J2Rwoq5o5+xHpPlewKfKQdf79DEQbQqkyhfEF7XKs1Zr6KfrfIVmsRls3RCtbv6vn7whK8dpf+lgjZRJUbiz6ilcCgkh9pu0Z25YRD6fb7tHFB5/FM7JOyS67MHbPij2n0M8PDw++SXYJPtOPudyjCAFrVhg0b2rXHtVqyadOmi2TaitVShOPxuOtJBNBsbl69vLAEW+8VrrYE59ORf9NKYNCR3QlZnzynXd6IyC6VZArot7U7UyNi7vS/5E7sH+2Y+x2KMIBWl0wm32SeK7+vPcaVinn8e9Zst1mmqYnZflqbuzBm3M9lE7SKdbt7XiwswoUF+MQvxpWRS0ef1Upg0MlnIj+19ke7rBHJJUNnnThAZTRTEbaTSqWe4u0S3tOOtd+hCANYbMzz5grzPHWH+fMZZ8zj3d1DQ0OXyTDPmTWvM+t8117PFPT7E4nEO+VitBTl1eBVNy/85bgVE30vyOiSnhwPvUYrgks5+Uz0ITk8ZZk7061agWmGmH172dzxPyq7ijppx9jvUIQBAChwxd6eJ50luPeOha8Gd27vq+gce7bpdOyftEK4VCOHpSKbNm1aoRWYZowpxveZYnWhKcdlT0SOYtox9TsUYQAACjhLcNGHZmyP52VYVbRCuBSTy0Svl0NSMa3AtHh+5Ywp0A9XksLtCqKtU3VMMbROVXdiTse6+83Xf2z+/l3rk4LMn5+Vq8ZT9j4EGYowAAAO/ft6jjuLsLMEd26PPyHDqjY7HhnUiuFSSi4TOyaHoyqmeP1UKzGksTHXy7F4PB6Wq6lu2hp+hyIMAIC49NbuK5wleOWX598X3LG9799kWM20criU8li27Tw5FFWxypZWYkhzRK6mumlz+x2KMAAAYqPjo5Tf7fjQjM4dfT+TIXX5VROduizo5LORuj5JxhSW72lFhjQ+5rp5Tq6mumhz+x2KMAAAxjtu6Ru3S/AVu+ffErFiR999MsQTh9LtS/IX5+ZWh+o+3ZhWZEhzJJlMnitXU820ef0ORRgAAKN/X/zke4NPvhK8ve9bcrGntKK4mJPLRu+Vb70umzZtWqmVGdL4WOeLlKupZtq8fociDABY8nrv6PnofAl+5X3Bb5vo+Uu52HP5LZGrtcK4WCPftieGh4d5i0STRq6immlz+p1UKjUrywMAsDTZJXjVza+8L/j8id7b5CLf5LbEjmqlcdElHU7Jt+wZU14Oa6WGNDZy9dRMm9PvmB+spmR5AACWnst39/yNVYLtD83o2NZ3g1zkO7U4LrLIt+o5rdSQxkaumpppc/odijAAYEmzSvBV+6QET/R9Tr4ciOl07JtaeVwseWY89FvyrXquv78/qhUb0rjIVVMzbU6/QxEGACxZ63bFD73yvuA1c2/bFn+/fDlQWoFcDMllogfkW/SNKTHXauWGNCZytdRMm9PvUIQBAEvT1tCpVgleuaNvruPG+Efkq4HLDS9foRXJVo98e74zRebTWsEhwUeukpppc/odijAAYEm6Yld89pLbeq2zQ1wlX2qYmWwkr5XJlk0m+kX51gJhysz/0UoOCTZyddRMm9PvpFKpB2R5AACWiJtXL7c+NKNz25p18pWGUwtlCyaXiR2TbylQpgz/P63okOAiV0XNtDn9zsjIyA9keQAAlob+vV1Hzt/WvUr+2RTy2chntWLZankiG3m9fEuBS6VSf6WVHRJM5GqomTan36EIAwCWlEtu6770/G1d58k/m0o+G3tJK5etknw2Wveni9VreHh4q1Z4iP+Rq6Bm2px+hyIMAFhS1u3qukz+2nTuiYeWaQWzVSLfRsMNDQ29WSs9xN/I4a+ZNqffMUX4b2V5AADQaNOZyL/XSmazZ24wdJp8C01hfHx8uSk5L2nlh/gTOfQ10+b0OxRhAACaTC4TntXKZrPmiWzk3bLrTcc6K4BWgIj3kUNeM21Ov0MRBgCgCeWysZxWOpst+Ux4SHa5aW3evPl8rQQRbyOHu2banH5neHj4elkeAAA0k5ktsRe08tksyWfDH5VdbQnJZHKnVoaIN5HDXDNtTr9DEQYAoInls5EntBLa6OTH2tfKLraUeDy+zJSfg1opIvVFDnHNtDn9TiqVaqkf5gAAWHKs05JpZbRReXQgFJFda1mDg4NtpghNFhYjUnvk0NZMm9PvmB+KhmV5AADQrKz34mqlNMhMZyLPyO4sGlYhHhkZuV8rSaTyJJPJh+SQ1iyVSv1Qm9vPmOv/NbI8AABoZg+NhMK5bPRpraT6ncdHI++U3Vi0TBFLc8q12mKK8JvkMNYskUis0ub2M7I0AABoFY+lQmfkt8SOaoXVy+SyseP5TOR9suySYkrxZ0xROlpYnEhxzA8PM3LY6jY8PHxMW8OPmOI9IMsCAIBW82im/dxcJnpAK7H1Jp+NXCvLLHmmFK81Ze+bWpkinr+qeqo51s9r63gZs8bdsh4AAGh1T2ZiK6ezsalcJnZMK7blkstGf5XPRP6nTIcyrI9xHh4evtMUqoMmz2lla7HHfP/3yeHwnPnh41ZzXI9r69abZDK5SZYBAACL0aHx8O9Oj4Xj+UzsIzPp6J7pTOxHdkxZvtP6+mPp6EWPp0Ovkk3gkcHBwdOt98yasnyBKXQXmcLYtwjyESumnI4nEokO+VZ9NzAwcKZZr1vW/qC1L+bYrrP3p1TM+NvtWP+2fniRaQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAjRAK/X+HZujw4lb17gAAAABJRU5ErkJggg==";
+  var EXCELJS_URL = "https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js";
+  function loadExcelJS() {
+    if (window.ExcelJS) return Promise.resolve(window.ExcelJS);
     return new Promise(function (res, rej) {
-      var orig = window.XLSX, sc = document.createElement("script");
-      sc.src = XLSX_STYLE_URL;
-      sc.onload = function () { window.__XLSXS = window.XLSX; window.XLSX = orig; res(window.__XLSXS); };
-      sc.onerror = function () { window.XLSX = orig; rej(new Error("styled library")); };
+      var sc = document.createElement("script");
+      sc.src = EXCELJS_URL;
+      sc.onload = function () { window.ExcelJS ? res(window.ExcelJS) : rej(new Error("ExcelJS")); };
+      sc.onerror = function () { rej(new Error("ExcelJS")); };
       document.head.appendChild(sc);
     });
   }
   function exportAudit(a) {
-    loadStyledXlsx().then(function (X) { exportAuditStyled(X, a); }).catch(function () {
+    loadExcelJS().then(function (EJ) { return exportAuditForm(EJ, a); }).catch(function (e) {
       if (typeof XLSX === "undefined") { notice("The spreadsheet library couldn't load. Check the internet connection and try again.", "bad"); return; }
+      notice("The formatted export couldn't load, so a plain version was downloaded instead.", "info");
       exportAuditPlain(a);
     });
   }
-  function exportAuditStyled(X, a) {
+  function audStatusText(a) { return a.auditStatus || "Draft"; }
+  function audVerText(a) { return a.auditStatus === "Verified" && a.verifiedBy ? a.verifiedBy + " · " + fDate(a.verifiedOn) : "—"; }
+  function signText(x) { return x.name + (x.title ? ", " + x.title : ""); }
+  function exportAuditForm(EJ, a) {
     var r = audScore(a.answers), b = audBand(r.score), s = S.cfg.stById[a.station] || {};
     var caps = {}; (S.data.caps || []).forEach(function (c) { caps[c.id] = c; });
-    var OR = "E96500", SOFT = "FDE8D7", LINE = "F3C8A5", WHITE = "FFFFFF";
-    var thin = { style: "thin", color: { rgb: LINE } }, box = { top: thin, bottom: thin, left: thin, right: thin };
-    var font = function (o) { var f = { name: "Arial", sz: 10 }; for (var k in o) f[k] = o[k]; return f; };
-    var st = {
-      org: { font: font({ sz: 10, bold: true, color: { rgb: WHITE } }), fill: { fgColor: { rgb: OR } }, alignment: { vertical: "center", indent: 1 } },
-      title: { font: font({ sz: 16, bold: true, color: { rgb: WHITE } }), fill: { fgColor: { rgb: OR } }, alignment: { vertical: "center", indent: 1 } },
-      code: { font: font({ sz: 10, bold: true, color: { rgb: WHITE } }), fill: { fgColor: { rgb: OR } }, alignment: { horizontal: "right", vertical: "center", wrapText: true } },
-      lbl: { font: font({ bold: true }), fill: { fgColor: { rgb: SOFT } }, border: box, alignment: { vertical: "center", wrapText: true } },
-      val: { font: font(), border: box, alignment: { vertical: "center", wrapText: true } },
-      h2: { font: font({ sz: 12, bold: true, color: { rgb: OR } }), border: { bottom: { style: "medium", color: { rgb: OR } } } },
-      th: { font: font({ bold: true, color: { rgb: WHITE } }), fill: { fgColor: { rgb: OR } }, border: box, alignment: { vertical: "center", horizontal: "center", wrapText: true } },
-      td: { font: font(), border: box, alignment: { vertical: "top", wrapText: true } },
-      tdc: { font: font(), border: box, alignment: { vertical: "top", horizontal: "center" } },
-      pct: { font: font(), border: box, alignment: { vertical: "top", horizontal: "center" }, numFmt: "0.0%" },
-      tot: { font: font({ bold: true }), fill: { fgColor: { rgb: SOFT } }, border: box, alignment: { horizontal: "center" } },
-      totp: { font: font({ bold: true }), fill: { fgColor: { rgb: SOFT } }, border: box, alignment: { horizontal: "center" }, numFmt: "0.0%" },
-      sec: { font: font({ bold: true, color: { rgb: "7A3500" } }), fill: { fgColor: { rgb: SOFT } }, border: box },
-      note: { font: font({ sz: 9, italic: true, color: { rgb: "667085" } }), alignment: { wrapText: true, vertical: "top" } },
-      box: { font: font(), border: box, alignment: { wrapText: true, vertical: "top" } }
+    var OR = "FFE96500", SOFT = "FFFDE8D7", LINE = "FFF3C8A5", WHITE = "FFFFFFFF", KH = "Khmer OS Siemreap";
+    var fill = function (rgb) { return { type: "pattern", pattern: "solid", fgColor: { argb: rgb } }; };
+    var bd = { style: "thin", color: { argb: LINE } }, box = { top: bd, bottom: bd, left: bd, right: bd };
+    var F = function (o) { var f = { name: "Arial", size: 10 }; for (var k in o) f[k] = o[k]; return f; };
+    var EVS = { C: ["FF1E7B4A", "FFDFF1E5"], PC: ["FF8A5300", "FFFFF1D6"], NC: ["FFB42318", "FFFDE2DF"], NA: ["FF475467", "FFEEF0F3"] };
+    var bandRgb = "FF" + (bandColor(b) || "#667085").slice(1).toUpperCase();
+    var ST = {
+      title: { font: F({ size: 16, bold: true, color: { argb: WHITE } }), fill: fill(OR), alignment: { horizontal: "center", vertical: "middle", wrapText: true } },
+      doc: { font: F({ name: "Aptos Display", size: 10, bold: true, color: { argb: WHITE } }), fill: fill(OR), alignment: { horizontal: "left", vertical: "middle", wrapText: true, indent: 1 } },
+      lbl: { font: F({ bold: true }), fill: fill(SOFT), border: box, alignment: { vertical: "middle", wrapText: true } },
+      lblc: { font: F({ bold: true }), fill: fill(SOFT), border: box, alignment: { horizontal: "center", vertical: "middle", wrapText: true } },
+      val: { font: F(), border: box, alignment: { vertical: "middle", wrapText: true } },
+      h2: { font: F({ size: 12, bold: true, color: { argb: OR } }), border: { bottom: { style: "medium", color: { argb: OR } } } },
+      th: { font: F({ bold: true, color: { argb: WHITE } }), fill: fill(OR), border: box, alignment: { horizontal: "center", vertical: "middle", wrapText: true } },
+      td: { font: F(), border: box, alignment: { vertical: "top", wrapText: true } },
+      tdc: { font: F(), border: box, alignment: { horizontal: "center", vertical: "top" } },
+      pct: { font: F(), border: box, alignment: { horizontal: "center", vertical: "top" }, numFmt: "0.0%" },
+      tot: { font: F({ bold: true }), fill: fill(SOFT), border: box, alignment: { horizontal: "center" } },
+      totp: { font: F({ bold: true }), fill: fill(SOFT), border: box, alignment: { horizontal: "center" }, numFmt: "0.0%" },
+      note: { font: F({ size: 9, color: { argb: "FF667085" } }), alignment: { vertical: "top", wrapText: true } },
+      box: { font: F(), border: box, alignment: { vertical: "top", wrapText: true } },
+      sign: { font: F(), border: box, alignment: { horizontal: "center", vertical: "top", wrapText: true } },
+      score: { font: F({ size: 20, bold: true, color: { argb: bandRgb } }), border: { top: { style: "medium", color: { argb: bandRgb } }, bottom: { style: "medium", color: { argb: bandRgb } }, left: { style: "medium", color: { argb: bandRgb } }, right: { style: "medium", color: { argb: bandRgb } } }, alignment: { horizontal: "center", vertical: "middle" }, numFmt: "0.0%" },
+      rating: { font: F({ bold: true, color: { argb: WHITE } }), fill: fill(bandRgb), border: box, alignment: { horizontal: "center", vertical: "middle", wrapText: true } }
     };
-    var bandRgb = (bandColor(b) || "#667085").slice(1).toUpperCase();
-    st.score = { font: font({ sz: 20, bold: true, color: { rgb: bandRgb } }), border: { top: { style: "medium", color: { rgb: bandRgb } }, bottom: { style: "medium", color: { rgb: bandRgb } }, left: { style: "medium", color: { rgb: bandRgb } }, right: { style: "medium", color: { rgb: bandRgb } } }, alignment: { horizontal: "center", vertical: "center" }, numFmt: "0.0%" };
-    st.rating = { font: font({ bold: true, color: { rgb: WHITE } }), fill: { fgColor: { rgb: bandRgb } }, alignment: { horizontal: "center", vertical: "center", wrapText: true } };
-    var EVS = { C: ["1E7B4A", "DFF1E5"], PC: ["8A5300", "FFF1D6"], NC: ["B42318", "FDE2DF"], NA: ["475467", "EEF0F3"] };
-    var evStyle = function (code) { var c = EVS[code]; return c ? { font: font({ bold: true, color: { rgb: c[0] } }), fill: { fgColor: { rgb: c[1] } }, border: box, alignment: { horizontal: "center", vertical: "top", wrapText: true } } : st.tdc; };
-    var riskStyle = function (rk) { var c = rk === "High" ? EVS.NC : rk === "Medium" ? EVS.PC : rk === "Low" ? EVS.C : EVS.NA; return { font: font({ bold: true, color: { rgb: c[0] } }), fill: { fgColor: { rgb: c[1] } }, border: box, alignment: { horizontal: "center", vertical: "top" } }; };
-
-    // Sheet builder: put(row, col, value, style); merge(r1,c1,r2,c2)
-    function Sheet(widths) { this.ws = {}; this.merges = []; this.maxR = 0; this.maxC = widths.length - 1; this.ws["!cols"] = widths.map(function (w) { return { wch: w }; }); this.rows = []; }
-    Sheet.prototype.put = function (rr, cc, v, s) {
-      var ref = X.utils.encode_cell({ r: rr, c: cc }), cell = { v: v === null || v === undefined ? "" : v, t: typeof v === "number" ? "n" : "s" };
-      if (s) { cell.s = s; if (s.numFmt) cell.z = s.numFmt; }
-      this.ws[ref] = cell; if (rr > this.maxR) this.maxR = rr; if (cc > this.maxC) this.maxC = cc;
+    var evSt = function (code, font) { var c = EVS[code]; if (!c) return { font: font || F(), border: box, alignment: { horizontal: "center", vertical: "top" } }; var f = {}; var base = font || F(); for (var k in base) f[k] = base[k]; f.bold = true; f.color = { argb: c[0] }; return { font: f, fill: fill(c[1]), border: box, alignment: { horizontal: "center", vertical: "top", wrapText: true } }; };
+    var riskSt = function (rk) { return evSt(rk === "High" ? "NC" : rk === "Medium" ? "PC" : rk === "Low" ? "C" : "NA"); };
+    var clone = function (o) { return JSON.parse(JSON.stringify(o)); };
+    var put = function (ws, ref, v, st) { var c = ws.getCell(ref); c.value = v === undefined || v === null ? "" : v; if (st) { if (st.font) c.font = clone(st.font); if (st.fill) c.fill = clone(st.fill); if (st.border) c.border = clone(st.border); if (st.alignment) c.alignment = clone(st.alignment); if (st.numFmt) c.numFmt = st.numFmt; } return c; };
+    var mergeSt = function (ws, range, v, st) { var p = range.split(":"), a1 = ws.getCell(p[0]), b1 = ws.getCell(p[1]);
+      for (var rr = a1.row; rr <= b1.row; rr++) for (var cc = a1.col; cc <= b1.col; cc++) put(ws, ws.getCell(rr, cc).address, rr === a1.row && cc === a1.col ? v : "", st);
+      ws.mergeCells(range); };
+    var COL = function (n) { return String.fromCharCode(64 + n); };
+    // rows needed for text in a cell of a given width (characters per line ≈ width)
+    var lines = function (t, w) { return String(t || "").split("\n").reduce(function (n, ln) { return n + Math.max(1, Math.ceil(ln.length / Math.max(1, w))); }, 0); };
+    var page = function (ws, scale, orient, lastCol, lastRow) {
+      ws.pageSetup = { paperSize: 9, orientation: orient, scale: scale, fitToPage: false, horizontalCentered: false,
+        margins: { left: 0.7, right: 0.7, top: 0.75, bottom: 0.75, header: 0.3, footer: 0.3 }, printArea: "A1:" + lastCol + lastRow };
     };
-    Sheet.prototype.merge = function (r1, c1, r2, c2, s) { this.merges.push({ s: { r: r1, c: c1 }, e: { r: r2, c: c2 } }); if (s) for (var rr = r1; rr <= r2; rr++) for (var cc = c1; cc <= c2; cc++) if (!this.ws[X.utils.encode_cell({ r: rr, c: cc })]) this.put(rr, cc, "", s); };
-    Sheet.prototype.h = function (rr, pt) { (this.rows[rr] = this.rows[rr] || {}).hpt = pt; };
-    Sheet.prototype.done = function () { this.ws["!ref"] = X.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: this.maxR, c: this.maxC } }); this.ws["!merges"] = this.merges; this.ws["!rows"] = this.rows; return this.ws; };
+    var wb = new EJ.Workbook();
+    wb.creator = "VET-ENERGY Daily Operation Record"; wb.created = new Date();
+    var logo = wb.addImage({ base64: VET_LOGO, extension: "png" });
+    var stName2 = s.name || a.station, dateTxt = fDate(a.date);
 
-    // ---- Sheet 1: report form
-    var R = new Sheet([30, 30, 14, 26, 30, 14]), y = 0;
-    R.put(0, 0, "VET-ENERGY EV CHARGING NETWORK", st.org); R.merge(0, 0, 0, 3, st.org); R.put(0, 4, "AUD-R01 · " + a.id, st.code); R.merge(0, 4, 0, 5, st.code); R.h(0, 20);
-    R.put(1, 0, "STATION AUDIT REPORT", st.title); R.merge(1, 0, 1, 3, st.title); R.put(1, 4, a.auditStatus + (a.verifiedBy ? " · verified by " + a.verifiedBy : ""), st.code); R.merge(1, 4, 1, 5, st.code); R.h(1, 30);
-    y = 3;
-    [["Station", s.name || a.station, "Auditor", a.auditor], ["Station ID / type", a.station + (s.type ? " · " + s.type : ""), "Attendant on duty", a.attendant || "—"],
-      ["Audit date", fDate(a.date), "Chargers / functional", (a.chargers === "" ? "—" : a.chargers) + " / " + (a.functional === "" ? "—" : a.functional)]].forEach(function (row) {
-      R.put(y, 0, row[0], st.lbl); R.put(y, 1, row[1], st.val); R.merge(y, 1, y, 2, st.val); R.put(y, 3, row[2], st.lbl); R.put(y, 4, row[3], st.val); R.merge(y, 4, y, 5, st.val); R.h(y, 18); y++;
+    // ---------- Sheet 1: Audit Report Form (AUD-R01)
+    var ws = wb.addWorksheet("Audit Report Form", { views: [{ style: "pageBreakPreview", zoomScale: 85, zoomScaleNormal: 85 }] });
+    var W1 = [30.77734375, 30.77734375, 14.77734375, 26.77734375, 30.77734375, 17.6640625];
+    W1.forEach(function (w, i) { ws.getColumn(i + 1).width = w; });
+    var dR = docCtl("Report");
+    mergeSt(ws, "A1:B2", "", {});
+    var isDraft = audStatusText(a) === "Draft", DR = isDraft ? "DRAFT · " : "";
+    mergeSt(ws, "C1:D2", "STATION AUDIT REPORT" + (isDraft ? "\n— DRAFT —" : ""), ST.title);
+    mergeSt(ws, "E1:F2", dR.text, ST.doc);
+    ws.getRow(1).height = 32.4; ws.getRow(2).height = 30;
+    ws.addImage(logo, { tl: { col: 0.29, row: 0.05 }, ext: { width: 308, height: 77 }, editAs: "oneCell" });
+    [["Station", stName2, "Auditor", a.auditor],
+      ["Station ID / type", a.station + (s.type ? " · " + s.type : ""), "Attendant on duty", a.attendant || "—"],
+      ["Audit date / no.", dateTxt + "  ·  " + a.id, "Chargers / functional", (a.chargers === "" ? "—" : a.chargers) + " / " + (a.functional === "" ? "—" : a.functional)],
+      ["Status", audStatusText(a), "Verified by / on", audVerText(a)]].forEach(function (x, i) {
+      var y = 4 + i; put(ws, "A" + y, x[0], ST.lbl); mergeSt(ws, "B" + y + ":C" + y, x[1], ST.val); put(ws, "D" + y, x[2], ST.lbl); mergeSt(ws, "E" + y + ":F" + y, x[3], ST.val); ws.getRow(y).height = 18;
     });
-    y++;
-    R.put(y, 0, "OVERALL SCORE", st.lbl); R.put(y, 1, kNum(r.score) ? "—" : r.score, st.score); R.merge(y, 1, y + 1, 1, st.score);
-    R.put(y, 3, "RATING", st.lbl); R.put(y, 4, b ? b[1] : "Not scored", st.rating); R.merge(y, 4, y + 1, 5, st.rating);
-    R.put(y + 1, 0, r.scored + " items scored", st.val); R.put(y + 1, 3, "C " + (r.scored - r.nc - r.pc) + " · PC " + r.pc + " · NC " + r.nc, st.val); R.h(y, 22); R.h(y + 1, 22);
-    y += 3;
-    R.put(y, 0, "1. Score by category", st.h2); R.merge(y, 0, y, 5, st.h2); y++;
-    ["Category", "Weight", "Items scored", "Points", "Score", "Weighted"].forEach(function (t, i) { R.put(y, i, t, st.th); }); y++;
+    put(ws, "A9", "OVERALL SCORE", ST.lbl); mergeSt(ws, "B9:B10", kNum(r.score) ? "—" : r.score, ST.score);
+    put(ws, "D9", "RATING", ST.lbl); mergeSt(ws, "E9:F10", b ? b[1] : "Not scored", ST.rating);
+    put(ws, "A10", r.scored + " items scored", ST.val); put(ws, "D10", "C " + (r.scored - r.nc - r.pc) + " · PC " + r.pc + " · NC " + r.nc, ST.val);
+    ws.getRow(9).height = 22.05; ws.getRow(10).height = 22.05;
+    mergeSt(ws, "A12:F12", "1. Score by category", ST.h2); ws.getRow(12).height = 15.6;
+    ["Category", "Weight", "Items scored", "Points", "Score", "Weighted"].forEach(function (t, i) { put(ws, COL(i + 1) + "13", t, ST.th); });
+    var y = 14;
     AUD_CATS.forEach(function (c) {
       var x = r.n[c[0]], p = r.pct[c[0]];
-      R.put(y, 0, c[0] + ". " + c[1], st.td); R.put(y, 1, c[2], st.pct); R.put(y, 2, x.n, st.tdc); R.put(y, 3, Math.round(x.ok * 10) / 10, st.tdc);
-      R.put(y, 4, kNum(p) ? "—" : p, kNum(p) ? st.tdc : st.pct); R.put(y, 5, kNum(p) ? "—" : p * c[2], kNum(p) ? st.tdc : st.pct); y++;
+      put(ws, "A" + y, c[0] + ". " + c[1], ST.td); put(ws, "B" + y, c[2], ST.pct); put(ws, "C" + y, x.n, ST.tdc); put(ws, "D" + y, Math.round(x.ok * 10) / 10, ST.tdc);
+      put(ws, "E" + y, kNum(p) ? "—" : p, kNum(p) ? ST.tdc : ST.pct); put(ws, "F" + y, kNum(p) ? "—" : p * c[2], kNum(p) ? ST.tdc : ST.pct);
+      if (lines(c[0] + ". " + c[1], 30) > 1) ws.getRow(y).height = 26.4; y++;
     });
-    R.put(y, 0, "Overall", st.tot); R.put(y, 1, 1, st.totp); R.put(y, 2, r.scored, st.tot); R.put(y, 3, Math.round(AUD_CATS.reduce(function (t, c) { return t + r.n[c[0]].ok; }, 0) * 10) / 10, st.tot); R.put(y, 4, "", st.tot); R.put(y, 5, kNum(r.score) ? "—" : r.score, st.totp); y++;
-    R.put(y, 0, "Compliant = 1 point, Partially compliant = 0.5, Non-compliant = 0; N/A not scored. Overall = Σ weight × category score. ≥ 90% Fully Compliant · 80–89% Compliant · 70–79% Partial (CAP required) · < 70% Non-Compliant (escalate).", st.note); R.merge(y, 0, y, 5, st.note); R.h(y, 28); y += 2;
-    R.put(y, 0, "2. Findings & corrective actions (CAP-F01)", st.h2); R.merge(y, 0, y, 5, st.h2); y++;
-    ["CAP ID · item", "Non-conformance", "Risk", "Corrective / preventive action", "Responsible", "Target · status"].forEach(function (t, i) { R.put(y, i, t, st.th); }); y++;
-    if (!a.findings.length) { R.put(y, 0, "No findings — every scored item is compliant.", st.td); R.merge(y, 0, y, 5, st.td); y++; }
+    put(ws, "A" + y, "Overall", ST.tot); put(ws, "B" + y, 1, ST.totp); put(ws, "C" + y, r.scored, ST.tot);
+    put(ws, "D" + y, Math.round(AUD_CATS.reduce(function (t, c) { return t + r.n[c[0]].ok; }, 0) * 10) / 10, ST.tot); put(ws, "E" + y, "", ST.tot); put(ws, "F" + y, kNum(r.score) ? "—" : r.score, ST.totp); y++;
+    mergeSt(ws, "A" + y + ":F" + y, "Compliant = 1 point, Partially compliant = 0.5, Non-compliant = 0; N/A not scored. Overall = Σ weight × category score. ≥ 90% Fully Compliant · 80–89% Compliant · 70–79% Partial (CAP required) · < 70% Non-Compliant (escalate).", ST.note);
+    ws.getRow(y).height = 28.05; y += 2;
+    mergeSt(ws, "A" + y + ":F" + y, "2. Findings & corrective actions (" + S.cfg.auditDoc["CAP form"] + ")", ST.h2); ws.getRow(y).height = 15.6; y++;
+    ["CAP ID · item", "Non-conformance", "Risk", "Corrective / preventive action", "Responsible", "Target · status"].forEach(function (t, i) { put(ws, COL(i + 1) + y, t, ST.th); });
+    ws.getRow(y).height = 26.4; y++;
+    if (!a.findings.length) { mergeSt(ws, "A" + y + ":F" + y, "No findings — every scored item is compliant.", ST.td); y++; }
     a.findings.forEach(function (f) {
       var c = caps[f.capId], g = function (k) { return (c ? c[k] : f[k]) || ""; };
-      R.put(y, 0, (f.capId || "not yet raised") + (f.item ? " · item " + f.item : ""), st.td); R.put(y, 1, g("nonconf") + (g("rootCause") ? "\nRoot cause: " + g("rootCause") : ""), st.td);
-      R.put(y, 2, g("risk") || "—", riskStyle(g("risk"))); R.put(y, 3, g("corrective") + (g("preventive") ? "\nPreventive: " + g("preventive") : ""), st.td);
-      R.put(y, 4, g("responsible"), st.td); R.put(y, 5, (g("target") ? fDate(g("target")) : "no target") + "\n" + (c ? capInfo(c).label : "—"), st.td);
-      R.h(y, Math.min(120, 16 + 13 * Math.ceil(Math.max(String(g("nonconf")).length + String(g("rootCause")).length, String(g("corrective")).length + String(g("preventive")).length) / 34))); y++;
+      var t = [(f.capId || "not yet raised") + (f.item ? " · item " + f.item : ""), g("nonconf") + (g("rootCause") ? "\nRoot cause: " + g("rootCause") : ""), g("risk") || "—",
+        g("corrective") + (g("preventive") ? "\nPreventive: " + g("preventive") : ""), g("responsible"), (g("target") ? fDate(g("target")) : "no target") + "\n" + (c ? capInfo(c).label : "—")];
+      t.forEach(function (v, i) { put(ws, COL(i + 1) + y, v, i === 2 ? riskSt(g("risk")) : ST.td); });
+      var n = Math.max.apply(null, t.map(function (v, i) { return lines(v, W1[i] * 0.95); }));
+      ws.getRow(y).height = Math.max(28, Math.min(160, 14 * n + 4)); y++;
     });
     y++;
-    R.put(y, 0, "3. Auditor's overall assessment", st.h2); R.merge(y, 0, y, 5, st.h2); y++;
-    R.put(y, 0, a.assessment || "—", st.box); R.merge(y, 0, y + 3, 5, st.box); y += 5;
-    ["Auditor", "Station representative", "Verified by"].forEach(function (t, i) { R.put(y, i * 2, t, st.lbl); R.merge(y, i * 2, y, i * 2 + 1, st.lbl); });
-    [a.auditor, a.attendant || "", a.verifiedBy || ""].forEach(function (t, i) { R.put(y + 1, i * 2, t + "\n\nSignature / date:", st.box); R.merge(y + 1, i * 2, y + 1, i * 2 + 1, st.box); });
-    R.h(y + 1, 58);
-    var ws1 = R.done();
-    ws1["!print"] = { orientation: "portrait" };
+    mergeSt(ws, "A" + y + ":F" + y, "3. Auditor's overall assessment", ST.h2); ws.getRow(y).height = 15.6; y++;
+    mergeSt(ws, "A" + y + ":F" + (y + 3), a.assessment || "—", ST.box);
+    var al = lines(a.assessment || "", 150); if (al > 4) for (var k = 0; k < 4; k++) ws.getRow(y + k).height = Math.ceil(al * 14 / 4);
+    y += 5;
+    var sg = S.cfg.auditSign.slice(0, 3), span = sg.length === 3 ? 2 : sg.length === 2 ? 3 : 6;
+    sg.forEach(function (x, i) {
+      var c1 = COL(i * span + 1), c2 = COL(i * span + span);
+      mergeSt(ws, c1 + y + ":" + c2 + y, x.role, ST.lblc);
+      mergeSt(ws, c1 + (y + 1) + ":" + c2 + (y + 1), "\n\n\n\n\n" + signText(x) + "\nSignature / date:", ST.sign);
+    });
+    ws.getRow(y + 1).height = 95.4;
+    page(ws, 60, "portrait", "F", y + 1);
 
-    // ---- Sheet 2: checklist
-    var C = new Sheet([6, 70, 12, 12, 18, 8, 40]), cy = 0, sec = "";
-    C.put(0, 0, "AUD-R01 checklist — " + (s.name || a.station) + " · " + fDate(a.date) + " · " + a.id, st.title); C.merge(0, 0, 0, 6, st.title); C.h(0, 26);
-    ["No", "Item (Khmer / English)", "SOP ref", "Type", "Evaluation", "Score", "Remark / evidence"].forEach(function (t, i) { C.put(2, i, t, st.th); }); cy = 3;
+    // ---------- Sheet 2: Audit Checklist (AUD-C01)
+    var w2 = wb.addWorksheet("Audit Checklist", { views: [{ style: "pageBreakPreview", zoomScale: 85, zoomScaleNormal: 85 }] });
+    var W2 = [6.77734375, 79.21875, 15, 12.77734375, 18.77734375, 8.77734375, 40.77734375];
+    W2.forEach(function (w, i) { w2.getColumn(i + 1).width = w; });
+    var dC = docCtl("Checklist"), khF = function (o) { var f = { name: KH, size: 10 }; for (var k in o) f[k] = o[k]; return f; };
+    mergeSt(w2, "A1:B1", "", {});
+    mergeSt(w2, "C1:F1", DR + stName2 + " · " + dateTxt, ST.title);
+    put(w2, "G1", dC.text, ST.doc);
+    w2.getRow(1).height = 70.8;
+    w2.addImage(logo, { tl: { col: 1.03, row: 0.06 }, ext: { width: 345, height: 86 }, editAs: "oneCell" });
+    var thK = { font: khF({ size: 12, bold: true, color: { argb: WHITE } }), fill: fill(OR), border: box, alignment: { horizontal: "center", vertical: "middle", wrapText: true } };
+    var secK = { font: khF({ bold: true, color: { argb: "FF7A3500" } }), fill: fill(SOFT), border: box, alignment: { vertical: "middle", wrapText: true } };
+    var tdK = { font: khF(), border: box, alignment: { vertical: "top", wrapText: true } }, tdKc = { font: khF(), border: box, alignment: { horizontal: "center", vertical: "top", wrapText: true } };
+    ["No", "Item (Khmer / English)", "SOP ref", "Type", "Evaluation", "Score", "Remark / evidence"].forEach(function (t, i) { put(w2, COL(i + 1) + "3", t, thK); });
+    w2.getRow(3).height = 24.6;
+    // Page breaks: about 1,250 pt of row height per printed page at 50% scale; a section is kept on one page when it fits.
+    var CAP_PT = 1250, used = 70.8 + 15 + 24.6, secRow = 0, secStart = 0, cy = 4, sec = "", breaks = [];
     auditRows(a).forEach(function (x) {
-      if (x.it.section !== sec) { sec = x.it.section; C.put(cy, 0, sec, st.sec); C.merge(cy, 0, cy, 6, st.sec); cy++; }
-      C.put(cy, 0, x.it.no, st.tdc); C.put(cy, 1, x.it.text, st.td); C.put(cy, 2, x.it.sop, st.tdc); C.put(cy, 3, x.it.type, st.tdc);
-      C.put(cy, 4, x.e || "—", evStyle(x.code)); C.put(cy, 5, x.pts === "" ? "—" : x.pts, st.tdc); C.put(cy, 6, x.r, st.td);
-      C.h(cy, Math.min(90, 14 + 13 * Math.ceil(String(x.it.text).length / 60))); cy++;
+      if (x.it.section !== sec) {
+        sec = x.it.section; mergeSt(w2, "A" + cy + ":G" + cy, sec, secK);
+        w2.getRow(cy).height = 29.4;
+        if (used + 29.4 > CAP_PT) { breaks.push(cy - 1); used = 0; }
+        secRow = cy; secStart = used; used += 29.4; cy++;
+      }
+      put(w2, "A" + cy, x.it.no, tdKc); put(w2, "B" + cy, x.it.text, tdK); put(w2, "C" + cy, x.it.sop, tdKc); put(w2, "D" + cy, x.it.type, tdKc);
+      put(w2, "E" + cy, x.e || "—", evSt(x.code, khF())); put(w2, "F" + cy, x.pts === "" ? "—" : x.pts, tdKc); put(w2, "G" + cy, x.r, tdK);
+      var n = Math.max(lines(x.it.text, 88), lines(x.r, 44)), h = n <= 1 ? 27 : 13.5 * n + 13;
+      w2.getRow(cy).height = h;
+      if (used + h > CAP_PT) {
+        var lastBr = breaks.length ? breaks[breaks.length - 1] : 3;
+        if (secRow - 1 > lastBr && used - secStart + h <= CAP_PT) { breaks.push(secRow - 1); used = used - secStart; secStart = 0; }
+        else { breaks.push(cy - 1); used = 0; }
+      }
+      used += h; cy++;
     });
-    var ws2 = C.done();
+    breaks.forEach(function (br) { if (br > 3) w2.getRow(br).addPageBreak(); });
+    page(w2, 50, "portrait", "G", cy - 1);
 
-    // ---- Sheet 3: CAP-F01
-    var P = new Sheet([14, 22, 11, 7, 12, 12, 40, 9, 32, 32, 32, 16, 11, 11, 13, 10, 18, 16, 12, 30]);
-    P.put(0, 0, "CAP-F01 — Corrective Action Plan · " + (s.name || a.station) + " · audit " + fDate(a.date), st.title); P.merge(0, 0, 0, 19, st.title); P.h(0, 26);
-    ["CAP ID", "Station", "Audit date", "Item #", "SOP ref", "Category", "Non-conformance", "Risk", "Root cause", "Corrective action", "Preventive action", "Responsible", "Date raised", "Target date", "Status", "Days overdue", "Verification method", "Verified by", "Verification date", "Evidence / comments"].forEach(function (t, i) { P.put(2, i, t, st.th); });
-    P.h(2, 30);
+    // ---------- Sheet 3: CAP-F01 Corrective Action
+    var w3 = wb.addWorksheet("CAP-F01 Corrective Action", { views: [{ style: "pageBreakPreview", zoomScale: 60, zoomScaleNormal: 85 }] });
+    var W3 = [14.77734375, 16.77734375, 11.77734375, 7.77734375, 12.77734375, 12.77734375, 40.77734375, 9.77734375, 32.77734375, 32.77734375, 32.77734375, 16.77734375, 11.77734375, 11.77734375, 13.77734375, 10.77734375, 18.77734375, 16.77734375, 12.77734375, 30.77734375];
+    W3.forEach(function (w, i) { w3.getColumn(i + 1).width = w; });
+    var dP = docCtl("CAP form");
+    mergeSt(w3, "A1:F1", "", {});
+    mergeSt(w3, "G1:Q1", DR + "Corrective Action Plan · " + stName2 + " · audit " + dateTxt, { font: ST.title.font, fill: ST.title.fill, alignment: { horizontal: "left", vertical: "middle", indent: 1 } });
+    mergeSt(w3, "R1:T1", dP.text, ST.doc);
+    w3.getRow(1).height = 70.8;
+    w3.addImage(logo, { tl: { col: 0.25, row: 0.04 }, ext: { width: 363, height: 90 }, editAs: "oneCell" });
+    ["CAP ID", "Station", "Audit date", "Item #", "SOP ref", "Category", "Non-conformance", "Risk", "Root cause", "Corrective action", "Preventive action", "Responsible", "Date raised", "Target date", "Status", "Days overdue", "Verification method", "Verified by", "Verification date", "Evidence / comments"].forEach(function (t, i) { put(w3, COL(i + 1) + "3", t, ST.th); });
+    w3.getRow(3).height = 30;
+    var CEN = { 4: 1, 13: 1, 14: 1, 16: 1, 19: 1 };
     a.findings.forEach(function (f, i) {
-      var c = caps[f.capId] || f, inf = caps[f.capId] ? capInfo(caps[f.capId]) : null, row = 3 + i;
-      [f.capId || "", s.name || a.station, fDate(a.date), f.item, c.sop || "", c.category || "", c.nonconf, c.risk, c.rootCause, c.corrective, c.preventive, c.responsible, fDate(c.raised || a.date), fDate(c.target), inf ? (c.capStatus || "") : "Not yet raised", inf && inf.days ? inf.days : "", c.verifyMethod || "", c.verifiedBy || "", fDate(c.verifiedOn || ""), c.evidence || ""].forEach(function (v, k) {
-        P.put(row, k, v === undefined || v === null ? "" : v, k === 7 ? riskStyle(c.risk) : (k === 3 || k === 12 || k === 13 || k === 15 || k === 18) ? st.tdc : st.td);
-      });
-      P.h(row, Math.min(120, 16 + 13 * Math.ceil(Math.max(String(c.nonconf || "").length, String(c.corrective || "").length, String(c.rootCause || "").length) / 30)));
+      var c = caps[f.capId] || f, inf = caps[f.capId] ? capInfo(caps[f.capId]) : null, row = 4 + i;
+      var v = [f.capId || "", stName2, dateTxt, f.item, c.sop || "", c.category || "", c.nonconf, c.risk, c.rootCause, c.corrective, c.preventive, c.responsible, fDate(c.raised || a.date), fDate(c.target), inf ? (c.capStatus || "") : "Not yet raised", inf && inf.days ? inf.days : "", c.verifyMethod || "", c.verifiedBy || "", fDate(c.verifiedOn || ""), c.evidence || ""];
+      v.forEach(function (x, k) { put(w3, COL(k + 1) + row, x === undefined || x === null ? "" : x, k === 7 ? riskSt(c.risk) : CEN[k + 1] ? ST.tdc : ST.td); });
+      var n = Math.max.apply(null, v.map(function (x, k) { return lines(x, W3[k] * 0.95); }));
+      w3.getRow(row).height = Math.max(42, Math.min(200, 14 * n + 14));
     });
-    var ws3 = P.done();
+    page(w3, 33, "landscape", "T", Math.max(3, 3 + a.findings.length));
 
-    var wb = X.utils.book_new();
-    X.utils.book_append_sheet(wb, ws1, "Audit Report Form");
-    X.utils.book_append_sheet(wb, ws2, "Audit Checklist");
-    X.utils.book_append_sheet(wb, ws3, "CAP-F01 Corrective Action");
-    X.writeFile(wb, "Audit_" + a.id + "_" + (s.short || a.station).replace(/[^A-Za-z0-9]+/g, "_") + "_" + a.date + ".xlsx");
+    return wb.xlsx.writeBuffer().then(function (buf) {
+      var blob = new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+      var url = URL.createObjectURL(blob), el = document.createElement("a");
+      el.href = url; el.download = "Audit_" + a.id + "_" + (s.short || a.station).replace(/[^A-Za-z0-9]+/g, "_") + "_" + a.date + ".xlsx";
+      document.body.appendChild(el); el.click(); el.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+    });
   }
   function exportAuditPlain(a) {
     if (typeof XLSX === "undefined") { notice("The spreadsheet library hasn't loaded yet. Try again in a moment.", "bad"); return; }
