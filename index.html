@@ -5,21 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Daily Operation Record · VET-ENERGY</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600&family=Noto+Sans+Khmer:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js" defer></script>
 <style>
 :root {
-  --bg: #f1f4f6; --surface: #ffffff; --ink: #14232e; --muted: #5d6f7c; --line: #d6dee4;
-  --accent: #0b6e75; --accent-ink: #ffffff; --accent-soft: #dff0f0;
+  --bg: #f4faf9; --surface: #ffffff; --ink: #10262b; --muted: #557077; --line: #d3e4e2;
+  --accent: #0b6e75; --accent-ink: #ffffff; --accent-soft: #e1f5ee; --band: #0b6e75; --band-ink: #ffffff; --lime: #c6f432; --lime-ink: #1d2a05; --tabbar: #e1f5ee;
   --ok: #2c7a4b; --ok-soft: #dff1e5; --warn: #a2620a; --warn-soft: #fbeed3; --crit: #b3362b; --crit-soft: #fae1dd; --idle: #7c8b96;
   --font-display: "IBM Plex Sans Condensed", "Arial Narrow", Arial, sans-serif;
-  --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", "Noto Sans Khmer", "Khmer OS Battambang", "Segoe UI", system-ui, sans-serif;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0f181e; --surface: #17232b; --ink: #e6eef2; --muted: #93a5b1; --line: #2b3b46;
-    --accent: #4fc0c4; --accent-ink: #06262a; --accent-soft: #143a3d;
+    --bg: #0c1719; --surface: #142427; --ink: #e4f1ef; --muted: #8fb0ad; --line: #24403f;
+    --accent: #4fc0c4; --accent-ink: #06262a; --accent-soft: #123a38; --band: #073f44; --band-ink: #e9fbf8; --lime: #c6f432; --lime-ink: #1d2a05; --tabbar: #10302f;
     --ok: #6cc68e; --ok-soft: #173826; --warn: #e3ac4d; --warn-soft: #3d2f12; --crit: #f08478; --crit-soft: #44201c; --idle: #8497a3;
     color-scheme: dark;
   }
@@ -27,7 +28,19 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; }
 body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 14px; line-height: 1.45; }
-.wrap { max-width: 1440px; margin: 0 auto; padding: 18px 16px 56px; display: flex; flex-direction: column; gap: 16px; }
+.wrap { max-width: 1440px; margin: 0 auto; padding: 16px 16px 56px; display: flex; flex-direction: column; gap: 16px; }
+.band { background: var(--band); color: var(--band-ink); }
+.band .inner { max-width: 1440px; margin: 0 auto; padding: 14px 16px; }
+.band h1 { color: var(--band-ink); display: flex; align-items: center; gap: 10px; }
+.band h1 .ti { color: var(--lime); font-size: 30px; }
+.band .head p { color: color-mix(in srgb, var(--band-ink) 75%, transparent); }
+.band .who { color: var(--band-ink); }
+.band .btn.ghost { color: var(--band-ink); border-color: color-mix(in srgb, var(--band-ink) 40%, transparent); }
+.band .btn.ghost:hover { background: color-mix(in srgb, var(--band-ink) 12%, transparent); }
+.role-chip { background: var(--lime); color: var(--lime-ink); border-radius: 12px; padding: 2px 10px; font-weight: 600; font-size: 12px; }
+.tabbar { background: var(--tabbar); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 5; }
+.tabbar .inner { max-width: 1440px; margin: 0 auto; padding: 8px 16px; }
+.ti { font-size: 1.15em; vertical-align: -2px; }
 h1 { font-family: var(--font-display); font-size: 28px; line-height: 1.1; margin: 0; }
 h2 { font-family: var(--font-display); font-size: 20px; margin: 0 0 10px; }
 h3 { font-size: 14px; margin: 0 0 8px; font-weight: 600; }
@@ -37,14 +50,19 @@ h3 { font-size: 14px; margin: 0 0 8px; font-weight: 600; }
 .dot { display: inline-flex; align-items: center; gap: 6px; }
 .dot::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--idle); }
 .dot.ok::before { background: var(--ok); } .dot.busy::before { background: var(--warn); } .dot.err::before { background: var(--crit); }
-nav.tabs { display: flex; gap: 4px; flex-wrap: wrap; border-bottom: 1px solid var(--line); }
-nav.tabs button { background: none; border: none; border-bottom: 3px solid transparent; padding: 8px 12px; color: var(--muted); font-weight: 500; }
-nav.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
-nav.tabs .count { background: var(--crit-soft); color: var(--crit); border-radius: 9px; padding: 0 6px; font-size: 12px; margin-left: 4px; }
+nav.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+nav.tabs button { background: transparent; border: 1px solid transparent; border-radius: 18px; padding: 6px 13px; color: var(--ink); font-weight: 500; display: inline-flex; align-items: center; gap: 6px; }
+nav.tabs button:hover { background: var(--surface); }
+nav.tabs button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+nav.tabs .count { background: var(--crit); color: #fff; border-radius: 9px; padding: 0 6px; font-size: 12px; }
+nav.sub { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+nav.sub button { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 5px 12px; color: var(--ink); }
+nav.sub button[aria-selected="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
 .notice { background: var(--warn-soft); border-left: 4px solid var(--warn); padding: 9px 12px; border-radius: 4px; }
 .notice.info { background: var(--accent-soft); border-left-color: var(--accent); }
 .notice.bad { background: var(--crit-soft); border-left-color: var(--crit); }
-.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
+.panel.accent { border-top: 4px solid var(--accent); }
 .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 16px; }
 .grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
 label.f { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--muted); font-weight: 500; }
@@ -68,22 +86,23 @@ button { font: inherit; cursor: pointer; }
 
 /* KPI tiles */
 .kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); gap: 10px; }
-.kpi { background: var(--surface); border: 1px solid var(--line); border-top: 4px solid var(--idle); border-radius: 6px; padding: 9px 11px; display: flex; flex-direction: column; gap: 2px; min-height: 92px; }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-left: 5px solid var(--idle); border-radius: 8px; padding: 9px 11px; display: flex; flex-direction: column; gap: 2px; min-height: 92px; }
 .kpi .t { font-size: 12px; color: var(--muted); font-weight: 500; }
 .kpi .v { font-family: var(--font-display); font-size: 24px; line-height: 1.15; font-variant-numeric: tabular-nums; }
 .kpi .s { font-size: 12px; color: var(--muted); }
 .kpi .d { font-size: 12px; font-variant-numeric: tabular-nums; }
-.kpi.g { border-top-color: var(--ok); } .kpi.a { border-top-color: var(--warn); } .kpi.r { border-top-color: var(--crit); }
-.kpi.r .v { color: var(--crit); }
+.kpi.g { background: var(--ok-soft); border-color: transparent; border-left-color: var(--ok); } .kpi.a { background: var(--warn-soft); border-color: transparent; border-left-color: var(--warn); } .kpi.r { background: var(--crit-soft); border-color: transparent; border-left-color: var(--crit); }
+.kpi.r .v { color: var(--crit); } .kpi.a .v { color: var(--warn); } .kpi.g .v { color: var(--ok); }
+.kpi.plain { border-left-color: var(--accent); }
 .up { color: var(--ok); } .down { color: var(--crit); } .flat { color: var(--muted); }
-.group-label { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; margin: 6px 0 6px; }
+.group-label { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--accent); font-weight: 600; margin: 10px 0 6px; display: flex; align-items: center; gap: 6px; }
 
 /* tables */
 .tbl-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
 table { border-collapse: collapse; width: 100%; font-size: 13px; }
 td:first-child { white-space: nowrap; }
 th, td { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
-th { background: var(--bg); font-weight: 600; font-size: 12px; color: var(--muted); position: sticky; top: 0; white-space: nowrap; }
+th { background: var(--accent-soft); font-weight: 600; font-size: 12px; color: var(--ink); position: sticky; top: 0; white-space: nowrap; }
 tbody tr:hover { background: var(--accent-soft); }
 tr.click { cursor: pointer; }
 tr.total td { font-weight: 600; background: var(--bg); }
@@ -118,38 +137,87 @@ dialog::backdrop { background: rgba(10, 20, 28, .45); }
 .progress > i { display: block; height: 100%; background: var(--accent); width: 0; }
 details > summary { cursor: pointer; font-weight: 600; padding: 4px 0; }
 [hidden] { display: none !important; }
+/* scorecard & audit */
+td.rag { text-align: center; font-weight: 600; }
+td.rag.G { background: var(--ok-soft); color: var(--ok); } td.rag.A { background: var(--warn-soft); color: var(--warn); } td.rag.R { background: var(--crit-soft); color: var(--crit); }
+.band-chip { display: inline-block; min-width: 54px; text-align: center; border-radius: 12px; padding: 1px 8px; font-weight: 600; font-size: 12px; }
+.band-chip.G { background: var(--ok); color: #fff; } .band-chip.A { background: var(--warn); color: #fff; } .band-chip.R { background: var(--crit); color: #fff; } .band-chip.N { background: var(--line); color: var(--muted); }
+.aud-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; align-items: start; }
+@media (max-width: 980px) { .aud-layout { grid-template-columns: 1fr; } }
+.aud-side { position: sticky; top: 110px; display: flex; flex-direction: column; gap: 12px; }
+.aud-sec { margin-top: 14px; }
+.aud-sec > h3 { background: var(--accent); color: var(--accent-ink); padding: 6px 10px; border-radius: 6px; margin: 0 0 6px; font-size: 13px; }
+.aud-item { display: grid; grid-template-columns: 36px minmax(0, 1fr) 250px; gap: 10px; padding: 8px 6px; border-bottom: 1px solid var(--line); align-items: start; }
+.aud-item.nc { background: var(--crit-soft); } .aud-item.na { opacity: .75; }
+.aud-item .no { font-weight: 600; color: var(--accent); }
+.aud-item .txt { white-space: pre-line; font-size: 13px; }
+.aud-item details { font-size: 12px; color: var(--muted); }
+.aud-item details summary { font-weight: 500; font-size: 12px; }
+@media (max-width: 720px) { .aud-item { grid-template-columns: 30px 1fr; } .aud-item .ans { grid-column: 1 / -1; } }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg button { border: none; background: var(--surface); padding: 5px 10px; font-size: 12px; font-weight: 600; color: var(--muted); }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button.on[data-e="C"] { background: var(--ok); color: #fff; } .seg button.on[data-e="NC"] { background: var(--crit); color: #fff; } .seg button.on[data-e="NA"] { background: var(--idle); color: #fff; }
+.seg button:disabled { cursor: default; }
+.bar { height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; } .bar > i { display: block; height: 100%; }
+.big-score { font-family: var(--font-display); font-size: 40px; line-height: 1; }
+.finding { border: 1px solid var(--line); border-left: 4px solid var(--crit); border-radius: 8px; padding: 10px; margin-top: 10px; background: var(--surface); }
+#printArea { display: none; }
+body.printing .wrap, body.printing .band, body.printing .tabbar { display: none !important; }
+body.printing { background: #fff; }
+body.printing #printArea { display: block; padding: 0 8mm; }
+.rep { --rep: #e96500; --rep-soft: #fde8d7; --rep-line: #f3c8a5; color: #1f1a17; }
+.rep h1 { font-size: 22px; color: var(--rep); border-bottom: 3px solid var(--rep); padding-bottom: 6px; margin-bottom: 4px; }
+.rep table { font-size: 11px; } .rep th { background: var(--rep); color: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.rep td, .rep th { border-bottom: 1px solid var(--rep-line); }
+.rep tr.total td { background: var(--rep-soft); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.rep .meta td { border: 1px solid var(--rep-line); } .rep .meta td:nth-child(odd) { background: var(--rep-soft); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.rep h2 { font-size: 15px; margin: 14px 0 6px; color: var(--rep); }
 @media print {
-  nav.tabs, .tools, .who button, .noprint { display: none !important; }
+  nav.tabs, .tools, .who button, .noprint, .tabbar { display: none !important; }
+  .band { background: #fff; color: #000; } .band h1 { color: #0b6e75; }
+  th { position: static; }
   body { background: #fff; } .panel, .kpi, .tbl-wrap { break-inside: avoid; }
 }
 </style>
 </head>
 <body>
-<div class="wrap">
+<div class="band">
+  <div class="inner">
   <header class="head">
     <div>
-      <h1>Daily Operation Record</h1>
-      <p>VET-ENERGY charging network · faults, complaints, incidents and sales in one place</p>
+      <h1><i class="ti ti-bolt"></i>Daily Operation Record</h1>
+      <p>VET-ENERGY charging network · operations, station KPI and audits in one place</p>
     </div>
     <div class="who">
       <span id="sync" class="dot">Not connected</span>
-      <span id="whoName"></span>
-      <button class="btn ghost small" id="btnRefresh" type="button">Refresh</button>
-      <button class="btn ghost small" id="btnSignOut" type="button">Sign out</button>
+      <span id="whoName"></span><span id="whoRole" class="role-chip" hidden></span>
+      <button class="btn ghost small" id="btnPw" type="button"><i class="ti ti-key"></i> Password</button>
+      <button class="btn ghost small" id="btnRefresh" type="button"><i class="ti ti-refresh"></i> Refresh</button>
+      <button class="btn ghost small" id="btnSignOut" type="button"><i class="ti ti-logout"></i> Sign out</button>
     </div>
   </header>
-
-  <div id="notice" class="notice" hidden></div>
-
+  </div>
+</div>
+<div class="tabbar">
+  <div class="inner">
   <nav class="tabs" role="tablist" id="tabs">
-    <button type="button" data-v="dash" aria-selected="true">Dashboard</button>
-    <button type="button" data-v="faults">Charger faults <span class="count" id="cntFaults" hidden></span></button>
-    <button type="button" data-v="complaints">Complaints <span class="count" id="cntComplaints" hidden></span></button>
-    <button type="button" data-v="incidents">Incidents <span class="count" id="cntIncidents" hidden></span></button>
-    <button type="button" data-v="nonsys">Non-system sales</button>
-    <button type="button" data-v="import">Import sales</button>
-    <button type="button" data-v="admin">Stations &amp; settings</button>
+    <button type="button" data-v="dash" aria-selected="true"><i class="ti ti-layout-dashboard"></i>Dashboard</button>
+    <button type="button" data-v="faults"><i class="ti ti-plug-connected-x"></i>Charger faults <span class="count" id="cntFaults" hidden></span></button>
+    <button type="button" data-v="complaints"><i class="ti ti-message-report"></i>Complaints <span class="count" id="cntComplaints" hidden></span></button>
+    <button type="button" data-v="incidents"><i class="ti ti-alert-triangle"></i>Incidents <span class="count" id="cntIncidents" hidden></span></button>
+    <button type="button" data-v="nonsys"><i class="ti ti-receipt"></i>Non-system sales</button>
+    <button type="button" data-v="kpi" data-need="kpi" hidden><i class="ti ti-chart-bar"></i>Station KPI</button>
+    <button type="button" data-v="audit" data-need="kpi" hidden><i class="ti ti-clipboard-check"></i>Audits</button>
+    <button type="button" data-v="caps" data-need="kpi" hidden><i class="ti ti-checklist"></i>CAP list <span class="count" id="cntCaps" hidden></span></button>
+    <button type="button" data-v="inputs" data-need="kpi" hidden><i class="ti ti-file-invoice"></i>Bills, expenses &amp; CSAT</button>
+    <button type="button" data-v="import" data-need="admin" hidden><i class="ti ti-file-import"></i>Import sales</button>
+    <button type="button" data-v="admin" data-need="admin" hidden><i class="ti ti-settings"></i>Users &amp; settings</button>
   </nav>
+  </div>
+</div>
+<div class="wrap">
+  <div id="notice" class="notice" hidden></div>
 
   <!-- ============ DASHBOARD ============ -->
   <section id="v-dash">
@@ -179,11 +247,13 @@ details > summary { cursor: pointer; font-weight: 600; padding: 4px 0; }
     <p class="muted small" id="periodLabel" style="margin:8px 0 0"></p>
     <div id="dataNote"></div>
 
-    <div class="group-label">Sales — system + non-system</div>
+    <div id="kComplianceWrap" hidden><div class="group-label"><i class="ti ti-shield-check"></i>Compliance — audits &amp; corrective actions (now)</div>
+    <div class="kpis" id="kComp"></div></div>
+    <div class="group-label"><i class="ti ti-cash"></i>Sales — system + non-system</div>
     <div class="kpis" id="kSales"></div>
-    <div class="group-label">Operations — charger faults &amp; complaints</div>
+    <div class="group-label"><i class="ti ti-tool"></i>Operations — charger faults &amp; complaints</div>
     <div class="kpis" id="kOps"></div>
-    <div class="group-label">Incidents — safety, damage &amp; security</div>
+    <div class="group-label"><i class="ti ti-alert-triangle"></i>Incidents — safety, damage &amp; security</div>
     <div class="kpis" id="kInc"></div>
 
     <div class="panel" style="margin-top:16px">
@@ -234,13 +304,26 @@ details > summary { cursor: pointer; font-weight: 600; padding: 4px 0; }
   <section id="v-complaints" hidden></section>
   <section id="v-incidents" hidden></section>
   <section id="v-nonsys" hidden></section>
+  <section id="v-caps" hidden></section>
+
+  <!-- ============ STATION KPI / AUDITS / INPUTS ============ -->
+  <section id="v-kpi" hidden></section>
+  <section id="v-audit" hidden></section>
+  <section id="v-inputs" hidden>
+    <nav class="sub" id="inSub">
+      <button type="button" data-sub="bills" aria-selected="true"><i class="ti ti-bolt"></i> Electricity bills</button>
+      <button type="button" data-sub="expenses"><i class="ti ti-wallet"></i> Operating expenses</button>
+      <button type="button" data-sub="csat"><i class="ti ti-mood-smile"></i> CSAT surveys</button>
+    </nav>
+    <section id="v-bills"></section><section id="v-expenses" hidden></section><section id="v-csat" hidden></section>
+  </section>
 
   <!-- ============ IMPORT ============ -->
   <section id="v-import" hidden>
     <div class="panel">
       <h2>Import system sales (Sale Order export)</h2>
       <p class="muted" style="margin-top:0">Choose the Sale Order export from the charging system (.xlsx, .xls or .csv). The page reads it here in your browser, totals it by day, station, charger and hour, and saves only those totals to the Sheet — not each order. For every <b>date and station</b> in the file, what is stored is <b>replaced</b>; other stations and dates are left alone. Re-importing the same file is safe. Daily routine: import yesterday's full-day export each morning.</p>
-      <div id="impManagerOnly" class="notice" hidden>Only a manager can import sales. Sign in with the manager passcode.</div>
+      <div id="impManagerOnly" class="notice" hidden>Only an Admin can import sales.</div>
       <div class="tools">
         <label class="f grow"><span>Export file</span><input type="file" id="impFile" accept=".xlsx,.xls,.csv"></label>
       </div>
@@ -258,15 +341,15 @@ details > summary { cursor: pointer; font-weight: 600; padding: 4px 0; }
   <form method="dialog" id="formSignIn">
     <div class="dlg-head"><h2>Sign in</h2></div>
     <div class="dlg-body">
-      <p class="muted" style="margin-top:0">Your name is written next to every record you add or change.</p>
+      <p class="muted" style="margin-top:0">Sign in with your own username and password. Your name is written next to every record you add or change.</p>
       <div class="form" style="grid-template-columns:1fr 1fr">
-        <label class="f req"><span>Your name</span><input id="siName" autocomplete="name" required maxlength="60"></label>
-        <label class="f req"><span>Passcode</span><input id="siKey" type="password" autocomplete="current-password" required></label>
-        <label class="f w3" style="flex-direction:row;gap:8px;align-items:center"><input type="checkbox" id="siRemember" style="width:auto" checked> Remember me on this device</label>
+        <label class="f req"><span>Username</span><input id="siName" autocomplete="username" required maxlength="40" autocapitalize="none" spellcheck="false"></label>
+        <label class="f req"><span>Password</span><input id="siKey" type="password" autocomplete="current-password" required></label>
+        <label class="f w3" style="flex-direction:row;gap:8px;align-items:center"><input type="checkbox" id="siRemember" style="width:auto" checked> Keep me signed in on this device (30 days)</label>
       </div>
       <p class="err-box" id="siErr"></p>
     </div>
-    <div class="dlg-foot"><span class="small muted">Staff and manager passcodes are set in the Apps Script.</span><button class="btn" type="submit">Sign in</button></div>
+    <div class="dlg-foot"><span class="small muted">Forgot your password? Ask an Admin to reset it.</span><button class="btn" type="submit">Sign in</button></div>
   </form>
 </dialog>
 
@@ -282,6 +365,43 @@ details > summary { cursor: pointer; font-weight: 600; padding: 4px 0; }
   </form>
 </dialog>
 
+<!-- change password -->
+<dialog id="dlgPw">
+  <form method="dialog" id="formPw">
+    <div class="dlg-head"><h2>Change your password</h2><button class="btn ghost small" type="button" id="pwClose">Close</button></div>
+    <div class="dlg-body">
+      <p class="muted" style="margin-top:0" id="pwIntro">Use at least 8 characters with letters and numbers. Don't reuse a password from another site.</p>
+      <div class="form" style="grid-template-columns:1fr 1fr 1fr">
+        <label class="f req"><span>Current password</span><input id="pwOld" type="password" autocomplete="current-password"></label>
+        <label class="f req"><span>New password</span><input id="pwNew" type="password" autocomplete="new-password"></label>
+        <label class="f req"><span>New password again</span><input id="pwNew2" type="password" autocomplete="new-password"></label>
+      </div>
+      <p class="err-box" id="pwErr"></p>
+    </div>
+    <div class="dlg-foot"><span></span><button class="btn" type="submit">Change password</button></div>
+  </form>
+</dialog>
+
+<!-- user editor (admin) -->
+<dialog id="dlgUser">
+  <form method="dialog" id="formUser">
+    <div class="dlg-head"><h2 id="userTitle">User</h2><button class="btn ghost small" type="button" id="userClose">Close</button></div>
+    <div class="dlg-body">
+      <div class="form">
+        <label class="f req"><span>Username</span><input name="username" maxlength="40" autocapitalize="none" spellcheck="false"><span class="hint">3–40 letters, numbers, . _ -</span></label>
+        <label class="f req w2"><span>Full name</span><input name="name" maxlength="60"></label>
+        <label class="f req"><span>Role</span><select name="role"><option value="admin">Admin — full control</option><option value="ops01">Ops01 — KPI, audits + data entry</option><option value="ops02">Ops02 — data entry</option></select></label>
+        <label class="f"><span>Active</span><select name="active"><option value="Y">Yes</option><option value="N">No — can't sign in</option></select></label>
+        <label class="f"><span id="userPwLabel">Temporary password</span><input name="password" type="text" autocomplete="off"><span class="hint" id="userPwHint">They must change it at first sign-in</span></label>
+      </div>
+      <p class="err-box" id="userErr"></p>
+    </div>
+    <div class="dlg-foot"><span class="small muted">Give the temporary password to the person directly, not in a group chat.</span><button class="btn" type="submit">Save user</button></div>
+  </form>
+</dialog>
+
+<div id="printArea"></div>
+
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" defer></script>
 <script>
 /* =====================================================================
@@ -293,9 +413,12 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
 (function () {
   "use strict";
   var OFF = 7 * 3600e3;                     // Cambodia is UTC+7 all year
-  var LS_KEY = "dor.key", LS_USER = "dor.user", LS_PRESET = "dor.preset";
+  var LS_TOK = "dor.token", LS_USER = "dor.username", LS_PRESET = "dor.preset";
+  var ROLE_LABEL = { admin: "Admin", ops01: "Ops01", ops02: "Ops02" };
+  var CAN = { entry: ["admin", "ops01", "ops02"], kpi: ["admin", "ops01"], admin: ["admin"] };
+  function can(what) { return CAN[what].indexOf(S.role) >= 0; }
   var $ = function (id) { return document.getElementById(id); };
-  var S = { key: "", user: "", role: "", data: null, cfg: null, sales: null, view: "dash", charts: {}, stationTable: "ops", busy: false };
+  var S = { token: "", username: "", user: "", role: "", data: null, cfg: null, sales: null, view: "dash", charts: {}, stationTable: "ops", busy: false };
 
   /* ---------------- small utilities ---------------- */
   function esc(s) { return String(s === null || s === undefined ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
@@ -326,7 +449,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
 
   /* ---------------- API ---------------- */
   function api(payload) {
-    payload.key = S.key; payload.user = S.user;
+    payload.token = S.token;
     return fetch(API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload), redirect: "follow" })
       .then(function (r) { if (!r.ok) throw { code: "http", detail: r.status }; return r.json(); })
       .then(function (j) { if (!j || !j.ok) throw { code: (j && j.error) || "server_error", detail: j && j.detail }; return j; });
@@ -335,22 +458,23 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     if (!e) return "Unknown problem.";
     if (e.code === "invalid") return e.detail;
     if (e.code === "conflict") return e.detail;
-    if (e.code === "forbidden") return "Only a manager can do this.";
+    if (e.code === "forbidden") return "Your role can't do this. Ask an Admin.";
+    if (e.code === "signed_out") return "Your sign-in has ended. Sign in again.";
     if (e.code === "busy") return "The Sheet is busy with another save. Wait a few seconds and try again.";
     if (e.code === "http") return "Could not reach the Google Sheet (error " + e.detail + "). Check the web app URL and that it is deployed for “Anyone”.";
     if (e.code === "server_error") return "The Google Sheet reported a problem: " + (e.detail || "unknown error");
-    if (e.code === "wrong_passcode") return "The passcode was not accepted.";
     return "Could not reach the Google Sheet. Check your internet connection and try again.";
   }
   function handleError(e, what) {
-    if (e && e.code === "wrong_passcode") { signOut("The passcode was not accepted. Sign in again."); return; }
+    if (e && e.code === "signed_out") { signOut("Your sign-in has ended (signed out, password changed or account switched off). Sign in again."); return; }
     setSync("err", what + " failed " + timeNow());
     notice(esc(errText(e)), "bad");
   }
 
   /* ---------------- settings & helpers on the data ---------------- */
   function buildCfg(d) {
-    var c = { thr: {}, compCats: [], partnerTypes: [], partnerHrs: 168, faultCats: [], channels: [], custTypes: [], incTypes: [], sev: [], general: {} };
+    var c = { thr: {}, compCats: [], partnerTypes: [], partnerHrs: 168, faultCats: [], channels: [], custTypes: [], incTypes: [], sev: [], general: {},
+      expCats: [], capStatus: [], capRisk: { High: 7, Medium: 14, Low: 30 }, kpiArea: {}, kpiBand: { green: 85, amber: 70 }, kpiPoints: { G: 100, A: 60, R: 0 } };
     d.settings.forEach(function (r) {
       var g = r[0], it = r[1];
       if (g === "Threshold") c.thr[it] = { dir: String(r[2]).toLowerCase(), green: +r[3], amber: +r[4], note: r[5] };
@@ -363,7 +487,16 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       else if (g === "IncidentType") c.incTypes.push(it);
       else if (g === "IncidentSeverity") c.sev.push({ name: it, reportHrs: +r[2] || 24, closeDays: +r[3] || 30, note: r[5] });
       else if (g === "General") c.general[it] = r[2];
+      else if (g === "ExpenseCategory") c.expCats.push(it);
+      else if (g === "CAPStatus") c.capStatus.push(it);
+      else if (g === "CAPRisk") c.capRisk[it] = +r[2] || 30;
+      else if (g === "KPIArea") c.kpiArea[it] = +r[2] || 0;
+      else if (g === "KPIBand") c.kpiBand[it.toLowerCase()] = +r[2];
+      else if (g === "KPIPoints") c.kpiPoints[it.charAt(0).toUpperCase()] = +r[2];
     });
+    if (!Object.keys(c.kpiArea).length) c.kpiArea = { Availability: 0.35, Commercial: 0.25, Compliance: 0.20, Customer: 0.20 };
+    if (!c.capStatus.length) c.capStatus = ["Open", "In Progress", "Closed", "Verified"];
+    if (!c.expCats.length) c.expCats = ["Staff salaries", "Rent / land lease", "Internet & SIM", "Repairs & maintenance", "Cleaning & consumables", "Security", "Transport & travel", "Other"];
     c.openAlert = +c.general["Fault open alert (hrs)"] || 24;
     c.khrUsd = +c.general["KHR per USD"] || 4000;
     c.stById = {}; d.stations.forEach(function (s) { c.stById[s.id] = s; });
@@ -684,6 +817,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       kpi("Days since last critical/major", A.daysSinceCM === null ? "—" : n0(A.daysSinceCM), A.daysSinceCM === null ? "none recorded" : "all time, these stations", null, "higher")
     ].join("");
 
+    drawCompliance(ids);
     drawStationTable(A, ids);
     drawBreakdowns(A, B);
     drawOpen(ids, now);
@@ -908,20 +1042,22 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     var K = KINDS[kind], el = $("v-" + kind);
     LF[kind] = LF[kind] || { station: "*", status: "open", from: "", to: "", q: "" };
     var f = LF[kind];
-    if (kind === "nonsys" && f.status === "open") f.status = "all";
-    var statusOpts = kind === "nonsys" ? [["all", "All active"], ["void", "Voided"]] :
+    var simple = kind === "nonsys" || kind === "bills" || kind === "expenses" || kind === "csat";
+    if (simple && f.status === "open") f.status = "all";
+    var statusOpts = simple ? [["all", "All active"], ["void", "Voided"]] :
       [["open", "Open"], ["overdue", "Overdue / over alert"], ["closed", "Closed"], ["all", "All active"], ["void", "Voided"]];
     el.innerHTML = '<div class="section-title"><h2>' + esc(K.plural) + '</h2><div class="inrow noprint"><button class="btn ghost" type="button" data-csv="' + kind + '">Download CSV</button><button class="btn" type="button" data-new="' + kind + '">+ New ' + esc(K.label.toLowerCase()) + "</button></div></div>" +
       '<p class="muted" style="margin-top:0">' + esc(K.intro) + "</p>" +
       '<div class="panel tools noprint"><label class="f"><span>Station</span><select data-lf="station">' + stationOptions(true) + '</select></label>' +
       '<label class="f"><span>Status</span><select data-lf="status">' + statusOpts.map(function (o) { return '<option value="' + o[0] + '">' + o[1] + "</option>"; }).join("") + "</select></label>" +
       '<label class="f"><span>From</span><input type="date" data-lf="from"></label><label class="f"><span>To</span><input type="date" data-lf="to"></label>' +
-      '<label class="f grow"><span>Search</span><input type="search" data-lf="q" placeholder="ID, charger, description, people…"></label></div>' +
+      '<label class="f grow"><span>Search</span><input type="search" data-lf="q" placeholder="ID, charger, description, people…"></label>' + (kind === "caps" ? '<button class="btn ghost" type="button" id="capX" style="align-self:end"><i class="ti ti-file-spreadsheet"></i> Audits + CAP (.xlsx)</button>' : "") + "</div>" +
       '<p class="small muted" data-count style="margin:8px 0"></p><div class="tbl-wrap" data-list></div>';
     el.querySelectorAll("[data-lf]").forEach(function (inp) {
       inp.value = f[inp.getAttribute("data-lf")];
       inp.addEventListener(inp.tagName === "INPUT" && inp.type === "search" ? "input" : "change", function () { f[inp.getAttribute("data-lf")] = inp.value; renderList(kind); });
     });
+    if ($("capX")) $("capX").onclick = exportAuditList;
     renderList(kind);
   }
 
@@ -936,7 +1072,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       if (f.status === "void") { if (active(r)) return false; }
       else if (!active(r)) return false;
       else if (f.status !== "all") {
-        var info = kind === "faults" ? faultInfo(r, now) : kind === "complaints" ? complaintInfo(r, now) : kind === "incidents" ? incidentInfo(r, now) : null;
+        var info = kind === "faults" ? faultInfo(r, now) : kind === "complaints" ? complaintInfo(r, now) : kind === "incidents" ? incidentInfo(r, now) : kind === "caps" ? capInfo(r) : null;
         if (info) {
           if (f.status === "open" && !info.open) return false;
           if (f.status === "closed" && info.open) return false;
@@ -945,7 +1081,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       }
       if (q) { var hay = Object.keys(r).map(function (k) { return r[k]; }).join(" ").toLowerCase() + " " + stName(r.station).toLowerCase(); if (hay.indexOf(q) < 0) return false; }
       return true;
-    }).sort(function (a, b) { return String(b[K.dateField]).localeCompare(String(a[K.dateField])); });
+    }).sort(function (a, b) { return String(b[K.dateField]).localeCompare(String(a[K.dateField])) || String(b.id).localeCompare(String(a.id)); });
   }
 
   function listColumns(kind, now) {
@@ -955,6 +1091,14 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       var i = complaintInfo(r, now); return [esc(r.id), esc(stName(r.station)), fDT(r.received), esc(r.channel), esc(r.category), '<div class="desc">' + esc(r.description) + "</div>", '<span class="num">' + n1(i.hrs) + " / " + i.sla + "</span>", '<span class="chip ' + i.chip + '">' + esc(i.label) + "</span>"]; } };
     if (kind === "incidents") return { head: ["ID", "Station", "Occurred", "Severity", "Type", "What happened", "Injuries", "Reported on time", "Status"], row: function (r) {
       var i = incidentInfo(r, now); return [esc(r.id), esc(stName(r.station)), fDT(r.occurred), '<span class="chip ' + sevChip(r.severity) + '">' + esc(r.severity) + "</span>", esc(r.type), '<div class="desc">' + esc(r.description) + "</div>", n0(r.injuries || 0), i.onTime === "Y" ? '<span class="chip ok">Yes</span>' : i.onTime === "N" ? '<span class="chip bad">No</span>' : "—", '<span class="chip ' + i.chip + '">' + esc(i.label) + "</span>"]; } };
+    if (kind === "caps") return { head: ["CAP ID", "Station", "Audit", "Item", "Non-conformance", "Risk", "Responsible", "Target", "CAP status", "Follow-up"], row: function (r) {
+      var i = capInfo(r); return [esc(r.id), esc(stName(r.station)), esc(r.auditId || "—") + '<div class="small muted">' + fDate(r.auditDate) + "</div>", esc(r.item), '<div class="desc">' + esc(r.nonconf) + "</div>", '<span class="chip ' + riskChip(r.risk) + '">' + esc(r.risk) + "</span>", esc(r.responsible), r.target ? fDate(r.target) : "—", esc(r.capStatus), '<span class="chip ' + i.chip + '">' + esc(i.label) + "</span>"]; } };
+    if (kind === "bills") return { head: ["ID", "Station", "Billing month", "Invoice", "Invoice date", "kWh billed", "Amount (USD)", "USD / kWh", "Supplier"], row: function (r) {
+      return [esc(r.id), esc(stName(r.station)), esc(r.month), esc(r.invoice), fDate(r.invoiceDate), '<span class="num">' + n0(r.kwh) + "</span>", '<span class="num">' + n0(r.amount) + "</span>", '<span class="num">' + (r.kwh ? (r.amount / r.kwh).toFixed(3) : "—") + "</span>", esc(r.supplier)]; } };
+    if (kind === "expenses") return { head: ["ID", "Month", "Station", "Category", "Amount (USD)", "Vendor / payee", "Reference", "Notes"], row: function (r) {
+      return [esc(r.id), esc(r.month), esc(stName(r.station)), esc(r.category), '<span class="num">' + n0(r.amount) + "</span>", esc(r.vendor), esc(r.ref), '<div class="desc">' + esc(r.notes) + "</div>"]; } };
+    if (kind === "csat") return { head: ["ID", "Station", "Survey date", "Responses", "Satisfied", "CSAT", "Notes"], row: function (r) {
+      return [esc(r.id), esc(stName(r.station)), fDate(r.date), '<span class="num">' + n0(r.responses) + "</span>", '<span class="num">' + n0(r.satisfied) + "</span>", '<span class="num">' + pct(div(+r.satisfied, +r.responses)) + "</span>", '<div class="desc">' + esc(r.notes) + "</div>"]; } };
     return { head: ["ID", "Sale date", "Station", "Charger", "Customer type", "Status", "kWh", "Revenue (KHR)", "Notes"], row: function (r) {
       return [esc(r.id), fDT(r.date), esc(stName(r.station)), esc(r.charger), esc(r.custType), esc(r.chgStatus), '<span class="num">' + n1(r.kwh) + "</span>", '<span class="num">' + n0(r.revenue) + "</span>", '<div class="desc">' + esc(r.notes) + "</div>"]; } };
   }
@@ -976,6 +1120,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     var i = S.data.incidents.filter(function (x) { return active(x) && !x.closed; }).length;
     var set = function (id, v, title) { var e = $(id); e.hidden = !v; e.textContent = v; e.title = title; };
     set("cntFaults", f, "open faults"); set("cntComplaints", c, "overdue complaints"); set("cntIncidents", i, "open incidents");
+    set("cntCaps", S.data.caps ? S.data.caps.filter(function (x) { return active(x) && capInfo(x).overdue; }).length : 0, "overdue corrective actions");
   }
 
   /* --- editor dialog --- */
@@ -997,6 +1142,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       else if (f.t === "select") { var o = f.opts().slice(); if (v && o.indexOf(v) < 0) o.push(v); input = '<select name="' + f.k + '"><option value="">Choose…</option>' + o.map(function (x) { return '<option value="' + esc(x) + '">' + esc(x) + "</option>"; }).join("") + "</select>"; }
       else if (f.t === "dt") input = '<div class="inrow"><input type="datetime-local" name="' + f.k + '" value="' + esc(String(v).replace(" ", "T").slice(0, 16)) + '">' + (f.now ? '<button type="button" class="btn ghost small" data-now="' + f.k + '">Now</button>' : "") + "</div>";
       else if (f.t === "date") input = '<input type="date" name="' + f.k + '" value="' + esc(v) + '">';
+      else if (f.t === "month") input = '<input type="month" name="' + f.k + '" value="' + esc(v) + '">';
       else if (f.t === "long") input = '<textarea name="' + f.k + '" maxlength="3000">' + esc(v) + "</textarea>";
       else if (f.t === "num" || f.t === "int") input = '<input type="number" min="0" step="' + (f.t === "int" ? "1" : "any") + '" name="' + f.k + '" value="' + esc(v) + '">';
       else if (f.t === "charger") input = '<input name="' + f.k + '" list="dlCharger" value="' + esc(v) + '" maxlength="60"><datalist id="dlCharger"></datalist>';
@@ -1010,17 +1156,19 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     K.fields.forEach(function (f) { if ((f.t === "station" || f.t === "select") && rec) form.elements[f.k].value = rec[f.k] || ""; });
     if (!rec && kind === "nonsys") { form.elements.custType.value = S.cfg.custTypes[0] || ""; form.elements.chgStatus.value = "Succeeded"; }
     if (!rec && kind === "incidents") { form.elements.damage.value = "No"; form.elements.impact.value = "None"; }
+    if (!rec && kind === "caps") { form.elements.capStatus.value = "Open"; form.elements.raised.value = today(); }
+    if (!rec && kind === "csat") form.elements.date.value = today();
     var info = "";
     if (rec) info = "Created " + fDT(rec.created) + " by " + esc(rec.createdBy || "—") + " · last changed " + fDT(rec.updated) + " by " + esc(rec.updatedBy || "—") + (active(rec) ? "" : ' · <b class="down">VOID</b>');
     $("recInfo").innerHTML = info;
     var left = "";
-    if (rec && S.role === "manager") left = active(rec) ? '<button class="btn danger" type="button" data-void>Void…</button>' : '<button class="btn ghost" type="button" data-restore>Restore</button>';
+    if (rec && S.role === "admin") left = active(rec) ? '<button class="btn danger" type="button" data-void>Void…</button>' : '<button class="btn ghost" type="button" data-restore>Restore</button>';
     if (rec && active(rec)) {
       if (kind === "faults" && !rec.end) left += '<button class="btn ghost" type="button" data-quick="end">Back in service now</button>';
       if (kind === "complaints" && !rec.resolved) left += '<button class="btn ghost" type="button" data-quick="resolved">Resolved now</button>';
     }
     $("recLeft").innerHTML = left;
-    $("recSave").disabled = !!(rec && !active(rec) && S.role !== "manager");
+    $("recSave").disabled = !!(rec && !active(rec) && S.role !== "admin");
     refreshDynamic();
     if (!$("dlgRec").open) $("dlgRec").showModal();
   }
@@ -1081,7 +1229,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       afterDataChange();
     }).catch(function (e) {
       $("recSave").disabled = false;
-      if (e && e.code === "wrong_passcode") { $("dlgRec").close(); handleError(e); return; }
+      if (e && e.code === "signed_out") { $("dlgRec").close(); handleError(e); return; }
       $("recErr").textContent = errText(e) + (e && e.code === "conflict" ? "" : " Your entry is still here — try Save again.");
       setSync("err", "Save failed " + timeNow());
     });
@@ -1099,7 +1247,12 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       upsertLocal(ED.kind, j.record); setSync("ok", "Saved " + timeNow()); $("dlgRec").close(); afterDataChange();
     }).catch(function (e) { $("recErr").textContent = errText(e); setSync("err", "Failed " + timeNow()); });
   }
-  function afterDataChange() { updateCounts(); if (S.view === "dash") renderDash(); else if (KINDS[S.view]) renderList(S.view); }
+  function afterDataChange() {
+    updateCounts();
+    if (S.view === "dash") renderDash(); else if (S.view === "inputs") renderList(S.sub || "bills"); else if (KINDS[S.view]) renderList(S.view);
+    else if (S.view === "audit") { if (AU.editing) drawFindings(); else renderAuditList(); }
+    else if (S.view === "kpi" && S.lastKpi) drawKpi();
+  }
 
   /* --- CSV --- */
   function downloadCSV(kind) {
@@ -1108,7 +1261,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     var head = ["ID"].concat(K.fields.filter(function (f) { return f.t !== "info"; }).map(function (f) { return f.l; })).concat(["Station name", "Status (calc)", "Record status", "Created", "Created by", "Updated", "Updated by"]);
     var out = [head];
     rows.forEach(function (r) {
-      var info = kind === "faults" ? faultInfo(r, now) : kind === "complaints" ? complaintInfo(r, now) : kind === "incidents" ? incidentInfo(r, now) : { label: "" };
+      var info = kind === "faults" ? faultInfo(r, now) : kind === "complaints" ? complaintInfo(r, now) : kind === "incidents" ? incidentInfo(r, now) : kind === "caps" ? capInfo(r) : { label: "" };
       out.push(keys.map(function (k) { return r[k]; }).concat([stName(r.station), info.label, r.status, r.created, r.createdBy, r.updated, r.updatedBy]));
     });
     var csv = "﻿" + out.map(function (r) { return r.map(function (c) { c = String(c === undefined || c === null ? "" : c); return /[",\n]/.test(c) ? '"' + c.replace(/"/g, '""') + '"' : c; }).join(","); }).join("\r\n");
@@ -1262,9 +1415,9 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       var guess = S.data.stations.filter(function (st) { return norm(name).indexOf(norm(st.short)) >= 0; })[0];
       if (guess) s.value = guess.id; else s.value = "-";
     });
-    var upd = function () { var n = $("impPreview").querySelectorAll("[data-date]:checked").length; $("impSel").textContent = n + " of " + ds.length + " dates ticked" + (risky ? " · " + risky + " flagged" : ""); $("impGo").disabled = !n || S.role !== "manager"; };
+    var upd = function () { var n = $("impPreview").querySelectorAll("[data-date]:checked").length; $("impSel").textContent = n + " of " + ds.length + " dates ticked" + (risky ? " · " + risky + " flagged" : ""); $("impGo").disabled = !n || S.role !== "admin"; };
     $("impPreview").addEventListener("change", upd); upd();
-    if (S.role !== "manager") $("impSel").textContent += " · manager passcode needed";
+    if (S.role !== "admin") $("impSel").textContent += " · only an Admin can import";
   }
   function runImport() {
     var sel = {}; $("impPreview").querySelectorAll("[data-date]:checked").forEach(function (c) { sel[c.getAttribute("data-date")] = 1; });
@@ -1314,11 +1467,13 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     var d = S.data, c = S.cfg, el = $("v-admin");
     var thr = Object.keys(c.thr).map(function (k) { var t = c.thr[k]; return [esc(k), esc(t.dir), t.green < 1.5 && t.green > 0 && k.indexOf("hrs") < 0 && k.indexOf("per") < 0 ? pct(t.green, 0) : t.green, t.amber < 1.5 && t.amber > 0 && k.indexOf("hrs") < 0 && k.indexOf("per") < 0 ? pct(t.amber, 0) : t.amber, esc(t.note || "")]; });
     var lb = d.lastBackup;
-    el.innerHTML = '<div class="section-title"><h2>Stations &amp; settings</h2>' + (SHEET_URL ? '<a class="btn ghost" target="_blank" rel="noopener" href="' + esc(SHEET_URL) + '">Open the Google Sheet</a>' : "") + "</div>" +
+    el.innerHTML = '<div class="section-title"><h2>Users &amp; settings</h2>' + (SHEET_URL ? '<a class="btn ghost" target="_blank" rel="noopener" href="' + esc(SHEET_URL) + '">Open the Google Sheet</a>' : "") + "</div>" +
       '<p class="muted" style="margin-top:0">These lists are read from the Google Sheet. To change them, edit the <b>Stations</b>, <b>StationMap</b>, <b>Chargers</b> or <b>Settings</b> tab in the Sheet, then select Refresh here.</p>' +
-      '<div class="grid2"><div class="panel"><h3>Data safety</h3><p style="margin-top:0">Last backup: <b>' + (lb ? esc(fDT(lb.at)) + "</b> — " + esc(lb.name) : "none yet</b>") + "</p>" +
+      '<div class="panel accent"><div class="section-title"><h3 style="margin:0"><i class="ti ti-users"></i> Users</h3><button class="btn" type="button" id="btnAddUser"><i class="ti ti-user-plus"></i> Add user</button></div>' +
+      '<p class="small muted" style="margin-top:0"><b>Admin</b> — everything. <b>Ops01</b> — dashboard, data entry, Station KPI, audits, CAP list, bills, expenses and CSAT. <b>Ops02</b> — dashboard and data entry (faults, complaints, incidents, non-system sales). Voiding records, importing sales, backups and users are Admin only. Switching a user off signs them out at once.</p><div class="tbl-wrap" id="usersT"></div></div>' +
+      '<div class="grid2" style="margin-top:16px"><div class="panel"><h3>Data safety</h3><p style="margin-top:0">Last backup: <b>' + (lb ? esc(fDT(lb.at)) + "</b> — " + esc(lb.name) : "none yet</b>") + "</p>" +
       '<p class="small muted">Backups are full copies of the Sheet in the “Daily Ops DB – Backups” Drive folder. A backup also runs automatically before an import when the last one is over 24 h old, and weekly once the trigger is installed (see guide). Voided records stay in the Sheet; every create, edit, void and import is written to the Audit_Log tab.</p>' +
-      (S.role === "manager" ? '<button class="btn" type="button" id="btnBackup">Back up now</button>' : '<p class="small muted">Managers can run a backup from here.</p>') +
+      (S.role === "admin" ? '<button class="btn" type="button" id="btnBackup">Back up now</button>' : '<p class="small muted">An Admin can run a backup from here.</p>') +
       '<p class="small muted" style="margin-bottom:0">Server ' + esc(d.version) + " · server time " + esc(fDT(d.serverTime)) + " · signed in as " + esc(S.user) + " (" + esc(S.role) + ")</p></div>" +
       '<div class="panel"><h3>Import history</h3><div class="tbl-wrap" style="max-height:260px;overflow:auto" id="tImp"></div></div></div>' +
       '<div class="panel" style="margin-top:16px"><h3>Stations</h3><div class="tbl-wrap" id="tSt"></div></div>' +
@@ -1336,20 +1491,669 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     for (var i = 0; i < mx; i++) lr.push([esc(c.faultCats[i] || ""), esc(c.channels[i] || ""), esc(c.custTypes[i] || "")]);
     simpleTable("tLists", ["Fault category", "Channel", "Customer type"], lr, 9);
     simpleTable("tIT", ["Incident type"], c.incTypes.map(function (x) { return [esc(x)]; }), 9);
+    USERS = null; drawUsers();
+    $("btnAddUser").onclick = function () { openUser(null); };
     var bb = $("btnBackup");
     if (bb) bb.onclick = function () { bb.disabled = true; bb.textContent = "Backing up…"; api({ action: "backup" }).then(function (j) { S.data.lastBackup = j.backup; renderAdmin(); setSync("ok", "Backup done " + timeNow()); }).catch(function (e) { bb.disabled = false; bb.textContent = "Back up now"; notice(esc(errText(e)), "bad"); }); };
   }
+
+  /* =====================================================================
+     v2 — station KPI, audits (AUD-R01), CAP list, bills / expenses / CSAT, users
+     ===================================================================== */
+  function todayD() { return today(); }
+  function monthsBetween(from, to) { var out = [], m = from.slice(0, 7); while (m <= to.slice(0, 7)) { out.push(m); m = monthAdd(m + "-01", 1).slice(0, 7); } return out; }
+  function kNum(v) { return v === "" || v === null || v === undefined || (typeof v === "number" && isNaN(v)); }
+  function capClosed(c) { return c.capStatus === "Closed" || c.capStatus === "Verified"; }
+  function capInfo(c) {
+    var T = todayD(), closed = capClosed(c);
+    var over = !closed && c.target && c.target < T;
+    var days = over ? daysBetween(c.target, T) : 0;
+    var label, chip;
+    if (!active(c)) { label = "Void"; chip = "idle"; }
+    else if (c.capStatus === "Verified") { label = "Verified"; chip = "ok"; }
+    else if (closed) { label = c.closedOn && c.target && c.closedOn > c.target ? "Closed — late" : "Closed"; chip = c.closedOn && c.target && c.closedOn > c.target ? "warn" : "ok"; }
+    else if (over) { label = "Overdue " + days + " d"; chip = "bad"; }
+    else if (!c.target) { label = (c.capStatus || "Open") + " — no target"; chip = "warn"; }
+    else { label = c.capStatus || "Open"; chip = "warn"; }
+    return { open: !closed, overdue: !!over, days: days, label: label, chip: chip };
+  }
+  function riskChip(r) { r = String(r || "").toLowerCase(); return r === "high" ? "bad" : r === "medium" ? "warn" : r === "low" ? "ok" : "idle"; }
+
+  /* ---------- extra record kinds (generic list + editor) ---------- */
+  KINDS.bills = { label: "Electricity bill", plural: "Electricity bills", list: "bills", dateField: "month", group: "kpi",
+    intro: "One row per electricity bill (as in the payment log). Billing month = the month the bill belongs to. kWh billed feeds KPI C4 Energy loss; the amount replaces the system costing price in the operating margin for that month.",
+    fields: [
+      { k: "station", l: "Station", t: "station", req: 1 }, { k: "month", l: "Billing month", t: "month", req: 1 }, { k: "supplier", l: "Supplier", t: "text", hint: "e.g. EDC" },
+      { k: "invoice", l: "Invoice no.", t: "text" }, { k: "invoiceDate", l: "Invoice date", t: "date" }, { k: "kwh", l: "kWh billed", t: "num", req: 1 },
+      { k: "amount", l: "Amount (USD)", t: "num", req: 1 }, { k: "notes", l: "Notes", t: "long", w: 3 }
+    ] };
+  KINDS.expenses = { label: "Expense", plural: "Operating expenses", list: "expenses", dateField: "month", group: "kpi",
+    intro: "Monthly operating expenses per station other than electricity (salaries, rent, internet, repairs…). They reduce the operating margin on the Station KPI tab. One row per station, month and category is enough.",
+    fields: [
+      { k: "station", l: "Station", t: "station", req: 1 }, { k: "month", l: "Month", t: "month", req: 1 },
+      { k: "category", l: "Category", t: "select", opts: function () { return S.cfg.expCats; }, req: 1 },
+      { k: "amount", l: "Amount (USD)", t: "num", req: 1 }, { k: "vendor", l: "Vendor / payee", t: "text" }, { k: "ref", l: "Reference", t: "text", hint: "Invoice or voucher no." },
+      { k: "notes", l: "Notes", t: "long", w: 3 }
+    ] };
+  KINDS.csat = { label: "CSAT survey", plural: "CSAT surveys", list: "csat", dateField: "date", group: "kpi",
+    intro: "Customer satisfaction survey results. KPI S1 = satisfied ÷ responses for surveys dated in the period.",
+    fields: [
+      { k: "station", l: "Station", t: "station", req: 1 }, { k: "date", l: "Survey date", t: "date", req: 1 },
+      { k: "responses", l: "Responses", t: "int", req: 1 }, { k: "satisfied", l: "Satisfied (4–5 of 5)", t: "int", req: 1 },
+      { k: "notes", l: "Notes", t: "long", w: 3 }
+    ] };
+  KINDS.caps = { label: "Corrective action", plural: "Corrective action plan (CAP-F01) — master list", list: "caps", dateField: "auditDate", group: "kpi",
+    intro: "Every corrective action from every station audit (CAP-F01). New CAPs are added automatically when an audit is submitted; you can also add one by hand. Close an action when it's done, then verify it.",
+    fields: [
+      { k: "station", l: "Station", t: "station", req: 1 }, { k: "auditId", l: "Audit ID", t: "text", hint: "Filled in for audit findings" }, { k: "auditDate", l: "Audit date", t: "date" },
+      { k: "item", l: "Checklist item no.", t: "int" }, { k: "sop", l: "SOP ref", t: "text" }, { k: "category", l: "Category", t: "text" },
+      { k: "nonconf", l: "Non-conformance", t: "long", req: 1, w: 3 },
+      { k: "risk", l: "Risk level", t: "select", opts: function () { return ["High", "Medium", "Low"]; }, req: 1 }, { k: "responsible", l: "Responsible", t: "text" }, { k: "raised", l: "Date raised", t: "date" },
+      { k: "rootCause", l: "Root cause", t: "long", w: 3 }, { k: "corrective", l: "Corrective action", t: "long", w: 3 }, { k: "preventive", l: "Preventive action", t: "long", w: 3 },
+      { k: "target", l: "Target date", t: "date" }, { k: "capStatus", l: "CAP status", t: "select", opts: function () { return S.cfg.capStatus; }, req: 1 }, { k: "closedOn", l: "Closed on", t: "date", hint: "Required for Closed / Verified" },
+      { k: "verifyMethod", l: "Verification method", t: "text" }, { k: "verifiedBy", l: "Verified by", t: "text" }, { k: "verifiedOn", l: "Verified on", t: "date" },
+      { k: "evidence", l: "Evidence / comments", t: "long", w: 3 }
+    ] };
+
+  function showSub(sub) {
+    S.sub = sub;
+    document.querySelectorAll("#inSub [data-sub]").forEach(function (b) { b.setAttribute("aria-selected", b.getAttribute("data-sub") === sub ? "true" : "false"); });
+    ["bills", "expenses", "csat"].forEach(function (x) { $("v-" + x).hidden = x !== sub; });
+    buildListView(sub);
+  }
+
+  /* ---------- KPI engine (same rules as VET-ENERGY_Station_KPI) ---------- */
+  function kpiDefs() { return (S.data.kpiDefs || []).filter(function (d) { return d.scored && d.id !== "M1"; }); }
+  function kpiRag(d, v) {
+    if (kNum(v)) return "";
+    if (d.dir === "higher") return v >= d.green - 1e-12 ? "G" : v >= d.amber - 1e-12 ? "A" : "R";
+    return v <= d.green + 1e-12 ? "G" : v <= d.amber + 1e-12 ? "A" : "R";
+  }
+  function bandOf(score) { if (kNum(score)) return "N"; return score >= S.cfg.kpiBand.green ? "G" : score >= S.cfg.kpiBand.amber ? "A" : "R"; }
+  var BAND_TXT = { G: "Green", A: "Amber", R: "Red", N: "Not scored" };
+  function kpiRange(type, key) {
+    if (type === "month") return { from: key + "-01", to: monthEnd(key + "-01"), label: MON[+key.slice(5) - 1] + " " + key.slice(0, 4) };
+    var y = key.slice(0, 4), q = +key.slice(6), f = y + "-" + ("0" + ((q - 1) * 3 + 1)).slice(-2) + "-01";
+    return { from: f, to: monthEnd(monthAdd(f, 2)), label: "Q" + q + " " + y };
+  }
+  function kpiCompute(type, key) {
+    var P = kpiRange(type, key), now = Date.now(), khr = S.cfg.khrUsd;
+    var sr = S.data.salesRange, last = sr ? sr.last : "";
+    var effTo = last && last < P.to ? last : P.to;
+    var complete = !!last && last >= P.to;
+    var periodDays = daysBetween(P.from, P.to) + 1, months = monthsBetween(P.from, P.to), nMonths = months.length;
+    var minDays = +S.cfg.general["Min active days to score"] || 7;
+    var exempt = String(S.cfg.general["Energy-loss exempt types"] || "PNP").split(",").map(function (x) { return x.trim().toUpperCase(); }).filter(String);
+    var ids = S.data.stations.map(function (s) { return s.id; });
+    var R = effTo >= P.from ? calc(P.from, effTo, ids, now) : null;
+    var defs = kpiDefs(), out = { P: P, type: type, key: key, effTo: effTo, complete: complete, last: last, rows: [], defs: defs };
+    var monthlyCost = {}; (S.sales ? S.sales.monthly : []).forEach(function (m) { monthlyCost[m[0] + "|" + m[1]] = m[6]; });
+    ids.forEach(function (id) {
+      var s = S.cfg.stById[id], b = R ? R.st[id] : null;
+      var start = s.opened && s.opened > P.from ? s.opened : P.from;
+      var act = b && effTo >= start ? daysBetween(start, effTo) + 1 : 0;
+      var x = { id: id, name: s.short, type: s.type, active: act, sessions: b ? b.sessions : 0, bad: b ? b.failed + b.canceled : 0, kwh: b ? b.kwh : 0, nsKwh: b ? b.nsKwh : 0,
+        revKhr: b ? b.rev : 0, nsRevKhr: b ? b.nsRev : 0, costKhr: b ? b.cost : 0, downHrs: b ? b.downHrs : 0, faults: b ? b.faults : 0, comp: b ? b.comp : 0, slaY: b ? b.slaY : 0, slaN: b ? b.slaN : 0, v: {}, rag: {}, pts: {}, area: {} };
+      var ok = x.sessions > 0 && act >= minDays;
+      x.scoredOk = ok;
+      x.revUsd = (x.revKhr + x.nsRevKhr) / khr;
+      // bills, electricity, opex
+      var billKwh = 0, billMonths = 0, elec = 0, elecSrc = [], monthsOpen = 0;
+      months.forEach(function (m) {
+        if (m + "-01" > effTo) return;
+        if (!s.opened || s.opened <= monthEnd(m + "-01")) monthsOpen++;
+        var bl = (S.data.bills || []).filter(function (r) { return active(r) && r.station === id && r.month === m; });
+        if (bl.length) { billMonths++; billKwh += sum(bl, function (r) { return +r.kwh || 0; }); elec += sum(bl, function (r) { return +r.amount || 0; }); elecSrc.push(m + " bill"); }
+        else { elec += (monthlyCost[m + "|" + id] || 0) / khr; elecSrc.push(m + " system cost"); }
+      });
+      x.billKwh = billKwh; x.billMonths = billMonths; x.monthsOpen = monthsOpen; x.elecUsd = elec; x.elecSrc = elecSrc;
+      x.opex = {}; x.opexUsd = 0;
+      (S.data.expenses || []).forEach(function (e) { if (!active(e) || e.station !== id || months.indexOf(e.month) < 0) return; x.opex[e.category] = (x.opex[e.category] || 0) + (+e.amount || 0); x.opexUsd += +e.amount || 0; });
+      x.margin = x.revUsd > 0 ? (x.revUsd - x.elecUsd - x.opexUsd) / x.revUsd : "";
+      x.profitUsd = x.revUsd - x.elecUsd - x.opexUsd;
+      // audits, CAPs, incidents, CSAT
+      var aud = (S.data.audits || []).filter(function (a) { return active(a) && a.station === id && a.auditStatus !== "Draft" && a.date <= P.to && !kNum(a.score); }).sort(function (p, q) { return p.date < q.date ? 1 : -1; })[0];
+      x.audit = aud || null;
+      var caps = (S.data.caps || []).filter(function (c) { return active(c) && c.station === id && c.target && c.target >= P.from && c.target <= P.to; });
+      x.capDue = caps.length; x.capOnTime = caps.filter(function (c) { return capClosed(c) && c.closedOn && c.closedOn <= c.target; }).length;
+      x.safety = S.data.incidents.filter(function (i) { return active(i) && i.station === id && String(i.severity).toLowerCase() !== "near miss" && i.occurred.slice(0, 10) >= P.from && i.occurred.slice(0, 10) <= P.to; }).length;
+      var cs = (S.data.csat || []).filter(function (c) { return active(c) && c.station === id && c.date >= P.from && c.date <= P.to; });
+      x.csatResp = sum(cs, function (c) { return +c.responses || 0; }); x.csatSat = sum(cs, function (c) { return +c.satisfied || 0; });
+      var isExempt = exempt.some(function (t) { return String(s.type).toUpperCase().replace(/\s/g, "").indexOf(t.replace(/\s/g, "")) >= 0; });
+      x.exempt = isExempt;
+      var v = x.v;
+      v.A1 = ok && s.chargers * (s.hrs || 24) > 0 ? Math.max(0, 1 - x.downHrs / (s.chargers * (s.hrs || 24) * act)) : "";
+      v.A2 = ok ? 1 - x.bad / x.sessions : "";
+      v.A3 = x.faults > 0 ? x.downHrs / x.faults : "";
+      v.C1 = ok && s.kw * (s.hrs || 24) > 0 ? x.kwh / (s.kw * (s.hrs || 24) * act) : "";
+      v.C2 = ok && +s.target > 0 ? x.revUsd / (+s.target * nMonths * act / periodDays) : "";
+      v.C3 = ok && s.chargers > 0 ? x.sessions / (s.chargers * act) : "";
+      v.C4 = !isExempt && ok && complete && billKwh > 0 && billMonths >= monthsOpen ? 1 - x.kwh / billKwh : "";
+      v.Q1 = aud ? aud.score : "";
+      v.Q2 = x.capDue ? x.capOnTime / x.capDue : "";
+      v.Q3 = act > 0 && x.sessions > 0 ? x.safety : "";
+      v.S1 = x.csatResp > 0 ? x.csatSat / x.csatResp : "";
+      v.S2 = ok ? x.comp / x.sessions * 1000 : "";
+      v.S3 = x.slaY + x.slaN > 0 ? x.slaY / (x.slaY + x.slaN) : "";
+      var areaW = {}, areaP = {};
+      defs.forEach(function (d) {
+        var r = kpiRag(d, v[d.id]); x.rag[d.id] = r;
+        if (!r) return;
+        var p = S.cfg.kpiPoints[r]; x.pts[d.id] = p;
+        areaW[d.area] = (areaW[d.area] || 0) + d.weight; areaP[d.area] = (areaP[d.area] || 0) + p * d.weight;
+      });
+      var tw = 0, tp = 0;
+      Object.keys(S.cfg.kpiArea).forEach(function (a) {
+        if (!areaW[a]) { x.area[a] = ""; return; }
+        x.area[a] = areaP[a] / areaW[a]; tw += S.cfg.kpiArea[a]; tp += x.area[a] * S.cfg.kpiArea[a];
+      });
+      x.overall = tw ? tp / tw : "";
+      x.band = bandOf(x.overall);
+      out.rows.push(x);
+    });
+    var net = { revUsd: 0, elecUsd: 0, opexUsd: 0, sessions: 0, kwh: 0 };
+    out.rows.forEach(function (x) { net.revUsd += x.revUsd; net.elecUsd += x.elecUsd; net.opexUsd += x.opexUsd; net.sessions += x.sessions; net.kwh += x.kwh; });
+    net.margin = net.revUsd ? (net.revUsd - net.elecUsd - net.opexUsd) / net.revUsd : "";
+    out.net = net;
+    return out;
+  }
+  function kFmt(d, v) {
+    if (kNum(v)) return "—";
+    if (d.unit === "%") return pct(v, 1);
+    if (d.id === "Q3") return n0(v);
+    return n1(v);
+  }
+  function kpiPeriodOptions(type) {
+    var sr = S.data.salesRange, first = sr ? sr.first : todayD(), last = sr ? sr.last : todayD(), opts = [];
+    if (type === "month") { var m = monthsBetween(first, last > todayD() ? last : todayD()); m.reverse().forEach(function (k) { opts.push([k, kpiRange("month", k).label]); }); }
+    else {
+      var seen = {};
+      monthsBetween(first, last > todayD() ? last : todayD()).forEach(function (k) { var q = k.slice(0, 4) + "-Q" + (Math.floor((+k.slice(5) - 1) / 3) + 1); if (!seen[q]) { seen[q] = 1; opts.unshift([q, kpiRange("quarter", q).label]); } });
+    }
+    return opts;
+  }
+  var KS = { type: "month", key: "", sel: "" };
+  function renderKpi() {
+    var el = $("v-kpi");
+    var opts = kpiPeriodOptions(KS.type);
+    if (!KS.key || !opts.some(function (o) { return o[0] === KS.key; })) {
+      // default: last complete period if there is one, else the current
+      var sr = S.data.salesRange, pick = opts[0] && opts[0][0];
+      for (var i = 0; i < opts.length; i++) { if (sr && sr.last >= kpiRange(KS.type, opts[i][0]).to) { pick = opts[i][0]; break; } }
+      KS.key = pick || "";
+    }
+    el.innerHTML = '<div class="section-title"><h2><i class="ti ti-chart-bar"></i> Station KPI scorecard</h2><div class="inrow noprint">' +
+      '<button class="btn ghost" type="button" id="kpiXlsx"><i class="ti ti-file-spreadsheet"></i> Export (.xlsx)</button><button class="btn ghost" type="button" id="kpiPrint"><i class="ti ti-printer"></i> Print</button></div></div>' +
+      '<div class="panel tools noprint"><label class="f"><span>Period type</span><select id="kpiType"><option value="month">Month</option><option value="quarter">Quarter</option></select></label>' +
+      '<label class="f"><span>Period</span><select id="kpiKey">' + opts.map(function (o) { return '<option value="' + o[0] + '">' + esc(o[1]) + "</option>"; }).join("") + "</select></label>" +
+      '<p class="small muted grow" style="margin:0 0 6px">13 KPIs in 4 areas, with the targets, weights and RAG points of the VET-ENERGY Station KPI workbook. A KPI with no data is left out and the weights are re-shared. Operating margin is shown for information and is <b>not weighted</b>.</p></div>' +
+      '<div id="kpiNote"></div><div class="kpis" id="kpiTiles" style="margin-top:12px"></div>' +
+      '<div class="panel" style="margin-top:16px"><div class="section-title"><h3 style="margin:0">Scorecard by station</h3><span class="small muted">Select a station for the detail</span></div><div class="tbl-wrap" id="kpiTable"></div></div>' +
+      '<div class="panel accent" style="margin-top:16px" id="kpiDetail" hidden></div>' +
+      '<details class="panel" style="margin-top:16px"><summary>KPI definitions, targets and weights</summary><div class="tbl-wrap" id="kpiDefsT" style="margin-top:8px"></div></details>';
+    $("kpiType").value = KS.type; $("kpiKey").value = KS.key;
+    $("kpiType").onchange = function () { KS.type = this.value; KS.key = ""; renderKpi(); };
+    $("kpiKey").onchange = function () { KS.key = this.value; drawKpi(); };
+    $("kpiXlsx").onclick = exportKpi;
+    $("kpiPrint").onclick = function () { window.print(); };
+    var P = kpiRange(KS.type, KS.key);
+    ensureSales(P.from, P.to).then(drawKpi).catch(function (e) { handleError(e, "Loading sales"); drawKpi(); });
+  }
+  function drawKpi() {
+    if (!KS.key) { $("kpiTable").innerHTML = '<p class="muted">No sales data yet.</p>'; return; }
+    var K = kpiCompute(KS.type, KS.key); S.lastKpi = K;
+    $("kpiNote").innerHTML = !K.last ? '<div class="notice">No system sales are stored yet.</div>' : !K.complete ? '<div class="notice" style="margin-top:8px">' + esc(K.P.label) + " is not complete: system sales are stored up to <b>" + fDate(K.last) + "</b>. Scores use the days so far; C4 Energy loss waits for the full period.</div>" : "";
+    var scored = K.rows.filter(function (x) { return !kNum(x.overall); });
+    var cnt = { G: 0, A: 0, R: 0 }; scored.forEach(function (x) { cnt[x.band]++; });
+    var avg = scored.length ? sum(scored, function (x) { return x.overall; }) / scored.length : NaN;
+    var auds = K.rows.filter(function (x) { return x.audit; });
+    $("kpiTiles").innerHTML = [
+      kpi("Stations scored", n0(scored.length) + " / " + K.rows.length, cnt.G + " green · " + cnt.A + " amber · " + cnt.R + " red", null, "", "plain"),
+      kpi("Average overall score", n1(avg), "simple average of scored stations", null, "", bandOf(avg) === "N" ? "" : bandOf(avg).toLowerCase()),
+      kpi("Revenue (USD)", n0(K.net.revUsd), "system + non-system · KHR ÷ " + n0(S.cfg.khrUsd), null, "", "plain"),
+      kpi("Electricity (USD)", n0(K.net.elecUsd), "billed where a bill exists, else system costing price", null, "", "plain"),
+      kpi("Other operating expenses (USD)", n0(K.net.opexUsd), "from Operating expenses", null, "", "plain"),
+      kpi("Operating margin", pct(K.net.margin), "info only — not weighted", null, "", kNum(K.net.margin) ? "" : K.net.margin >= 0.2 ? "g" : K.net.margin >= 0 ? "a" : "r"),
+      kpi("Latest audit score (avg.)", auds.length ? pct(sum(auds, function (x) { return x.audit.score; }) / auds.length) : "—", auds.length + " stations with an audit", null, "", "plain")
+    ].join("");
+    var D = K.defs, areas = Object.keys(S.cfg.kpiArea);
+    var h = '<table><thead><tr><th rowspan="2">Station</th><th rowspan="2">Type</th><th rowspan="2" class="num">Active days</th>';
+    areas.forEach(function (a) { var n = D.filter(function (d) { return d.area === a; }).length; if (n) h += '<th colspan="' + n + '" style="text-align:center">' + esc(a) + "</th>"; });
+    h += '<th colspan="' + areas.length + '" style="text-align:center">Area scores</th><th rowspan="2">Overall</th><th rowspan="2" class="num">Op. margin</th></tr><tr>';
+    areas.forEach(function (a) { D.filter(function (d) { return d.area === a; }).forEach(function (d) { h += '<th title="' + esc(d.name + " — " + d.definition) + '">' + esc(d.id) + "</th>"; }); });
+    areas.forEach(function (a) { h += "<th>" + esc(a.slice(0, 5)) + "</th>"; });
+    h += "</tr></thead><tbody>";
+    K.rows.forEach(function (x) {
+      h += '<tr class="click" data-kst="' + esc(x.id) + '"><td>' + esc(x.id + " · " + x.name) + "</td><td>" + esc(x.type) + '</td><td class="num">' + n0(x.active) + "</td>";
+      areas.forEach(function (a) { D.filter(function (d) { return d.area === a; }).forEach(function (d) { h += '<td class="rag ' + (x.rag[d.id] || "") + '">' + kFmt(d, x.v[d.id]) + "</td>"; }); });
+      areas.forEach(function (a) { h += '<td class="num">' + (kNum(x.area[a]) ? "—" : n1(x.area[a])) + "</td>"; });
+      h += '<td><span class="band-chip ' + x.band + '">' + (kNum(x.overall) ? "—" : n1(x.overall)) + "</span></td>" + '<td class="num">' + pct(x.margin) + "</td></tr>";
+    });
+    h += "</tbody></table>";
+    $("kpiTable").innerHTML = h;
+    $("kpiTable").querySelectorAll("[data-kst]").forEach(function (tr) { tr.onclick = function () { KS.sel = tr.getAttribute("data-kst"); drawKpiDetail(); }; });
+    simpleTable("kpiDefsT", ["ID", "KPI", "Area", "Better", "Green if", "Amber if", "Weight in area", "How it's worked out"], (S.data.kpiDefs || []).map(function (d) {
+      var f = function (v) { return d.unit === "%" ? pct(v, 0) : v; };
+      return [esc(d.id), esc(d.name), esc(d.area), esc(d.dir), (d.dir === "higher" ? "≥ " : "≤ ") + f(d.green), (d.dir === "higher" ? "≥ " : "≤ ") + f(d.amber), d.scored ? d.weight : "not weighted", '<span class="small">' + esc(d.definition) + "</span>"];
+    }), 9);
+    if (KS.sel) drawKpiDetail();
+  }
+  function drawKpiDetail() {
+    var K = S.lastKpi, x = K && K.rows.filter(function (r) { return r.id === KS.sel; })[0], el = $("kpiDetail");
+    if (!x) { el.hidden = true; return; }
+    var rows = K.defs.map(function (d) {
+      var tgt = (d.dir === "higher" ? "≥ " : "≤ ") + kFmt(d, d.green);
+      return [esc(d.id), esc(d.name), esc(d.area), '<b>' + kFmt(d, x.v[d.id]) + "</b>", tgt, x.rag[d.id] ? '<span class="band-chip ' + x.rag[d.id] + '">' + BAND_TXT[x.rag[d.id]] + "</span>" : '<span class="muted small">no data</span>', x.pts[d.id] === undefined ? "—" : x.pts[d.id], d.weight];
+    });
+    var opex = Object.keys(x.opex).map(function (k) { return [esc(k), n0(x.opex[k])]; });
+    el.hidden = false;
+    el.innerHTML = '<div class="section-title"><h2>' + esc(x.id + " · " + x.name) + " — " + esc(K.P.label) + '</h2><span class="band-chip ' + x.band + '" style="font-size:14px">Overall ' + (kNum(x.overall) ? "—" : n1(x.overall)) + " · " + BAND_TXT[x.band] + "</span></div>" +
+      '<div class="grid2"><div><div class="tbl-wrap" id="kdT"></div></div><div>' +
+      '<h3>Inputs used</h3><div class="tbl-wrap" id="kdIn"></div>' +
+      '<h3 style="margin-top:12px">Operating margin (info only)</h3><div class="tbl-wrap" id="kdM"></div></div></div>';
+    simpleTable("kdT", ["ID", "KPI", "Area", "Value", "Green", "RAG", "Points", "Weight"], rows, 3);
+    simpleTable("kdIn", ["Input", "Value"], [
+      ["Active days (min. " + (+S.cfg.general["Min active days to score"] || 7) + " to score)", n0(x.active)], ["System sessions", n0(x.sessions)], ["Failed + canceled", n0(x.bad)], ["kWh delivered (system)", n0(x.kwh)],
+      ["Downtime hrs · faults started", n1(x.downHrs) + " · " + x.faults], ["kWh billed · bill months / months open", x.exempt ? "exempt (" + esc(x.type) + ")" : n0(x.billKwh) + " · " + x.billMonths + " / " + x.monthsOpen],
+      ["Latest audit", x.audit ? esc(x.audit.id) + " · " + fDate(x.audit.date) + " · " + pct(x.audit.score) : "none on file"], ["CAPs due in period · closed on time", x.capDue + " · " + x.capOnTime],
+      ["Safety incidents (excl. near misses)", n0(x.safety)], ["CSAT responses · satisfied", x.csatResp + " · " + x.csatSat], ["Complaints · in SLA · late/overdue", x.comp + " · " + x.slaY + " · " + x.slaN]
+    ], 1);
+    simpleTable("kdM", ["Line", "USD"], [["Revenue (system + non-system)", n0(x.revUsd)], ["Electricity (" + esc(x.elecSrc.join(", ") || "—") + ")", "− " + n0(x.elecUsd)]].concat(opex.map(function (o) { return [o[0], "− " + o[1]]; })).concat([
+      ["Operating profit", "<b>" + n0(x.profitUsd) + "</b>"], ["Operating margin", "<b>" + pct(x.margin) + "</b>"]]), 1);
+    el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+  function exportKpi() {
+    if (typeof XLSX === "undefined") { notice("The spreadsheet library hasn't loaded yet. Try again in a moment.", "bad"); return; }
+    var K = S.lastKpi; if (!K) return;
+    var D = K.defs, areas = Object.keys(S.cfg.kpiArea), nz = function (v) { return kNum(v) ? "" : v; };
+    var head = ["Station ID", "Station", "Type", "Active days"].concat(D.map(function (d) { return d.id + " " + d.name; })).concat(D.map(function (d) { return d.id + " RAG"; })).concat(areas.map(function (a) { return a + " score"; })).concat(["Overall score", "Band", "Revenue USD", "Electricity USD", "Other opex USD", "Operating margin"]);
+    var sc = [["VET-ENERGY Station KPI — " + K.P.label], ["Period", K.P.from + " to " + K.P.to + (K.complete ? "" : " (sales to " + K.last + ")")], ["Exported", nowStr() + " by " + S.user], [], head];
+    K.rows.forEach(function (x) { sc.push([x.id, x.name, x.type, x.active].concat(D.map(function (d) { return nz(x.v[d.id]); })).concat(D.map(function (d) { return x.rag[d.id] || ""; })).concat(areas.map(function (a) { return nz(x.area[a]); })).concat([nz(x.overall), BAND_TXT[x.band], x.revUsd, x.elecUsd, x.opexUsd, nz(x.margin)])); });
+    sc.push(["Network", "All stations", "", ""].concat(D.map(function () { return ""; })).concat(D.map(function () { return ""; })).concat(areas.map(function () { return ""; })).concat(["", "", K.net.revUsd, K.net.elecUsd, K.net.opexUsd, nz(K.net.margin)]));
+    var inp = [["Station ID", "Station", "Active days", "Sessions", "Failed + canceled", "kWh delivered", "Revenue KHR (system)", "Revenue KHR (non-system)", "Downtime hrs", "Faults", "kWh billed", "Bill months", "Months open", "Latest audit", "Audit score", "CAPs due", "CAPs on time", "Safety incidents", "CSAT responses", "CSAT satisfied", "Complaints", "In SLA", "Late/overdue"]];
+    K.rows.forEach(function (x) { inp.push([x.id, x.name, x.active, x.sessions, x.bad, x.kwh, x.revKhr, x.nsRevKhr, x.downHrs, x.faults, x.billKwh, x.billMonths, x.monthsOpen, x.audit ? x.audit.id : "", x.audit ? x.audit.score : "", x.capDue, x.capOnTime, x.safety, x.csatResp, x.csatSat, x.comp, x.slaY, x.slaN]); });
+    var cats = S.cfg.expCats.slice(); K.rows.forEach(function (x) { Object.keys(x.opex).forEach(function (c) { if (cats.indexOf(c) < 0) cats.push(c); }); });
+    var ox = [["Station ID", "Station"].concat(cats).concat(["Total opex USD"])];
+    K.rows.forEach(function (x) { ox.push([x.id, x.name].concat(cats.map(function (c) { return x.opex[c] || 0; })).concat([x.opexUsd])); });
+    var df = [["ID", "KPI", "Area", "Better", "Green if", "Amber if", "Weight in area", "Unit", "Scored", "Definition"]];
+    (S.data.kpiDefs || []).forEach(function (d) { df.push([d.id, d.name, d.area, d.dir, d.green, d.amber, d.weight, d.unit, d.scored ? "Y" : "N", d.definition]); });
+    df.push([]); df.push(["Area weights"].concat(areas.map(function (a) { return a + " " + S.cfg.kpiArea[a]; }))); df.push(["Bands", "Green ≥ " + S.cfg.kpiBand.green, "Amber ≥ " + S.cfg.kpiBand.amber]); df.push(["RAG points", "G " + S.cfg.kpiPoints.G, "A " + S.cfg.kpiPoints.A, "R " + S.cfg.kpiPoints.R]);
+    var wb = XLSX.utils.book_new();
+    var ws1 = XLSX.utils.aoa_to_sheet(sc);
+    var pctCols = D.map(function (d, i) { return d.unit === "%" ? 4 + i : -1; }).filter(function (i) { return i >= 0; }).concat([head.length - 1]);
+    for (var r = 5; r < sc.length; r++) pctCols.forEach(function (c) { var a = XLSX.utils.encode_cell({ r: r, c: c }); if (ws1[a] && typeof ws1[a].v === "number") ws1[a].z = "0.0%"; });
+    ws1["!cols"] = head.map(function (x, i) { return { wch: i === 1 ? 26 : 12 }; });
+    XLSX.utils.book_append_sheet(wb, ws1, "Scorecard");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(inp), "Inputs");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(ox), "Operating expenses");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(df), "Definitions");
+    XLSX.writeFile(wb, "Station_KPI_" + K.key + ".xlsx");
+  }
+
+  /* ---------- audits (AUD-R01) ---------- */
+  var AU = { editing: null, filt: { station: "*", status: "all" } };
+  var AUD_CATS = [["A", "Operational Compliance", 0.30], ["B", "Safety & Technical Compliance", 0.20], ["C", "Customer & Financial Compliance", 0.20], ["D", "Documentation, Legal & Compliance", 0.15], ["E", "Customer Feedback", 0.15]];
+  var AUD_BANDS = [[0.9, "Fully Compliant (≥ 90%)", "G"], [0.8, "Compliant (80–89%)", "G"], [0.7, "Partial Compliance — CAP Required (70–79%)", "A"], [0, "Non-Compliant — Escalate Immediately (<70%)", "R"]];
+  function audBand(sc) { if (kNum(sc)) return null; for (var i = 0; i < AUD_BANDS.length; i++) if (sc >= AUD_BANDS[i][0] - 1e-9) return AUD_BANDS[i]; return AUD_BANDS[3]; }
+  function enOf(t) { var p = String(t || "").split("\n").map(function (x) { return x.trim(); }).filter(String); return p.length ? p[p.length - 1] : ""; }
+  function audScore(answers) {
+    var c = {}; AUD_CATS.forEach(function (k) { c[k[0]] = { n: 0, ok: 0, w: k[2] }; });
+    var scored = 0, nc = 0, blank = 0;
+    (S.data.checklist || []).forEach(function (it) {
+      var a = answers[it.no] || {}, x = c[it.cat]; if (!x) return;
+      if (a.e === "C") { x.n++; x.ok++; scored++; } else if (a.e === "NC") { x.n++; scored++; nc++; } else if (a.e !== "NA") blank++;
+    });
+    var tot = 0, any = false, pc = {};
+    Object.keys(c).forEach(function (k) { pc[k] = c[k].n ? c[k].ok / c[k].n : ""; if (c[k].n) { tot += c[k].w * pc[k]; any = true; } });
+    return { score: any ? tot : "", pct: pc, n: c, scored: scored, nc: nc, blank: blank };
+  }
+  function audEditable(a) {
+    if (!can("kpi") || !a) return false;
+    if (!a.id) return true;
+    if (!active(a) || a.auditStatus === "Verified") return false;
+    if (a.auditStatus === "Submitted") return S.role === "admin";
+    return true;
+  }
+  function audStatusChip(a) {
+    if (!active(a)) return '<span class="chip idle">Void</span>';
+    return '<span class="chip ' + (a.auditStatus === "Verified" ? "ok" : a.auditStatus === "Submitted" ? "warn" : "idle") + '">' + esc(a.auditStatus) + "</span>";
+  }
+  function renderAudits() { if (AU.editing) renderAuditEditor(); else renderAuditList(); }
+  function renderAuditList() {
+    var el = $("v-audit"), f = AU.filt;
+    el.innerHTML = '<div class="section-title"><h2><i class="ti ti-clipboard-check"></i> Station audits (AUD-R01)</h2><div class="inrow noprint"><button class="btn ghost" type="button" id="audListX"><i class="ti ti-file-spreadsheet"></i> Export list (.xlsx)</button>' +
+      '<button class="btn" type="button" id="audNew"><i class="ti ti-plus"></i> New audit</button></div></div>' +
+      '<p class="muted" style="margin-top:0">Fill in the 41-item checklist on the page. The score uses the AUD-R01 weights (A 30% · B 20% · C 20% · D 15% · E 15%; N/A items are left out). Each non-compliant item needs a finding; submitting the audit adds the findings to the CAP master list with new CAP-F01 numbers. An Admin verifies and locks the audit.</p>' +
+      '<div class="panel tools noprint"><label class="f"><span>Station</span><select id="audFs">' + stationOptions(true) + '</select></label><label class="f"><span>Status</span><select id="audFt"><option value="all">All active</option><option value="Draft">Draft</option><option value="Submitted">Submitted</option><option value="Verified">Verified</option><option value="void">Voided</option></select></label></div>' +
+      '<div class="kpis" id="audTiles" style="margin-top:12px"></div><div class="tbl-wrap" id="audT" style="margin-top:12px"></div>';
+    $("audFs").value = f.station; $("audFt").value = f.status;
+    $("audFs").onchange = function () { f.station = this.value; renderAuditList(); };
+    $("audFt").onchange = function () { f.status = this.value; renderAuditList(); };
+    $("audNew").onclick = function () { openAudit(null); };
+    $("audListX").onclick = exportAuditList;
+    var list = (S.data.audits || []).filter(function (a) {
+      if (f.station !== "*" && a.station !== f.station) return false;
+      if (f.status === "void") return !active(a);
+      if (!active(a)) return false;
+      return f.status === "all" || a.auditStatus === f.status;
+    }).sort(function (p, q) { return p.date < q.date ? 1 : p.date > q.date ? -1 : 0; });
+    var latest = {}; (S.data.audits || []).forEach(function (a) { if (active(a) && a.auditStatus !== "Draft" && !kNum(a.score) && (!latest[a.station] || latest[a.station].date < a.date)) latest[a.station] = a; });
+    var L = Object.keys(latest).map(function (k) { return latest[k]; });
+    var capsOpen = (S.data.caps || []).filter(function (c) { return active(c) && !capClosed(c); });
+    $("audTiles").innerHTML = [
+      kpi("Stations audited", n0(L.length) + " / " + S.data.stations.filter(function (s) { return s.active; }).length, "latest submitted audit per station", null, "", "plain"),
+      kpi("Average latest score", L.length ? pct(sum(L, function (a) { return a.score; }) / L.length) : "—", "network", null, "", "plain"),
+      kpi("Below 80%", n0(L.filter(function (a) { return a.score < 0.8; }).length), "stations — CAP required", null, "", L.some(function (a) { return a.score < 0.7; }) ? "r" : L.some(function (a) { return a.score < 0.8; }) ? "a" : "g"),
+      kpi("Open CAPs", n0(capsOpen.length), n0(capsOpen.filter(function (c) { return capInfo(c).overdue; }).length) + " overdue", null, "", capsOpen.some(function (c) { return capInfo(c).overdue; }) ? "r" : capsOpen.length ? "a" : "g"),
+      kpi("Drafts", n0((S.data.audits || []).filter(function (a) { return active(a) && a.auditStatus === "Draft"; }).length), "not yet submitted", null, "", "plain")
+    ].join("");
+    $("audT").innerHTML = "<table><thead><tr><th>ID</th><th>Station</th><th>Audit date</th><th>Auditor</th><th class=\"num\">Score</th><th>Rating</th><th class=\"num\">Items</th><th class=\"num\">Non-compl.</th><th>CAPs (open / all)</th><th>Status</th></tr></thead><tbody>" +
+      (list.length ? list.map(function (a) {
+        var caps = (S.data.caps || []).filter(function (c) { return active(c) && c.auditId === a.id; }), op = caps.filter(function (c) { return !capClosed(c); }).length;
+        var b = audBand(a.score);
+        return '<tr class="click' + (active(a) ? "" : " void") + '" data-aud="' + esc(a.id) + '"><td>' + esc(a.id) + "</td><td>" + esc(stName(a.station)) + "</td><td>" + fDate(a.date) + "</td><td>" + esc(a.auditor) + '</td><td class="num"><b>' + pct(a.score) + "</b></td><td>" + (b ? '<span class="chip ' + (b[2] === "G" ? "ok" : b[2] === "A" ? "warn" : "bad") + '">' + esc(b[1]) + "</span>" : "—") +
+          '</td><td class="num">' + n0(a.scored) + '</td><td class="num">' + n0(a.nc) + "</td><td>" + op + " / " + caps.length + "</td><td>" + audStatusChip(a) + "</td></tr>";
+      }).join("") : '<tr><td colspan="10" class="muted">No audits match.</td></tr>') + "</tbody></table>";
+    $("audT").querySelectorAll("[data-aud]").forEach(function (tr) { tr.onclick = function () { openAudit(tr.getAttribute("data-aud")); }; });
+  }
+  function openAudit(id) {
+    var src = id ? (S.data.audits || []).filter(function (a) { return a.id === id; })[0] : null;
+    if (id && !src) { notice("Audit " + esc(id) + " was not found. Select Refresh.", "bad"); return; }
+    var a = src ? JSON.parse(JSON.stringify(src)) : { id: "", station: "", date: todayD(), auditor: S.user, attendant: "", chargers: "", functional: "", auditStatus: "Draft", answers: {}, findings: [], assessment: "", status: "Active" };
+    AU.editing = a; AU.dirty = false; AU.err = "";
+    renderAuditEditor();
+    window.scrollTo(0, 0);
+  }
+  function closeAudit() {
+    if (AU.dirty && !confirm("Leave without saving your changes to this audit?")) return;
+    AU.editing = null; AU.dirty = false; renderAuditList();
+  }
+  function syncFindings(a) {
+    var ck = {}; (S.data.checklist || []).forEach(function (it) { ck[it.no] = it; });
+    var nc = {}; Object.keys(a.answers).forEach(function (k) { if (a.answers[k].e === "NC") nc[+k] = 1; });
+    a.findings = a.findings.filter(function (f) { return f.capId || !f.item || nc[f.item]; });
+    Object.keys(nc).map(Number).sort(function (p, q) { return p - q; }).forEach(function (n) {
+      if (a.findings.some(function (f) { return f.item === n; })) return;
+      var it = ck[n] || {}, rem = (a.answers[n] || {}).r;
+      a.findings.push({ item: n, nonconf: enOf(it.text) + (rem ? " — " + rem : ""), risk: "", rootCause: "", corrective: "", preventive: "", responsible: "", target: "", capId: "" });
+    });
+    a.findings.sort(function (p, q) { return (p.item || 99) - (q.item || 99); });
+  }
+  function renderAuditEditor() {
+    var a = AU.editing, el = $("v-audit"), ed = audEditable(a), ck = S.data.checklist || [];
+    var dis = ed ? "" : " disabled";
+    var secs = []; ck.forEach(function (it) { if (!secs.length || secs[secs.length - 1].name !== it.section) secs.push({ name: it.section, items: [] }); secs[secs.length - 1].items.push(it); });
+    var h = '<div class="section-title"><h2><i class="ti ti-clipboard-check"></i> ' + (a.id ? "Audit " + esc(a.id) + " — " + esc(stName(a.station)) : "New station audit") + " " + audStatusChip(a) + "</h2>" +
+      '<div class="inrow noprint"><button class="btn ghost" type="button" id="auBack"><i class="ti ti-arrow-left"></i> Back to list</button>' +
+      (a.id ? '<button class="btn ghost" type="button" id="auPrint"><i class="ti ti-printer"></i> Print report</button><button class="btn ghost" type="button" id="auX"><i class="ti ti-file-spreadsheet"></i> Export (.xlsx)</button>' : "") + "</div></div>";
+    if (!ed && a.id) h += '<div class="notice info">' + (a.auditStatus === "Verified" ? "This audit is verified and locked." + (S.role === "admin" ? " Reopen it to make changes." : "") : !active(a) ? "This audit is voided." : "This audit has been submitted. Only an Admin can change it now.") + "</div>";
+    h += '<div class="aud-layout"><div>';
+    h += '<div class="panel"><h3>Audit details</h3><div class="form" id="auHead">' +
+      '<label class="f req"><span>Station</span><select data-h="station"' + dis + ">" + stationOptions(false) + "</select></label>" +
+      '<label class="f req"><span>Audit date</span><input type="date" data-h="date" value="' + esc(a.date) + '"' + dis + "></label>" +
+      '<label class="f req"><span>Auditor</span><input data-h="auditor" maxlength="80" value="' + esc(a.auditor) + '"' + dis + "></label>" +
+      '<label class="f"><span>Attendant on duty</span><input data-h="attendant" maxlength="80" value="' + esc(a.attendant) + '"' + dis + "></label>" +
+      '<label class="f"><span>Chargers on site</span><input type="number" min="0" step="1" data-h="chargers" value="' + esc(a.chargers) + '"' + dis + "></label>" +
+      '<label class="f"><span>Functional chargers</span><input type="number" min="0" step="1" data-h="functional" value="' + esc(a.functional) + '"' + dis + "></label></div></div>";
+    if (!ck.length) h += '<div class="notice bad" style="margin-top:12px">The Audit_Checklist tab in the Sheet is empty.</div>';
+    h += '<div class="panel" style="margin-top:12px"><div class="section-title"><h3 style="margin:0">Checklist</h3>' + (ed ? '<div class="inrow noprint"><button class="btn ghost small" type="button" id="auAllC">Mark unanswered as Compliant</button></div>' : "") + "</div>";
+    secs.forEach(function (sec) {
+      h += '<div class="aud-sec"><h3>' + esc(sec.name) + "</h3>";
+      sec.items.forEach(function (it) {
+        var an = a.answers[it.no] || {};
+        h += '<div class="aud-item' + (an.e === "NC" ? " nc" : an.e === "NA" ? " na" : "") + '" data-item="' + it.no + '"><div class="no">' + it.no + '<div class="small muted">' + esc(it.cat) + '</div></div><div><div class="txt">' + esc(it.text) + '</div><details><summary>Criteria · ' + esc(it.sop) + " · " + esc(it.type) + '</summary><div class="txt">' + esc(it.criteria) + "</div></details></div>" +
+          '<div class="ans"><div class="seg">' + [["C", "Compliant"], ["NC", "Non-compl."], ["NA", "N/A"]].map(function (o) { return '<button type="button" data-e="' + o[0] + '" class="' + (an.e === o[0] ? "on" : "") + '"' + dis + ">" + o[1] + "</button>"; }).join("") + "</div>" +
+          '<input data-rem="' + it.no + '" placeholder="Remark / evidence" maxlength="500" value="' + esc(an.r || "") + '" style="margin-top:6px"' + dis + "></div></div>";
+      });
+      h += "</div>";
+    });
+    h += "</div>";
+    h += '<div class="panel" style="margin-top:12px"><h3>Findings &amp; corrective actions</h3><p class="small muted" style="margin-top:0">One finding per non-compliant item is added for you. Give each a risk level; the target date fills in from the risk (High ' + S.cfg.capRisk.High + " d · Medium " + S.cfg.capRisk.Medium + " d · Low " + S.cfg.capRisk.Low + ' d) and can be changed. After submitting, follow the actions up in the CAP list.</p><div id="auFind"></div>' +
+      (ed ? '<button class="btn ghost small" type="button" id="auAddF" style="margin-top:10px"><i class="ti ti-plus"></i> Add another finding</button>' : "") + "</div>";
+    h += '<div class="panel" style="margin-top:12px"><label class="f"><span>Auditor\'s overall assessment &amp; comments</span><textarea data-h="assessment" rows="4" maxlength="3000"' + dis + ">" + esc(a.assessment) + "</textarea></label></div>";
+    h += '</div><div class="aud-side"><div class="panel accent" id="auScore"></div>';
+    h += '<div class="panel noprint"><p class="err-box" id="auErr" style="margin-top:0">' + esc(AU.err || "") + "</p>";
+    if (ed) h += '<div class="inrow" style="flex-wrap:wrap"><button class="btn ghost" type="button" id="auSave"><i class="ti ti-device-floppy"></i> ' + (a.auditStatus === "Submitted" ? "Save changes" : "Save draft") + "</button>" + (a.auditStatus !== "Submitted" ? '<button class="btn" type="button" id="auSubmit"><i class="ti ti-send"></i> Submit</button>' : "") + "</div>";
+    if (a.id && S.role === "admin") h += '<div class="inrow" style="flex-wrap:wrap;margin-top:8px">' + (active(a) && a.auditStatus === "Submitted" ? '<button class="btn" type="button" data-aop="verify"><i class="ti ti-shield-check"></i> Verify &amp; lock</button>' : "") +
+      (active(a) && a.auditStatus === "Verified" ? '<button class="btn ghost" type="button" data-aop="reopen">Reopen</button>' : "") +
+      (active(a) ? '<button class="btn danger" type="button" data-aop="void">Void…</button>' : '<button class="btn ghost" type="button" data-aop="restore">Restore</button>') + "</div>";
+    if (a.id) h += '<p class="small muted" style="margin-bottom:0">Created ' + fDT(a.created) + " by " + esc(a.createdBy) + " · changed " + fDT(String(a.updated).slice(0, 16)) + " by " + esc(a.updatedBy) + (a.verifiedBy ? " · verified by " + esc(a.verifiedBy) + " on " + fDate(a.verifiedOn) : "") + (a.source && a.source !== "Web form" ? "<br>" + esc(a.source) : "") + "</p>";
+    h += "</div></div></div>";
+    el.innerHTML = h;
+    var hs = el.querySelector('[data-h="station"]'); hs.value = a.station || "";
+    drawFindings(); drawAudScore();
+    $("auBack").onclick = closeAudit;
+    if ($("auPrint")) $("auPrint").onclick = function () { printAudit(AU.editing); };
+    if ($("auX")) $("auX").onclick = function () { exportAudit(AU.editing); };
+    if (!ed) return;
+    el.querySelectorAll("[data-h]").forEach(function (inp) { inp.addEventListener("input", function () { a[inp.getAttribute("data-h")] = inp.value; AU.dirty = true; if (inp.getAttribute("data-h") === "date") drawFindings(); }); inp.addEventListener("change", function () { a[inp.getAttribute("data-h")] = inp.value; AU.dirty = true; }); });
+    el.querySelectorAll(".aud-item").forEach(function (row) {
+      var no = +row.getAttribute("data-item");
+      row.querySelectorAll("[data-e]").forEach(function (b) { b.onclick = function () {
+        var e = b.getAttribute("data-e"), an = a.answers[no] || (a.answers[no] = { e: "", r: "" });
+        an.e = an.e === e ? "" : e; AU.dirty = true;
+        row.querySelectorAll("[data-e]").forEach(function (x) { x.className = x.getAttribute("data-e") === an.e ? "on" : ""; });
+        row.className = "aud-item" + (an.e === "NC" ? " nc" : an.e === "NA" ? " na" : "");
+        syncFindings(a); drawFindings(); drawAudScore();
+      }; });
+      row.querySelector("[data-rem]").addEventListener("input", function () { var an = a.answers[no] || (a.answers[no] = { e: "", r: "" }); an.r = this.value; AU.dirty = true; });
+    });
+    if ($("auAllC")) $("auAllC").onclick = function () { ck.forEach(function (it) { var an = a.answers[it.no] || (a.answers[it.no] = { e: "", r: "" }); if (!an.e) an.e = "C"; }); AU.dirty = true; renderAuditEditor(); };
+    $("auAddF").onclick = function () { a.findings.push({ item: "", nonconf: "", risk: "", rootCause: "", corrective: "", preventive: "", responsible: "", target: "", capId: "" }); AU.dirty = true; drawFindings(); };
+    $("auSave").onclick = function () { saveAudit(false); };
+    if ($("auSubmit")) $("auSubmit").onclick = function () { saveAudit(true); };
+    el.querySelectorAll("[data-aop]").forEach(function (b) { b.onclick = function () { auditOp(b.getAttribute("data-aop")); }; });
+  }
+  function drawAudScore() {
+    var a = AU.editing, r = audScore(a.answers), b = audBand(r.score);
+    var ncNoF = Object.keys(a.answers).filter(function (k) { return a.answers[k].e === "NC"; }).length;
+    var h = '<div class="small muted">Overall score</div><div class="big-score" style="color:' + (b ? (b[2] === "G" ? "var(--ok)" : b[2] === "A" ? "var(--warn)" : "var(--crit)") : "var(--muted)") + '">' + pct(r.score) + "</div>" +
+      '<div style="margin:4px 0 10px">' + (b ? '<span class="chip ' + (b[2] === "G" ? "ok" : b[2] === "A" ? "warn" : "bad") + '">' + esc(b[1]) + "</span>" : '<span class="chip idle">No items answered</span>') + "</div>";
+    AUD_CATS.forEach(function (c) {
+      var p = r.pct[c[0]], col = kNum(p) ? "var(--idle)" : p >= 0.9 ? "var(--ok)" : p >= 0.7 ? "var(--warn)" : "var(--crit)";
+      h += '<div class="small" style="display:flex;justify-content:space-between;margin-top:6px"><span>' + c[0] + ". " + esc(c[1]) + " · " + Math.round(c[2] * 100) + '%</span><b>' + pct(p, 0) + '</b></div><div class="bar"><i style="width:' + (kNum(p) ? 0 : p * 100) + "%;background:" + col + '"></i></div>';
+    });
+    h += '<p class="small muted" style="margin-bottom:0">' + r.scored + " scored · " + r.nc + " non-compliant · " + r.blank + " not answered</p>";
+    $("auScore").innerHTML = h;
+  }
+  function drawFindings() {
+    var a = AU.editing, ed = audEditable(a), dis = ed ? "" : " disabled", box = $("auFind");
+    if (!a.findings.length) { box.innerHTML = '<p class="muted small">No findings — no item is marked non-compliant.</p>'; return; }
+    box.innerHTML = a.findings.map(function (f, i) {
+      var cap = f.capId ? (S.data.caps || []).filter(function (c) { return c.id === f.capId; })[0] : null;
+      var lock = f.capId ? " disabled" : dis;
+      return '<div class="finding" data-fi="' + i + '"><div class="section-title" style="margin:0 0 6px"><b>Finding ' + (i + 1) + (f.item ? " · item " + f.item : " · extra") + "</b>" +
+        (f.capId ? '<span><a href="#" data-open="caps" data-id="' + esc(f.capId) + '">' + esc(f.capId) + "</a> " + (cap ? '<span class="chip ' + capInfo(cap).chip + '">' + esc(capInfo(cap).label) + "</span>" : "") + "</span>" : (ed && !f.item ? '<button class="btn ghost small" type="button" data-fdel="' + i + '">Remove</button>' : '<span class="small muted">CAP number given on submit</span>')) + "</div>" +
+        (f.capId ? '<p class="small muted" style="margin:0 0 6px">This finding is in the CAP list — update its progress there.</p>' : "") +
+        '<div class="form">' + (!f.item ? '<label class="f"><span>Checklist item no.</span><input type="number" min="1" max="41" data-ff="item" value="' + esc(f.item) + '"' + lock + "></label>" : "") +
+        '<label class="f req w3"><span>Non-conformance</span><textarea data-ff="nonconf" rows="2"' + lock + ">" + esc(f.nonconf) + "</textarea></label>" +
+        '<label class="f req"><span>Risk level</span><select data-ff="risk"' + lock + '><option value="">Choose…</option><option>High</option><option>Medium</option><option>Low</option></select></label>' +
+        '<label class="f"><span>Responsible</span><input data-ff="responsible" maxlength="120" value="' + esc(f.responsible) + '"' + lock + "></label>" +
+        '<label class="f"><span>Target date</span><input type="date" data-ff="target" value="' + esc(f.target) + '"' + lock + "></label>" +
+        '<label class="f w3"><span>Root cause</span><textarea data-ff="rootCause" rows="1"' + lock + ">" + esc(f.rootCause) + "</textarea></label>" +
+        '<label class="f w3"><span>Corrective action</span><textarea data-ff="corrective" rows="1"' + lock + ">" + esc(f.corrective) + "</textarea></label>" +
+        '<label class="f w3"><span>Preventive action</span><textarea data-ff="preventive" rows="1"' + lock + ">" + esc(f.preventive) + "</textarea></label></div></div>";
+    }).join("");
+    box.querySelectorAll("[data-fi]").forEach(function (card) {
+      var f = a.findings[+card.getAttribute("data-fi")];
+      var rs = card.querySelector('[data-ff="risk"]'); rs.value = f.risk || "";
+      card.querySelectorAll("[data-ff]").forEach(function (inp) {
+        var k = inp.getAttribute("data-ff");
+        var on = function () {
+          f[k] = k === "item" ? (+inp.value || "") : inp.value; AU.dirty = true;
+          if (k === "risk" && f.risk && !f.target && a.date) { f.target = addDays(a.date, S.cfg.capRisk[f.risk] || 30); card.querySelector('[data-ff="target"]').value = f.target; }
+        };
+        inp.addEventListener("input", on); inp.addEventListener("change", on);
+      });
+      var del = card.querySelector("[data-fdel]"); if (del) del.onclick = function () { a.findings.splice(+del.getAttribute("data-fdel"), 1); AU.dirty = true; drawFindings(); };
+    });
+  }
+  function saveAudit(submit) {
+    var a = AU.editing, r = audScore(a.answers), err = function (m) { AU.err = m; $("auErr").textContent = m; };
+    if (!a.station) return err("Choose the station.");
+    if (!a.date) return err("Enter the audit date.");
+    if (!String(a.auditor || "").trim()) return err("Enter the auditor.");
+    if (submit) {
+      if (r.blank) return err(r.blank + " checklist item(s) have no answer. Mark each one before submitting.");
+      for (var i = 0; i < a.findings.length; i++) { var f = a.findings[i]; if (f.capId) continue; if (!String(f.nonconf).trim()) return err("Finding " + (i + 1) + " needs a description."); if (!f.risk) return err("Finding " + (i + 1) + " needs a risk level."); }
+      var nNew = a.findings.filter(function (f) { return !f.capId; }).length;
+      if (!confirm("Submit this audit (score " + pct(r.score) + ")?" + (nNew ? "\n\n" + nNew + " finding(s) will be added to the CAP list with new CAP-F01 numbers." : "") + "\n\nAfter submitting, only an Admin can change it.")) return;
+    }
+    err(""); $("auErr").textContent = "Saving…"; setSync("busy", "Saving audit…");
+    var btns = $("v-audit").querySelectorAll("#auSave,#auSubmit"); btns.forEach(function (b) { b.disabled = true; });
+    var payload = { id: a.id, updated: a.updated, station: a.station, date: a.date, auditor: a.auditor, attendant: a.attendant, chargers: a.chargers, functional: a.functional, answers: a.answers, findings: a.findings, assessment: a.assessment, submit: !!submit };
+    api({ action: "saveAudit", audit: payload }).then(function (j) {
+      var list = S.data.audits, found = false;
+      for (var i = 0; i < list.length; i++) if (list[i].id === j.audit.id) { list[i] = j.audit; found = true; }
+      if (!found) list.push(j.audit);
+      if (j.caps) S.data.caps = j.caps;
+      AU.editing = JSON.parse(JSON.stringify(j.audit)); AU.dirty = false; AU.err = "";
+      setSync("ok", "Saved " + timeNow()); updateCounts();
+      renderAuditEditor();
+      notice(submit ? "Audit " + esc(j.audit.id) + " submitted." + (j.newCaps && j.newCaps.length ? " Added to the CAP list: " + esc(j.newCaps.join(", ")) + "." : "") : "Audit " + esc(j.audit.id) + " saved.", "info");
+      setTimeout(function () { notice(""); }, 6000);
+    }).catch(function (e) {
+      btns.forEach(function (b) { b.disabled = false; });
+      if (e && e.code === "signed_out") { handleError(e); return; }
+      err(errText(e) + (e && e.code === "conflict" ? "" : " Your entries are still here — try again.")); setSync("err", "Save failed " + timeNow());
+    });
+  }
+  function auditOp(op) {
+    var a = AU.editing, reason = "";
+    if (op === "void") { reason = prompt("Why is audit " + a.id + " being voided?"); if (!reason) return; }
+    if (op === "verify" && !confirm("Verify and lock audit " + a.id + "?")) return;
+    if (AU.dirty && !confirm("You have unsaved changes. Continue without saving them?")) return;
+    setSync("busy", "Saving…");
+    api({ action: "verifyAudit", id: a.id, op: op, updated: a.updated, reason: reason }).then(function (j) {
+      var list = S.data.audits; for (var i = 0; i < list.length; i++) if (list[i].id === j.audit.id) list[i] = j.audit;
+      AU.editing = JSON.parse(JSON.stringify(j.audit)); AU.dirty = false; setSync("ok", "Saved " + timeNow()); renderAuditEditor();
+    }).catch(function (e) { $("auErr").textContent = errText(e); setSync("err", "Failed " + timeNow()); });
+  }
+  function auditRows(a) {
+    var ck = S.data.checklist || [];
+    return ck.map(function (it) { var an = a.answers[it.no] || {}; return { it: it, e: an.e === "C" ? "Compliant" : an.e === "NC" ? "Non-Compliant" : an.e === "NA" ? "N/A" : "", r: an.r || "" }; });
+  }
+  function printAudit(a) {
+    var r = audScore(a.answers), b = audBand(r.score), s = S.cfg.stById[a.station] || {};
+    var caps = {}; (S.data.caps || []).forEach(function (c) { caps[c.id] = c; });
+    var h = '<div class="rep"><h1>Station Audit Report (AUD-R01)</h1><p class="small">VET-ENERGY EV Charging Network · ' + esc(a.id) + " · " + esc(a.auditStatus) + (a.verifiedBy ? " — verified by " + esc(a.verifiedBy) + " on " + fDate(a.verifiedOn) : "") + "</p>" +
+      '<table class="meta"><tr><td><b>Station</b></td><td>' + esc(s.name || a.station) + '</td><td><b>Auditor</b></td><td>' + esc(a.auditor) + '</td></tr><tr><td><b>Audit date</b></td><td>' + fDate(a.date) + '</td><td><b>Attendant on duty</b></td><td>' + esc(a.attendant) + '</td></tr><tr><td><b>Chargers</b></td><td>' + esc(a.chargers) + '</td><td><b>Functional chargers</b></td><td>' + esc(a.functional) + '</td></tr>' +
+      '<tr><td><b>Overall score</b></td><td><b>' + pct(r.score) + '</b></td><td><b>Rating</b></td><td><b>' + esc(b ? b[1] : "—") + '</b></td></tr><tr><td><b>Items scored</b></td><td>' + r.scored + '</td><td><b>Non-compliant</b></td><td>' + r.nc + "</td></tr></table>" +
+      "<h2>Score by category</h2><table><thead><tr><th>Category</th><th>Weight</th><th>Items scored</th><th>Compliant</th><th>Score</th><th>Weighted</th></tr></thead><tbody>" +
+      AUD_CATS.map(function (c) { var x = r.n[c[0]], p = r.pct[c[0]]; return "<tr><td>" + c[0] + ". " + esc(c[1]) + "</td><td>" + Math.round(c[2] * 100) + "%</td><td>" + x.n + "</td><td>" + x.ok + "</td><td>" + pct(p) + "</td><td>" + (kNum(p) ? "—" : pct(p * c[2])) + "</td></tr>"; }).join("") +
+      '<tr class="total"><td>Overall</td><td>100%</td><td>' + r.scored + "</td><td>" + (r.scored - r.nc) + "</td><td></td><td><b>" + pct(r.score) + "</b></td></tr></tbody></table>" +
+      "<h2>Findings &amp; corrective action plan (CAP-F01)</h2>" + (a.findings.length ? "<table><thead><tr><th>CAP ID</th><th>Item</th><th>Non-conformance</th><th>Risk</th><th>Root cause</th><th>Corrective / preventive action</th><th>Responsible</th><th>Target</th><th>Status</th></tr></thead><tbody>" +
+      a.findings.map(function (f) { var c = caps[f.capId]; return "<tr><td>" + esc(f.capId || "—") + "</td><td>" + esc(f.item) + "</td><td>" + esc(c ? c.nonconf : f.nonconf) + "</td><td>" + esc(c ? c.risk : f.risk) + "</td><td>" + esc(c ? c.rootCause : f.rootCause) + "</td><td>" + esc(c ? c.corrective : f.corrective) + (((c ? c.preventive : f.preventive)) ? "<br><i>Prev.:</i> " + esc(c ? c.preventive : f.preventive) : "") + "</td><td>" + esc(c ? c.responsible : f.responsible) + "</td><td>" + fDate(c ? c.target : f.target) + "</td><td>" + esc(c ? capInfo(c).label : "Not yet raised") + "</td></tr>"; }).join("") + "</tbody></table>" : "<p>No findings.</p>") +
+      (a.assessment ? "<h2>Auditor's overall assessment</h2><p style=\"white-space:pre-line\">" + esc(a.assessment) + "</p>" : "") +
+      "<h2>Checklist results</h2><table><thead><tr><th>No</th><th>Item</th><th>SOP</th><th>Type</th><th>Evaluation</th><th>Remark</th></tr></thead><tbody>" +
+      auditRows(a).map(function (x) { return "<tr><td>" + x.it.no + '</td><td style="white-space:pre-line">' + esc(x.it.text) + "</td><td>" + esc(x.it.sop) + "</td><td>" + esc(x.it.type) + "</td><td><b>" + esc(x.e || "—") + "</b></td><td>" + esc(x.r) + "</td></tr>"; }).join("") + "</tbody></table>" +
+      '<table class="meta" style="margin-top:18px"><tr><td style="height:60px;width:33%"><b>Auditor</b><br>' + esc(a.auditor) + '</td><td style="width:33%"><b>Station representative</b><br>' + esc(a.attendant) + '</td><td><b>Verified by</b><br>' + esc(a.verifiedBy || "") + "</td></tr></table>" +
+      '<p class="small muted">Printed ' + esc(nowStr()) + " by " + esc(S.user) + " from the Daily Operation Record.</p></div>";
+    $("printArea").innerHTML = h;
+    document.body.classList.add("printing");
+    var done = function () { document.body.classList.remove("printing"); window.removeEventListener("afterprint", done); };
+    window.addEventListener("afterprint", done);
+    setTimeout(function () { window.print(); setTimeout(done, 500); }, 50);
+  }
+  function exportAudit(a) {
+    if (typeof XLSX === "undefined") { notice("The spreadsheet library hasn't loaded yet. Try again in a moment.", "bad"); return; }
+    var r = audScore(a.answers), b = audBand(r.score), s = S.cfg.stById[a.station] || {};
+    var caps = {}; (S.data.caps || []).forEach(function (c) { caps[c.id] = c; });
+    var rep = [["Station Audit Report (AUD-R01)"], ["Audit ID", a.id, "", "Status", a.auditStatus], ["Station", s.name || a.station, "", "Auditor", a.auditor], ["Audit date", a.date, "", "Attendant on duty", a.attendant], ["Chargers", a.chargers, "", "Functional chargers", a.functional],
+      ["Overall score", kNum(r.score) ? "" : r.score, "", "Rating", b ? b[1] : ""], ["Items scored", r.scored, "", "Non-compliant", r.nc], [], ["Category", "Weight", "Items scored", "Compliant", "Score", "Weighted"]];
+    AUD_CATS.forEach(function (c) { var x = r.n[c[0]], p = r.pct[c[0]]; rep.push([c[0] + ". " + c[1], c[2], x.n, x.ok, kNum(p) ? "" : p, kNum(p) ? "" : p * c[2]]); });
+    rep.push(["Overall", 1, r.scored, r.scored - r.nc, "", kNum(r.score) ? "" : r.score]); rep.push([]); rep.push(["Auditor's overall assessment"]); rep.push([a.assessment || ""]);
+    var chk = [["No", "Section", "Item", "SOP ref", "Type", "Criteria", "Evaluation", "Score", "Remark"]];
+    auditRows(a).forEach(function (x) { chk.push([x.it.no, x.it.section, x.it.text, x.it.sop, x.it.type, x.it.criteria, x.e, x.e === "Compliant" ? 1 : x.e === "Non-Compliant" ? 0 : "", x.r]); });
+    var cp = [["CAP ID", "Station", "Audit date", "Item #", "SOP ref", "Category", "Non-conformance", "Risk", "Root cause", "Corrective action", "Preventive action", "Responsible", "Date raised", "Target date", "Status", "Days overdue", "Verification method", "Verified by", "Verification date", "Evidence / comments"]];
+    a.findings.forEach(function (f) { var c = caps[f.capId] || f, i = caps[f.capId] ? capInfo(caps[f.capId]) : null; cp.push([f.capId || "", s.name || a.station, a.date, f.item, c.sop || "", c.category || "", c.nonconf, c.risk, c.rootCause, c.corrective, c.preventive, c.responsible, c.raised || a.date, c.target, i ? (c.capStatus || "") : "Not yet raised", i ? i.days || "" : "", c.verifyMethod || "", c.verifiedBy || "", c.verifiedOn || "", c.evidence || ""]); });
+    var wb = XLSX.utils.book_new(), ws = XLSX.utils.aoa_to_sheet(rep);
+    ["B6", "E10", "F10", "E11", "F11", "E12", "F12", "E13", "F13", "E14", "F14", "F15", "B10", "B11", "B12", "B13", "B14", "B15"].forEach(function (k) { if (ws[k] && typeof ws[k].v === "number") ws[k].z = "0.0%"; });
+    ws["!cols"] = [{ wch: 36 }, { wch: 34 }, { wch: 12 }, { wch: 20 }, { wch: 34 }, { wch: 12 }];
+    XLSX.utils.book_append_sheet(wb, ws, "Audit Report Form");
+    var w2 = XLSX.utils.aoa_to_sheet(chk); w2["!cols"] = [{ wch: 5 }, { wch: 28 }, { wch: 60 }, { wch: 10 }, { wch: 12 }, { wch: 60 }, { wch: 14 }, { wch: 6 }, { wch: 40 }];
+    XLSX.utils.book_append_sheet(wb, w2, "Audit Checklist");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(cp), "CAP-F01 Corrective Action Plan");
+    XLSX.writeFile(wb, "Audit_" + a.id + "_" + (s.short || a.station).replace(/[^A-Za-z0-9]+/g, "_") + "_" + a.date + ".xlsx");
+  }
+  function exportAuditList() {
+    if (typeof XLSX === "undefined") { notice("The spreadsheet library hasn't loaded yet. Try again in a moment.", "bad"); return; }
+    var rows = [["Audit ID", "Station ID", "Station", "Audit date", "Auditor", "Status", "Overall score", "Rating"].concat(AUD_CATS.map(function (c) { return "Cat " + c[0] + " %"; })).concat(["Items scored", "Non-compliant", "CAPs", "Open CAPs", "Record status"])];
+    (S.data.audits || []).forEach(function (a) { var caps = (S.data.caps || []).filter(function (c) { return active(c) && c.auditId === a.id; }); var b = audBand(a.score);
+      rows.push([a.id, a.station, stName(a.station), a.date, a.auditor, a.auditStatus, a.score, b ? b[1] : "", a.catA, a.catB, a.catC, a.catD, a.catE, a.scored, a.nc, caps.length, caps.filter(function (c) { return !capClosed(c); }).length, a.status]); });
+    var cp = [["CAP ID", "Audit ID", "Station ID", "Station", "Audit date", "Item #", "SOP ref", "Category", "Non-conformance", "Risk", "Root cause", "Corrective action", "Preventive action", "Responsible", "Date raised", "Target date", "CAP status", "Closed on", "Status (calc)", "Days overdue", "Verification method", "Verified by", "Verified on", "Evidence / comments"]];
+    (S.data.caps || []).filter(active).forEach(function (c) { var i = capInfo(c); cp.push([c.id, c.auditId, c.station, stName(c.station), c.auditDate, c.item, c.sop, c.category, c.nonconf, c.risk, c.rootCause, c.corrective, c.preventive, c.responsible, c.raised, c.target, c.capStatus, c.closedOn, i.label, i.days || "", c.verifyMethod, c.verifiedBy, c.verifiedOn, c.evidence]); });
+    var wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), "Audits");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(cp), "CAP master list");
+    XLSX.writeFile(wb, "Station_Audits_and_CAP_" + todayD() + ".xlsx");
+  }
+
+  /* ---------- dashboard: compliance tiles ---------- */
+  function drawCompliance(ids) {
+    var wrap = $("kComplianceWrap");
+    if (!can("kpi") || !S.data.audits) { wrap.hidden = true; return; }
+    wrap.hidden = false;
+    var set = {}; ids.forEach(function (id) { set[id] = 1; });
+    var latest = {}; S.data.audits.forEach(function (a) { if (active(a) && set[a.station] && a.auditStatus !== "Draft" && !kNum(a.score) && (!latest[a.station] || latest[a.station].date < a.date)) latest[a.station] = a; });
+    var L = Object.keys(latest).map(function (k) { return latest[k]; });
+    var caps = S.data.caps.filter(function (c) { return active(c) && set[c.station] && !capClosed(c); });
+    var over = caps.filter(function (c) { return capInfo(c).overdue; }), noT = caps.filter(function (c) { return !c.target; });
+    var avg = L.length ? sum(L, function (a) { return a.score; }) / L.length : NaN;
+    var oldest = L.length ? L.reduce(function (p, q) { return p.date < q.date ? p : q; }) : null;
+    $("kComp").innerHTML = [
+      kpi("Latest audit score (avg.)", pct(avg), L.length + " of " + ids.length + " stations audited", null, "", kNum(avg) ? "" : avg >= 0.9 ? "g" : avg >= 0.8 ? "a" : "r"),
+      kpi("Stations below 80%", n0(L.filter(function (a) { return a.score < 0.8; }).length), "latest audit — CAP required", null, "", L.some(function (a) { return a.score < 0.8; }) ? "r" : "g"),
+      kpi("Open corrective actions", n0(caps.length), caps.filter(function (c) { return c.risk === "High"; }).length + " high risk", null, "", caps.length ? "a" : "g"),
+      kpi("Overdue CAPs", n0(over.length), noT.length + " open with no target date", null, "", over.length ? "r" : "g"),
+      kpi("Oldest latest audit", oldest ? fDate(oldest.date) : "—", oldest ? esc(stName(oldest.station)) + " · " + daysBetween(oldest.date, todayD()) + " days ago" : "no audits", null, "", "plain")
+    ].join("");
+  }
+
+  /* ---------- users (admin) ---------- */
+  var USERS = null, UED = null;
+  function drawUsers() {
+    var box = $("usersT"); if (!box) return;
+    if (!USERS) { box.innerHTML = '<p class="muted">Loading…</p>'; api({ action: "users" }).then(function (j) { USERS = j.users; drawUsers(); }).catch(function (e) { box.innerHTML = '<p class="err-box">' + esc(errText(e)) + "</p>"; }); return; }
+    box.innerHTML = "<table><thead><tr><th>Username</th><th>Name</th><th>Role</th><th>Active</th><th>Last sign-in</th><th>Password</th><th>Created</th></tr></thead><tbody>" +
+      USERS.map(function (u) { return '<tr class="click' + (u.active ? "" : " void") + '" data-user="' + esc(u.username) + '"><td>' + esc(u.username) + "</td><td>" + esc(u.name) + '</td><td><span class="chip">' + esc(ROLE_LABEL[u.role] || u.role) + "</span></td><td>" + (u.active ? "Yes" : "No") + "</td><td>" + (u.lastLogin ? fDT(u.lastLogin) : "never") + "</td><td>" + (u.mustChange ? '<span class="chip warn">must change</span>' : "set") + "</td><td>" + fDT(u.created) + " by " + esc(u.createdBy) + "</td></tr>"; }).join("") + "</tbody></table>";
+    box.querySelectorAll("[data-user]").forEach(function (tr) { tr.onclick = function () { openUser(tr.getAttribute("data-user")); }; });
+  }
+  function openUser(username) {
+    var u = username ? USERS.filter(function (x) { return x.username === username; })[0] : null;
+    UED = u; var f = $("formUser");
+    $("userTitle").textContent = u ? "Edit " + u.username : "Add user"; $("userErr").textContent = "";
+    f.elements.username.value = u ? u.username : ""; f.elements.username.readOnly = !!u;
+    f.elements.name.value = u ? u.name : ""; f.elements.role.value = u ? u.role : "ops02"; f.elements.active.value = u && !u.active ? "N" : "Y"; f.elements.password.value = "";
+    $("userPwLabel").textContent = u ? "Reset password (leave empty to keep)" : "Temporary password";
+    $("dlgUser").showModal();
+  }
+  $("userClose").addEventListener("click", function () { $("dlgUser").close(); });
+  $("formUser").addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var f = $("formUser"), u = { username: f.elements.username.value.trim().toLowerCase(), name: f.elements.name.value.trim(), role: f.elements.role.value, active: f.elements.active.value === "Y", password: f.elements.password.value };
+    if (!u.username || !u.name) { $("userErr").textContent = "Enter the username and full name."; return; }
+    if (!UED && !u.password) { $("userErr").textContent = "Give a temporary password."; return; }
+    if (u.password && (u.password.length < 8 || !/[A-Za-z]/.test(u.password) || !/[0-9]/.test(u.password))) { $("userErr").textContent = "Use at least 8 characters with letters and numbers for the password."; return; }
+    $("userErr").textContent = "Saving…";
+    api({ action: "saveUser", user: u }).then(function (j) { USERS = j.users; $("dlgUser").close(); drawUsers(); setSync("ok", "Saved " + timeNow()); })
+      .catch(function (e) { $("userErr").textContent = errText(e); });
+  });
+  $("inSub").addEventListener("click", function (ev) { var b = ev.target.closest("[data-sub]"); if (b) showSub(b.getAttribute("data-sub")); });
 
   /* ---------------- views, loading, sign-in ---------------- */
   function show(v) {
     S.view = v;
     document.querySelectorAll("#tabs button").forEach(function (b) { b.setAttribute("aria-selected", b.getAttribute("data-v") === v ? "true" : "false"); });
-    ["dash", "faults", "complaints", "incidents", "nonsys", "import", "admin"].forEach(function (x) { $("v-" + x).hidden = x !== v; });
+    ["dash", "faults", "complaints", "incidents", "nonsys", "caps", "kpi", "audit", "inputs", "import", "admin"].forEach(function (x) { $("v-" + x).hidden = x !== v; });
     if (!S.data) return;
     if (v === "dash") renderDash();
+    else if (v === "inputs") showSub(S.sub || "bills");
     else if (KINDS[v]) buildListView(v);
     else if (v === "admin") renderAdmin();
-    else if (v === "import") $("impManagerOnly").hidden = S.role === "manager";
+    else if (v === "kpi") renderKpi();
+    else if (v === "audit") renderAudits();
+    else if (v === "import") $("impManagerOnly").hidden = S.role === "admin";
   }
 
   function fillStationFilter() {
@@ -1364,8 +2168,13 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     S.busy = true;
     setSync("busy", "Loading…");
     return api({ action: "bootstrap" }).then(function (j) {
-      S.data = j; S.role = j.role; S.cfg = buildCfg(j);
-      $("whoName").textContent = S.user + " · " + (S.role === "manager" ? "Manager" : "Staff");
+      S.data = j; S.role = j.role; S.user = j.user; S.username = j.username; S.cfg = buildCfg(j);
+      S.lastLoad = Date.now();
+      $("whoName").textContent = S.user;
+      $("whoRole").textContent = ROLE_LABEL[S.role] || S.role; $("whoRole").hidden = false;
+      document.querySelectorAll("#tabs [data-need]").forEach(function (b) { b.hidden = !can(b.getAttribute("data-need")); });
+      if (document.querySelector('#tabs [data-v="' + S.view + '"]').hidden) S.view = "dash";
+      if (j.mustChange) openPw(true);
       fillStationFilter();
       notice("");
       setSync("ok", "Up to date " + timeNow());
@@ -1374,12 +2183,21 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     }).catch(function (e) { handleError(e, "Loading"); }).then(function () { S.busy = false; });
   }
 
-  function signOut(msg) {
-    S.key = ""; S.data = null;
-    try { localStorage.removeItem(LS_KEY); } catch (e) {}
+  function signOut(msg, tellServer) {
+    if (tellServer && S.token) api({ action: "logout" }).catch(function () {});
+    S.token = ""; S.data = null;
+    try { localStorage.removeItem(LS_TOK); sessionStorage.removeItem(LS_TOK); } catch (e) {}
+    $("whoName").textContent = ""; $("whoRole").hidden = true;
+    document.querySelectorAll("#tabs [data-need]").forEach(function (b) { b.hidden = true; });
     $("siErr").textContent = msg || "";
-    $("siName").value = S.user || "";
+    $("siName").value = S.username || "";
     if (!$("dlgSignIn").open) $("dlgSignIn").showModal();
+  }
+  function openPw(forced) {
+    $("pwOld").value = ""; $("pwNew").value = ""; $("pwNew2").value = ""; $("pwErr").textContent = "";
+    $("pwIntro").textContent = forced ? "Welcome! Choose your own password before you continue. Use at least 8 characters with letters and numbers." : "Use at least 8 characters with letters and numbers. Don't reuse a password from another site.";
+    $("pwClose").hidden = !!forced; S.pwForced = !!forced;
+    if (!$("dlgPw").open) $("dlgPw").showModal();
   }
 
   function init() {
@@ -1387,30 +2205,44 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       notice("Setup needed: open this file, find <b>API_URL</b> near the bottom, and paste your Apps Script web app URL. See SETUP-GUIDE.md.");
       setSync("err", "Not set up"); return;
     }
-    try { S.key = localStorage.getItem(LS_KEY) || ""; S.user = localStorage.getItem(LS_USER) || ""; } catch (e) {}
+    try { S.token = localStorage.getItem(LS_TOK) || sessionStorage.getItem(LS_TOK) || ""; S.username = localStorage.getItem(LS_USER) || ""; } catch (e) {}
     try {
       var p = JSON.parse(localStorage.getItem(LS_PRESET) || "null");
       if (p) { $("fPreset").value = p.p || "last7"; if (p.p === "custom") { $("fFrom").value = p.f; $("fTo").value = p.t; } $("fCompare").value = p.c || "prev"; S.pendingStation = p.s; }
       else $("fPreset").value = "last7";
     } catch (e) { $("fPreset").value = "last7"; }
-    if (!S.key || !S.user) { signOut(""); return; }
+    if (!S.token) { signOut(""); return; }
     loadAll().then(function () { if (S.pendingStation && S.data) { $("fStation").value = S.pendingStation; if (!$("fStation").value) $("fStation").value = "*"; if (S.view === "dash") renderDash(); } });
   }
 
   /* ---------------- events ---------------- */
   $("formSignIn").addEventListener("submit", function (ev) {
     ev.preventDefault();
-    var name = $("siName").value.trim(), key = $("siKey").value.trim();
-    if (!name || !key) { $("siErr").textContent = "Enter your name and the passcode."; return; }
-    S.key = key; S.user = name;
+    var name = $("siName").value.trim().toLowerCase(), key = $("siKey").value;
+    if (!name || !key) { $("siErr").textContent = "Enter your username and password."; return; }
     $("siErr").textContent = "Checking…";
-    api({ action: "ping" }).then(function () {
-      try { localStorage.setItem(LS_USER, name); if ($("siRemember").checked) localStorage.setItem(LS_KEY, key); else localStorage.removeItem(LS_KEY); } catch (e) {}
+    api({ action: "login", username: name, password: key }).then(function (j) {
+      S.token = j.token; S.username = j.username;
+      try { localStorage.setItem(LS_USER, j.username); localStorage.removeItem(LS_TOK); sessionStorage.removeItem(LS_TOK); ($("siRemember").checked ? localStorage : sessionStorage).setItem(LS_TOK, j.token); } catch (e) {}
       $("siKey").value = ""; $("dlgSignIn").close(); loadAll();
-    }).catch(function (e) { S.key = ""; $("siErr").textContent = errText(e); });
+    }).catch(function (e) { $("siErr").textContent = errText(e); });
   });
   $("dlgSignIn").addEventListener("cancel", function (ev) { ev.preventDefault(); });
-  $("btnSignOut").addEventListener("click", function () { signOut(""); });
+  $("btnSignOut").addEventListener("click", function () { signOut("", true); });
+  $("btnPw").addEventListener("click", function () { if (S.data) openPw(false); });
+  $("pwClose").addEventListener("click", function () { $("dlgPw").close(); });
+  $("dlgPw").addEventListener("cancel", function (ev) { if (S.pwForced) ev.preventDefault(); });
+  $("formPw").addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var o = $("pwOld").value, n = $("pwNew").value;
+    if (!o || !n) { $("pwErr").textContent = "Fill in all three boxes."; return; }
+    if (n !== $("pwNew2").value) { $("pwErr").textContent = "The two new passwords don't match."; return; }
+    if (n.length < 8 || !/[A-Za-z]/.test(n) || !/[0-9]/.test(n)) { $("pwErr").textContent = "Use at least 8 characters with both letters and numbers."; return; }
+    $("pwErr").textContent = "Saving…";
+    api({ action: "changePassword", oldPassword: o, newPassword: n }).then(function () {
+      S.pwForced = false; $("dlgPw").close(); S.data.mustChange = false; notice("Password changed.", "info"); setTimeout(function () { notice(""); }, 4000);
+    }).catch(function (e) { $("pwErr").textContent = errText(e); });
+  });
   $("btnRefresh").addEventListener("click", function () { S.sales = null; loadAll(); });
   $("tabs").addEventListener("click", function (ev) { var b = ev.target.closest("button[data-v]"); if (b) show(b.getAttribute("data-v")); });
   ["fFrom", "fTo"].forEach(function (id) { $(id).addEventListener("change", function () { $("fPreset").value = "custom"; renderDash(); }); });
@@ -1440,10 +2272,10 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
   $("impFile").addEventListener("change", onImportFile);
   // keep the open-item ages fresh and pick up teammates' entries
   setInterval(function () {
-    if (!S.data || document.hidden || $("dlgRec").open || S.view === "import") return;
+    if (!S.data || document.hidden || $("dlgRec").open || S.view === "import" || S.view === "audit" && AU.editing) return;
     loadAll();
   }, 180000);
-  document.addEventListener("visibilitychange", function () { if (!document.hidden && S.data && !$("dlgRec").open && Date.now() - (S.lastLoad || 0) > 60000) { S.lastLoad = Date.now(); loadAll(); } });
+  document.addEventListener("visibilitychange", function () { if (!document.hidden && S.data && !$("dlgRec").open && !(S.view === "audit" && AU.editing) && Date.now() - (S.lastLoad || 0) > 60000) { S.lastLoad = Date.now(); loadAll(); } });
 
   window.addEventListener("load", init);
 })();
