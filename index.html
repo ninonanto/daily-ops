@@ -598,7 +598,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     var t0 = ms(from), t1 = ms(addDays(to, 1));
     var days = daysBetween(from, to) + 1;
     var R = { from: from, to: to, days: days, st: {}, net: null, daily: {}, cust: {}, types: {}, chargers: {}, heat: [], faultCat: {}, compCat: {}, compCh: {}, incSev: {}, incType: {} };
-    function blank() { return { sessions: 0, ok: 0, failed: 0, canceled: 0, kwh: 0, rev: 0, cost: 0, nsRev: 0, nsKwh: 0, nsSessions: 0, cap: 0, faults: 0, downHrs: 0, mttrSum: 0, mttrN: 0, openF: 0,
+    function blank() { return { sessions: 0, ok: 0, failed: 0, canceled: 0, kwh: 0, rev: 0, cost: 0, nsRev: 0, nsKwh: 0, nsSessions: 0, nsBad: 0, cap: 0, faults: 0, downHrs: 0, mttrSum: 0, mttrN: 0, openF: 0,
       comp: 0, slaY: 0, slaN: 0, openC: 0, overC: 0, inc: 0, critMaj: 0, injuries: 0, cost$: 0, repY: 0, repN: 0, openI: 0, overI: 0, chargers: 0 }; }
     ids.forEach(function (id) {
       var s = S.cfg.stById[id], b = blank();
@@ -626,7 +626,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     S.data.nonsys.forEach(function (n) {
       if (!active(n) || !set[n.station]) return;
       var d = n.date.slice(0, 10); if (d < from || d > to) return;
-      var b = R.st[n.station]; b.nsRev += +n.revenue || 0; b.nsKwh += +n.kwh || 0; b.nsSessions += 1;
+      var b = R.st[n.station]; b.nsRev += +n.revenue || 0; b.nsKwh += +n.kwh || 0; b.nsSessions += 1; if (n.chgStatus === "Failed" || n.chgStatus === "Canceled") b.nsBad += 1;
       R.daily[d].rev += +n.revenue || 0;
     });
     // faults
@@ -1592,7 +1592,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       var s = S.cfg.stById[id], b = R ? R.st[id] : null;
       var start = s.opened && s.opened > P.from ? s.opened : P.from;
       var act = b && effTo >= start ? daysBetween(start, effTo) + 1 : 0;
-      var x = { id: id, name: s.short, type: s.type, active: act, sessions: b ? b.sessions : 0, bad: b ? b.failed + b.canceled : 0, kwh: b ? b.kwh : 0, nsKwh: b ? b.nsKwh : 0, nsSessions: b ? b.nsSessions : 0,
+      var x = { id: id, name: s.short, type: s.type, active: act, sessions: b ? b.sessions : 0, bad: b ? b.failed + b.canceled : 0, kwh: b ? b.kwh : 0, nsKwh: b ? b.nsKwh : 0, nsSessions: b ? b.nsSessions : 0, nsBad: b ? b.nsBad : 0,
         revKhr: b ? b.rev : 0, nsRevKhr: b ? b.nsRev : 0, costKhr: b ? b.cost : 0, downHrs: b ? b.downHrs : 0, faults: b ? b.faults : 0, comp: b ? b.comp : 0, slaY: b ? b.slaY : 0, slaN: b ? b.slaN : 0, v: {}, rag: {}, pts: {}, area: {} };
       var ok = x.sessions > 0 && act >= minDays;
       x.scoredOk = ok;
@@ -1623,12 +1623,12 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       x.exempt = isExempt;
       var v = x.v;
       v.A1 = ok && s.chargers * (s.hrs || 24) > 0 ? Math.max(0, 1 - x.downHrs / (s.chargers * (s.hrs || 24) * act)) : "";
-      v.A2 = ok ? 1 - x.bad / x.sessions : "";
+      v.A2 = ok ? 1 - (x.bad + x.nsBad) / (x.sessions + x.nsSessions) : "";
       v.A3 = x.faults > 0 ? x.downHrs / x.faults : "";
       v.C1 = ok && s.kw * (s.hrs || 24) > 0 ? (x.kwh + x.nsKwh) / (s.kw * (s.hrs || 24) * act) : "";
       v.C2 = ok && +s.target > 0 ? x.revUsd / (+s.target * nMonths * act / periodDays) : "";
       v.C3 = ok && s.chargers > 0 ? (x.sessions + x.nsSessions) / (s.chargers * act) : "";
-      v.C4 = !isExempt && ok && complete && billKwh > 0 && billMonths >= monthsOpen ? 1 - x.kwh / billKwh : "";
+      v.C4 = !isExempt && ok && complete && billKwh > 0 && billMonths >= monthsOpen ? 1 - (x.kwh + x.nsKwh) / billKwh : "";
       v.Q1 = aud ? aud.score : "";
       v.Q2 = x.capDue ? x.capOnTime / x.capDue : "";
       v.Q3 = act > 0 && x.sessions > 0 ? x.safety : "";
@@ -1753,7 +1753,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       '<h3 style="margin-top:12px">Operating margin (info only)</h3><div class="tbl-wrap" id="kdM"></div></div></div>';
     simpleTable("kdT", ["ID", "KPI", "Area", "Value", "Green", "RAG", "Points", "Weight"], rows, 3);
     simpleTable("kdIn", ["Input", "Value"], [
-      ["Active days (min. " + (+S.cfg.general["Min active days to score"] || 7) + " to score)", n0(x.active)], ["Sessions (system · non-system)", n0(x.sessions) + " · " + n0(x.nsSessions)], ["Failed + canceled (system)", n0(x.bad)], ["kWh delivered (system · non-system)", n0(x.kwh) + " · " + n0(x.nsKwh)],
+      ["Active days (min. " + (+S.cfg.general["Min active days to score"] || 7) + " to score)", n0(x.active)], ["Sessions (system · non-system)", n0(x.sessions) + " · " + n0(x.nsSessions)], ["Failed + canceled (system · non-system)", n0(x.bad) + " · " + n0(x.nsBad)], ["kWh delivered (system · non-system)", n0(x.kwh) + " · " + n0(x.nsKwh)],
       ["Downtime hrs · faults started", n1(x.downHrs) + " · " + x.faults], ["kWh billed · bill months / months open", x.exempt ? "exempt (" + esc(x.type) + ")" : n0(x.billKwh) + " · " + x.billMonths + " / " + x.monthsOpen],
       ["Latest audit", x.audit ? esc(x.audit.id) + " · " + fDate(x.audit.date) + " · " + pct(x.audit.score) : "none on file"], ["CAPs due in period · closed on time", x.capDue + " · " + x.capOnTime],
       ["Safety incidents (excl. near misses)", n0(x.safety)], ["CSAT responses · satisfied", x.csatResp + " · " + x.csatSat], ["Complaints · in SLA · late/overdue", x.comp + " · " + x.slaY + " · " + x.slaN]
@@ -1770,8 +1770,8 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     var sc = [["VET-ENERGY Station KPI — " + K.P.label], ["Period", K.P.from + " to " + K.P.to + (K.complete ? "" : " (sales to " + K.last + ")")], ["Exported", nowStr() + " by " + S.user], [], head];
     K.rows.forEach(function (x) { sc.push([x.id, x.name, x.type, x.active].concat(D.map(function (d) { return nz(x.v[d.id]); })).concat(D.map(function (d) { return x.rag[d.id] || ""; })).concat(areas.map(function (a) { return nz(x.area[a]); })).concat([nz(x.overall), BAND_TXT[x.band], x.revUsd, x.elecUsd, x.opexUsd, nz(x.margin)])); });
     sc.push(["Network", "All stations", "", ""].concat(D.map(function () { return ""; })).concat(D.map(function () { return ""; })).concat(areas.map(function () { return ""; })).concat(["", "", K.net.revUsd, K.net.elecUsd, K.net.opexUsd, nz(K.net.margin)]));
-    var inp = [["Station ID", "Station", "Active days", "Sessions (system)", "Failed + canceled", "kWh delivered (system)", "Revenue KHR (system)", "Revenue KHR (non-system)", "Non-system sessions", "Non-system kWh", "Downtime hrs", "Faults", "kWh billed", "Bill months", "Months open", "Latest audit", "Audit score", "CAPs due", "CAPs on time", "Safety incidents", "CSAT responses", "CSAT satisfied", "Complaints", "In SLA", "Late/overdue"]];
-    K.rows.forEach(function (x) { inp.push([x.id, x.name, x.active, x.sessions, x.bad, x.kwh, x.revKhr, x.nsRevKhr, x.nsSessions, x.nsKwh, x.downHrs, x.faults, x.billKwh, x.billMonths, x.monthsOpen, x.audit ? x.audit.id : "", x.audit ? x.audit.score : "", x.capDue, x.capOnTime, x.safety, x.csatResp, x.csatSat, x.comp, x.slaY, x.slaN]); });
+    var inp = [["Station ID", "Station", "Active days", "Sessions (system)", "Failed + canceled", "kWh delivered (system)", "Revenue KHR (system)", "Revenue KHR (non-system)", "Non-system sessions", "Non-system failed + canceled", "Non-system kWh", "Downtime hrs", "Faults", "kWh billed", "Bill months", "Months open", "Latest audit", "Audit score", "CAPs due", "CAPs on time", "Safety incidents", "CSAT responses", "CSAT satisfied", "Complaints", "In SLA", "Late/overdue"]];
+    K.rows.forEach(function (x) { inp.push([x.id, x.name, x.active, x.sessions, x.bad, x.kwh, x.revKhr, x.nsRevKhr, x.nsSessions, x.nsBad, x.nsKwh, x.downHrs, x.faults, x.billKwh, x.billMonths, x.monthsOpen, x.audit ? x.audit.id : "", x.audit ? x.audit.score : "", x.capDue, x.capOnTime, x.safety, x.csatResp, x.csatSat, x.comp, x.slaY, x.slaN]); });
     var cats = S.cfg.expCats.slice(); K.rows.forEach(function (x) { Object.keys(x.opex).forEach(function (c) { if (cats.indexOf(c) < 0) cats.push(c); }); });
     var ox = [["Station ID", "Station"].concat(cats).concat(["Total opex USD"])];
     K.rows.forEach(function (x) { ox.push([x.id, x.name].concat(cats.map(function (c) { return x.opex[c] || 0; })).concat([x.opexUsd])); });
