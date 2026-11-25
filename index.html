@@ -621,6 +621,13 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     });
     var heat = []; for (var w = 0; w < 7; w++) heat.push(new Array(24).fill(0));
     (S.sales ? S.sales.hourly : []).forEach(function (r) { if (r[0] >= from && r[0] <= to && set[r[1]]) heat[dow(r[0])][r[2]] += r[3]; });
+    // months older than the hour-by-hour window are stored as monthly totals per weekday and hour
+    R.heatMonthly = [];
+    (S.sales && S.sales.hourlyMonthly ? S.sales.hourlyMonthly : []).forEach(function (r) {
+      if (r[0] < from.slice(0, 7) || r[0] > to.slice(0, 7) || !set[r[1]]) return;
+      heat[r[2]][r[3]] += r[4];
+      if (R.heatMonthly.indexOf(r[0]) < 0) R.heatMonthly.push(r[0]);
+    });
     R.heat = heat;
     // non-system sales
     S.data.nonsys.forEach(function (n) {
@@ -928,7 +935,13 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
         return '<td title="' + dn[w] + ': ' + v + ' sessions" style="background:rgba(11,110,117,' + (0.06 + a * 0.85).toFixed(2) + ");color:" + (a > 0.55 ? "#fff" : "inherit") + '">' + (v || "") + "</td>";
       }).join("") + "</tr>";
     });
-    $("tHeat").innerHTML = html + "</tbody></table>";
+    var hmNote = "";
+    if (A.heatMonthly && A.heatMonthly.length) {
+      var ms = A.heatMonthly.slice().sort(), partial = A.from.slice(8) !== "01" || A.to !== monthEnd(A.to);
+      hmNote = '<p class="small muted" style="margin:6px 0 0">' + ms.length + " month" + (ms.length > 1 ? "s" : "") + " (" + ms[0] + (ms.length > 1 ? " to " + ms[ms.length - 1] : "") + ") use the monthly weekday × hour totals kept for older months" +
+        (partial ? " — whole months are counted, so the pattern for those months covers the full month, not only the selected days" : "") + ".</p>";
+    }
+    $("tHeat").innerHTML = html + "</tbody></table>" + hmNote;
   }
   function sevChip(k) { k = String(k).toLowerCase(); return k === "critical" ? "bad" : k === "major" ? "warn" : k === "near miss" ? "idle" : "ok"; }
 
@@ -1482,7 +1495,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       '<p class="small muted" style="margin-top:0"><b>Admin</b> — everything. <b>Ops01</b> — dashboard, data entry, Station KPI, audits, CAP list, bills, expenses and CSAT. <b>Ops02</b> — dashboard and data entry (faults, complaints, incidents, non-system sales). Voiding records, importing sales, backups and users are Admin only. Switching a user off signs them out at once.</p><div class="tbl-wrap" id="usersT"></div></div>' +
       '<div class="grid2" style="margin-top:16px"><div class="panel"><h3>Data safety</h3><p style="margin-top:0">Last backup: <b>' + (lb ? esc(fDT(lb.at)) + "</b> — " + esc(lb.name) : "none yet</b>") + "</p>" +
       '<p class="small muted">Backups are full copies of the Sheet in the “Daily Ops DB – Backups” Drive folder. A backup also runs automatically before an import when the last one is over 24 h old, and weekly once the trigger is installed (see guide). Voided records stay in the Sheet; every create, edit, void and import is written to the Audit_Log tab.</p>' +
-      '<p class="small" style="margin:0 0 8px"><b>Sales history:</b> the database keeps the latest ' + (d.archiveYears || 3) + ' years of system sales (the dashboard and KPI can show any period in that window). Older sales move — never deleted — into one archive spreadsheet per year in the <b>Daily Ops DB – Sales Archive</b> folder, checked before anything leaves the database. ' +
+      '<p class="small" style="margin:0 0 8px"><b>Sales history:</b> the database keeps the latest ' + (d.archiveYears || 3) + ' years of system sales (the dashboard and KPI can show any period in that window). Older sales move — never deleted — into one archive spreadsheet per year in the <b>Daily Ops DB – Sales Archive</b> folder, checked before anything leaves the database. Hour-by-hour sales are kept for the latest 13 months; older months keep monthly totals per station, weekday and hour for the peak-hour heat map, and the full detail goes to the archive. ' +
       (d.archives && d.archives.length ? 'Archives: ' + d.archives.map(function (x) { return '<a target="_blank" rel="noopener" href="' + esc(x.url) + '">' + esc(x.name.replace(/^.* – /, "")) + "</a>"; }).join(" · ") : "No sales have needed archiving yet.") + "</p>" +
       (d.cells ? '<p class="small" style="margin:0 0 8px"><b>Database size:</b> ' + n0(d.cells) + " of 10,000,000 cells (" + pct(d.cells / 1e7, 0) + ")" + (d.cells > 7e6 ? ' <span class="chip bad">getting full — ask for the hourly-data compaction or a shorter window</span>' : d.cells > 5e6 ? ' <span class="chip warn">keep an eye on it</span>' : ' <span class="chip ok">plenty of room</span>') + "</p>" : "") +
       (S.role === "admin" ? '<button class="btn" type="button" id="btnBackup">Back up now</button>' : '<p class="small muted">An Admin can run a backup from here.</p>') +
