@@ -374,7 +374,7 @@ body.printing #printArea { display: block; padding: 0 8mm; }
     <div class="panel">
       <h2>Import system sales (Sale Order export)</h2>
       <p class="muted" style="margin-top:0">Choose the Sale Order export from the charging system (.xlsx, .xls or .csv). The page reads it here in your browser, totals it by day, station, charger and hour, and saves only those totals to the Sheet — not each order. For every <b>date and station</b> in the file, what is stored is <b>replaced</b>; other stations and dates are left alone. Re-importing the same file is safe. Daily routine: import yesterday's full-day export each morning.</p>
-      <div id="impManagerOnly" class="notice" hidden>Only an Admin can import sales.</div>
+      <div id="impManagerOnly" class="notice" hidden>Your role can't import sales.</div>
       <div class="tools">
         <label class="f grow"><span>Export file</span><input type="file" id="impFile" accept=".xlsx,.xls,.csv"></label>
       </div>
@@ -1513,9 +1513,9 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       var guess = S.data.stations.filter(function (st) { return norm(name).indexOf(norm(st.short)) >= 0; })[0];
       if (guess) s.value = guess.id; else s.value = "-";
     });
-    var upd = function () { var n = $("impPreview").querySelectorAll("[data-date]:checked").length; $("impSel").textContent = n + " of " + ds.length + " dates ticked" + (risky ? " · " + risky + " flagged" : ""); $("impGo").disabled = !n || S.role !== "admin"; };
+    var upd = function () { var n = $("impPreview").querySelectorAll("[data-date]:checked").length; $("impSel").textContent = n + " of " + ds.length + " dates ticked" + (risky ? " · " + risky + " flagged" : ""); $("impGo").disabled = !n || !can("entry"); };
     $("impPreview").addEventListener("change", upd); upd();
-    if (S.role !== "admin") $("impSel").textContent += " · only an Admin can import";
+    if (!can("entry")) $("impSel").textContent += " · your role can't import";
   }
   function runImport() {
     var sel = {}; $("impPreview").querySelectorAll("[data-date]:checked").forEach(function (c) { sel[c.getAttribute("data-date")] = 1; });
@@ -3036,7 +3036,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     else if (v === "admin") renderAdmin();
     else if (v === "kpi") renderKpi();
     else if (v === "audit") renderAudits();
-    else if (v === "import") $("impManagerOnly").hidden = S.role === "admin";
+    else if (v === "import") $("impManagerOnly").hidden = can("entry");
   }
 
   function fillStationFilter() {
