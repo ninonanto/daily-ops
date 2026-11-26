@@ -123,6 +123,7 @@ td.g { color: var(--ok); } td.a { color: var(--warn); font-weight: 600; } td.r {
 .heat td { text-align: center; padding: 3px 0; font-size: 11px; min-width: 26px; border: 1px solid var(--surface); }
 .heat th { font-size: 11px; padding: 3px 4px; }
 .chart-box { position: relative; height: 260px; }
+table.perm th.c, table.perm td.c { text-align: center; } table.perm td, table.perm th { padding: 4px 8px; } table.perm input[type=checkbox] { width: 16px; height: 16px; }
 .kc-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; } @media (max-width: 900px) { .kc-grid { grid-template-columns: 1fr; } }
 
 /* dialog */
@@ -168,6 +169,27 @@ td.rag.G { background: var(--ok-soft); color: var(--ok); } td.rag.A { background
 .big-score { font-family: var(--font-display); font-size: 40px; line-height: 1; }
 .finding { border: 1px solid var(--line); border-left: 4px solid var(--crit); border-radius: 8px; padding: 10px; margin-top: 10px; background: var(--surface); }
 #printArea { display: none; }
+/* invoice documents */
+body.printing-iv #printArea { padding: 0; background: #fff; }
+.iv-page { width: 210mm; min-height: 296mm; box-sizing: border-box; padding: 14mm 14mm 10mm; position: relative; font-family: "Helvetica Neue", Arial, "Khmer OS Siemreap", "Khmer UI", "Noto Sans Khmer", sans-serif; font-size: 10.5px; color: #222; background: #fff; break-after: page; }
+.iv-page:last-child { break-after: auto; }
+.iv-head { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #E8580C; padding-bottom: 12px; }
+.iv-co { display: flex; gap: 14px; align-items: flex-start; } .iv-co img { width: 84px; margin-top: 4px; }
+.iv-coname { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+.iv-small { font-size: 9.5px; color: #666; line-height: 1.55; }
+.iv-title { text-align: right; } .iv-title .t1 { font-size: 22px; font-weight: 800; color: #E8580C; letter-spacing: .01em; } .iv-title .t2 { font-size: 15px; font-weight: 700; color: #E8580C; margin: 2px 0 10px; } .iv-title .t3 { font-weight: 700; font-size: 11px; }
+.iv-bill { display: flex; justify-content: space-between; gap: 24px; margin-top: 18px; line-height: 1.6; } .iv-bill > div { flex: 1; max-width: 52%; }
+.iv-lbl { font-size: 9.5px; font-weight: 700; color: #555; } .iv-bname { font-size: 12.5px; font-weight: 700; margin: 2px 0; }
+.iv-meta { border-collapse: collapse; flex: none; width: auto !important; min-width: 0 !important; } .iv-meta td { padding: 1.5px 0; font-size: 9.5px; white-space: nowrap; } .iv-meta td.k { color: #666; padding-right: 26px; } .iv-meta td.v { text-align: right; font-weight: 700; color: #222; }
+.iv-items { width: 100%; border-collapse: collapse; margin-top: 24px; } .iv-items th { background: #E8580C; color: #fff; text-align: left; font-size: 10px; padding: 5px 6px; font-weight: 700; } .iv-items th span { display: block; font-weight: 400; font-size: 8.5px; }
+.iv-items td { padding: 6px; border-bottom: 1px solid #eee; vertical-align: top; } .iv-items tbody tr:nth-child(odd) td { background: #f6f6f6; } .iv-items .ivr { text-align: right; white-space: nowrap; } .iv-items .no { width: 26px; }
+.iv-tot { display: flex; justify-content: flex-end; margin-top: 8px; } .iv-tot table { width: 46%; border-collapse: collapse; } .iv-tot td { padding: 4px 0; } .iv-tot td.ivr { text-align: right; white-space: nowrap; }
+.iv-tot tr.g td { border-top: 1.5px solid #222; font-size: 13px; font-weight: 800; padding-top: 9px; } .iv-tot tr.u td { color: #666; font-size: 9.5px; }
+.iv-words { font-style: italic; margin-top: 2px; }
+.iv-sign { position: absolute; left: 14mm; right: 14mm; bottom: 26mm; display: flex; justify-content: space-between; font-size: 9.5px; } .iv-sign > div { width: 37%; } .iv-sign .ln { border-top: 1px solid #555; margin-bottom: 5px; } .iv-sign span { color: #666; }
+.iv-page table td, .iv-page table th { border: 0; color: inherit; } .iv-items td { border-bottom: 1px solid #eee !important; } .iv-tot tr.g td { border-top: 1.5px solid #222 !important; }
+.iv-foot { position: absolute; left: 0; right: 0; bottom: 9mm; text-align: center; font-size: 8.5px; color: #888; }
+
 /* dashboard print */
 body.printing-dash #printArea { padding: 0; font-size: 11px; }
 html:has(body.printing-dash), body.printing-dash, body.printing-dash #printArea { background: #fff !important; }
@@ -253,16 +275,17 @@ body.printing #printArea { display: block; padding: 0 8mm; }
 <div class="tabbar">
   <div class="inner">
   <nav class="tabs" role="tablist" id="tabs">
-    <button type="button" data-v="dash" aria-selected="true"><i class="ti ti-layout-dashboard"></i>Dashboard</button>
-    <button type="button" data-v="faults"><i class="ti ti-plug-connected-x"></i>Charger faults <span class="count" id="cntFaults" hidden></span></button>
-    <button type="button" data-v="complaints"><i class="ti ti-message-report"></i>Complaints <span class="count" id="cntComplaints" hidden></span></button>
-    <button type="button" data-v="incidents"><i class="ti ti-alert-triangle"></i>Incidents <span class="count" id="cntIncidents" hidden></span></button>
-    <button type="button" data-v="nonsys"><i class="ti ti-receipt"></i>Non-system sales</button>
+    <button type="button" data-v="dash" aria-selected="true" data-need="dash" hidden><i class="ti ti-layout-dashboard"></i>Dashboard</button>
+    <button type="button" data-v="faults" data-need="faults" hidden><i class="ti ti-plug-connected-x"></i>Charger faults <span class="count" id="cntFaults" hidden></span></button>
+    <button type="button" data-v="complaints" data-need="complaints" hidden><i class="ti ti-message-report"></i>Complaints <span class="count" id="cntComplaints" hidden></span></button>
+    <button type="button" data-v="incidents" data-need="incidents" hidden><i class="ti ti-alert-triangle"></i>Incidents <span class="count" id="cntIncidents" hidden></span></button>
+    <button type="button" data-v="nonsys" data-need="nonsys" hidden><i class="ti ti-receipt"></i>Non-system sales</button>
     <button type="button" data-v="kpi" data-need="kpi" hidden><i class="ti ti-chart-bar"></i>Station KPI</button>
-    <button type="button" data-v="audit" data-need="kpi" hidden><i class="ti ti-clipboard-check"></i>Audits</button>
-    <button type="button" data-v="caps" data-need="kpi" hidden><i class="ti ti-checklist"></i>CAP list <span class="count" id="cntCaps" hidden></span></button>
-    <button type="button" data-v="inputs" data-need="kpi" hidden><i class="ti ti-file-invoice"></i>Bills, expenses &amp; CSAT</button>
-    <button type="button" data-v="import" data-need="entry" hidden><i class="ti ti-file-import"></i>Import sales</button>
+    <button type="button" data-v="audit" data-need="audit" hidden><i class="ti ti-clipboard-check"></i>Audits</button>
+    <button type="button" data-v="caps" data-need="caps" hidden><i class="ti ti-checklist"></i>CAP list <span class="count" id="cntCaps" hidden></span></button>
+    <button type="button" data-v="inputs" data-need="inputs" hidden><i class="ti ti-file-invoice"></i>Bills, expenses &amp; CSAT</button>
+    <button type="button" data-v="acct" data-need="acct" hidden><i class="ti ti-calculator"></i>Accounting</button>
+    <button type="button" data-v="import" data-need="import" hidden><i class="ti ti-file-import"></i>Import sales</button>
     <button type="button" data-v="admin" data-need="admin" hidden><i class="ti ti-settings"></i>Users &amp; settings</button>
   </nav>
   </div>
@@ -371,6 +394,19 @@ body.printing #printArea { display: block; padding: 0 8mm; }
     <section id="v-bills"></section><section id="v-expenses" hidden></section><section id="v-csat" hidden></section>
   </section>
 
+  <section id="v-acct" hidden>
+    <nav class="sub" id="acSub">
+      <button type="button" data-sub="acinv" aria-selected="true"><i class="ti ti-file-dollar"></i> Customer invoice</button>
+      <button type="button" data-sub="acroy"><i class="ti ti-percentage"></i> Royalty fee</button>
+      <button type="button" data-sub="acdaily"><i class="ti ti-report-money"></i> Daily sale report</button>
+      <button type="button" data-sub="customers"><i class="ti ti-building"></i> Customers</button>
+      <button type="button" data-sub="otherinc"><i class="ti ti-coin"></i> Other income</button>
+      <button type="button" data-sub="invoices"><i class="ti ti-list-numbers"></i> Invoice log</button>
+    </nav>
+    <div class="inrow small" id="acRate" style="margin:4px 0 10px"></div>
+    <section id="v-acinv"></section><section id="v-acroy" hidden></section><section id="v-acdaily" hidden></section><section id="v-customers" hidden></section><section id="v-otherinc" hidden></section><section id="v-invoices" hidden></section>
+  </section>
+
   <!-- ============ IMPORT ============ -->
   <section id="v-import" hidden>
     <div class="panel">
@@ -469,8 +505,14 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
   var OFF = 7 * 3600e3;                     // Cambodia is UTC+7 all year
   var LS_TOK = "dor.token", LS_USER = "dor.username", LS_PRESET = "dor.preset";
   var ROLE_LABEL = { admin: "Admin", ops01: "Ops01", ops02: "Ops02" };
-  var CAN = { entry: ["admin", "ops01", "ops02"], kpi: ["admin", "ops01"], admin: ["admin"] };
-  function can(what) { return CAN[what].indexOf(S.role) >= 0; }
+  function roleLabel(r) { return ROLE_LABEL[r] || (String(r).charAt(0).toUpperCase() + String(r).slice(1)); }
+  var CAN = { entry: ["admin", "ops01", "ops02"], kpi: ["admin", "ops01"], acct: ["admin", "ops01"], admin: ["admin"] };
+  var AREAS = [["dash", "Dashboard"], ["faults", "Charger faults"], ["complaints", "Complaints"], ["incidents", "Incidents"], ["nonsys", "Non-system sales"], ["kpi", "Station KPI"], ["audit", "Audits"], ["caps", "CAP list"], ["inputs", "Bills, expenses & CSAT"], ["acct", "Accounting"], ["import", "Import sales"]];
+  var VIEW_ONLY = { dash: 1, kpi: 1 };
+  var KIND_AREA = { faults: "faults", complaints: "complaints", incidents: "incidents", nonsys: "nonsys", bills: "inputs", expenses: "inputs", csat: "inputs", caps: "caps", customers: "acct", otherinc: "acct", invoices: "acct" };
+  function lvl(area) { if (S.role === "admin") return 2; var p = S.data && S.data.perms; return p ? p[area] || 0 : 0; }
+  function can(what) { return what === "admin" ? S.role === "admin" : lvl(what) >= 1; }
+  function canEdit(area) { return lvl(area) >= 2; }
   var $ = function (id) { return document.getElementById(id); };
   var S = { token: "", username: "", user: "", role: "", data: null, cfg: null, sales: null, view: "dash", charts: {}, stationTable: "ops", busy: false };
 
@@ -542,7 +584,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     return { code: d[key], lines: l, text: l.join("\n") };
   }
   function buildCfg(d) {
-    var c = { thr: {}, compCats: [], partnerTypes: [], partnerHrs: 168, faultCats: [], channels: [], custTypes: [], incTypes: [], sev: [], general: {}, auditDoc: {}, auditSign: [], reportDoc: {},
+    var c = { thr: {}, compCats: [], partnerTypes: [], partnerHrs: 168, faultCats: [], channels: [], custTypes: [], incTypes: [], sev: [], general: {}, auditDoc: {}, auditSign: [], reportDoc: {}, invFrom: {}, dailySign: [], invTypes: {}, invStart: {},
       expCats: [], capStatus: [], capRisk: { High: 7, Medium: 14, Low: 30 }, kpiArea: {}, kpiBand: { green: 85, amber: 70 }, kpiPoints: { G: 100, A: 60, R: 0 } };
     d.settings.forEach(function (r) {
       var g = r[0], it = r[1];
@@ -562,6 +604,10 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       else if (g === "KPIArea") c.kpiArea[it] = +r[2] || 0;
       else if (g === "KPIBand") c.kpiBand[it.toLowerCase()] = +r[2];
       else if (g === "AuditDoc") c.auditDoc[it] = docVal(r[2]);
+      else if (g === "InvoiceType") c.invTypes[it] = { prefix: String(r[2] || "").trim(), due: r[3], vat: r[4] };
+      else if (g === "InvoiceStart") c.invStart[String(it).trim().toUpperCase()] = +r[2] || 1;
+      else if (g === "InvoiceFrom") c.invFrom[it] = r[2] === null || r[2] === undefined ? "" : String(r[2]);
+      else if (g === "DailySaleSign") c.dailySign.push({ role: it, name: String(r[2] || "").trim(), title: String(r[3] || "").trim() });
       else if (g === "ReportDoc") c.reportDoc[it] = { code: String(r[2] || "").trim(), rev: String(r[3] === undefined ? "" : r[3]).trim(), revDate: docVal(r[4]) };
       else if (g === "ReportDocEffective") (c.reportDocEff = c.reportDocEff || {})[it] = docVal(r[2]);
       else if (g === "AuditSign") c.auditSign.push({ role: it, name: String(r[2] || "").trim(), title: String(r[3] || "").trim() });
@@ -1133,6 +1179,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       fields: [
         { k: "date", l: "Sale date", t: "dt", req: 1, now: 1 }, { k: "station", l: "Station", t: "station", req: 1 }, { k: "charger", l: "Charger", t: "charger" },
         { k: "custType", l: "Customer type", t: "select", opts: function () { return S.cfg.custTypes; }, req: 1 },
+        { k: "company", l: "Company", t: "company", hint: "Needed to put this sale on a customer invoice — as in the Customers list" },
         { k: "chgStatus", l: "Charging status", t: "select", opts: function () { return ["Succeeded", "Failed", "Canceled"]; }, req: 1 },
         { k: "kwh", l: "Energy (kWh)", t: "num", req: 1 }, { k: "revenue", l: "Revenue (KHR)", t: "num", req: 1 }, { k: "cost", l: "Cost (KHR)", t: "num" },
         { k: "ref", l: "Reference", t: "text", hint: "Receipt or note number" }, { k: "notes", l: "Notes", t: "long", w: 3 }
@@ -1151,11 +1198,11 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     var K = KINDS[kind], el = $("v-" + kind);
     LF[kind] = LF[kind] || { station: "*", status: "open", from: "", to: "", q: "" };
     var f = LF[kind];
-    var simple = kind === "nonsys" || kind === "bills" || kind === "expenses" || kind === "csat";
+    var simple = kind === "nonsys" || kind === "bills" || kind === "expenses" || kind === "csat" || kind === "customers" || kind === "otherinc" || kind === "invoices";
     if (simple && f.status === "open") f.status = "all";
     var statusOpts = simple ? [["all", "All active"], ["void", "Voided"]] :
       [["open", "Open"], ["overdue", "Overdue / over alert"], ["closed", "Closed"], ["all", "All active"], ["void", "Voided"]];
-    el.innerHTML = '<div class="section-title"><h2>' + esc(K.plural) + '</h2><div class="inrow noprint"><button class="btn ghost" type="button" data-csv="' + kind + '">Download CSV</button><button class="btn" type="button" data-new="' + kind + '">+ New ' + esc(K.label.toLowerCase()) + "</button></div></div>" +
+    el.innerHTML = '<div class="section-title"><h2>' + esc(K.plural) + '</h2><div class="inrow noprint"><button class="btn ghost" type="button" data-csv="' + kind + '">Download CSV</button>' + (K.noNew || !canEdit(KIND_AREA[kind]) ? "" : '<button class="btn" type="button" data-new="' + kind + '">+ New ' + esc(K.label.toLowerCase()) + "</button>") + "</div></div>" +
       '<p class="muted" style="margin-top:0">' + esc(K.intro) + "</p>" +
       '<div class="panel tools noprint"><label class="f"><span>Station</span><select data-lf="station">' + stationOptions(true) + '</select></label>' +
       '<label class="f"><span>Status</span><select data-lf="status">' + statusOpts.map(function (o) { return '<option value="' + o[0] + '">' + o[1] + "</option>"; }).join("") + "</select></label>" +
@@ -1202,14 +1249,22 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       var i = incidentInfo(r, now); return [esc(r.id), esc(stName(r.station)), fDT(r.occurred), '<span class="chip ' + sevChip(r.severity) + '">' + esc(r.severity) + "</span>", esc(r.type), '<div class="desc">' + esc(r.description) + "</div>", n0(r.injuries || 0), i.onTime === "Y" ? '<span class="chip ok">Yes</span>' : i.onTime === "N" ? '<span class="chip bad">No</span>' : "—", '<span class="chip ' + i.chip + '">' + esc(i.label) + "</span>"]; } };
     if (kind === "caps") return { head: ["CAP ID", "Station", "Audit", "Item", "Non-conformance", "Risk", "Responsible", "Target", "CAP status", "Follow-up"], row: function (r) {
       var i = capInfo(r); return [esc(r.id), esc(stName(r.station)), esc(r.auditId || "—") + '<div class="small muted">' + fDate(r.auditDate) + "</div>", esc(r.item), '<div class="desc">' + esc(r.nonconf) + "</div>", '<span class="chip ' + riskChip(r.risk) + '">' + esc(r.risk) + "</span>", esc(r.responsible), r.target ? fDate(r.target) : "—", esc(r.capStatus), '<span class="chip ' + i.chip + '">' + esc(i.label) + "</span>"]; } };
+    if (kind === "customers") return { head: ["ID", "Company (export)", "Bill-to name", "Phone", "Signatory", "Driver", "Customer", "Customer App", "UnifyCharge App"], row: function (r) {
+      var p = function (v) { return '<span class="num">' + (v === "" || v === undefined ? "—" : n0(v)) + "</span>"; };
+      return [esc(r.id), esc(r.company), esc(r.billName), esc(r.phone), esc(r.contact + (r.position ? ", " + r.position : "")), p(r.pDriver), p(r.pCustomer), p(r.pApp), p(r.pUnify)]; } };
+    if (kind === "otherinc") return { head: ["ID", "Date", "Station", "Description", "Amount (KHR)", "Reference", "Notes"], row: function (r) {
+      return [esc(r.id), fDate(r.date), esc(stName(r.station)), esc(r.description), '<span class="num">' + n0(r.amount) + "</span>", esc(r.ref), '<div class="desc">' + esc(r.notes) + "</div>"]; } };
+    if (kind === "invoices") return { head: ["Invoice no.", "Type", "Invoice date", "Due date", "Bill to (company)", "Stations", "Period", "Subtotal", "VAT", "Total (KHR)", "Issued by"], row: function (r) {
+      var nm = function (v) { return '<span class="num">' + n0(v) + "</span>"; };
+      return [esc(r.id), esc(r.docType), fDate(r.date), fDate(r.due), esc(r.company), esc(r.stations), fDate(r.from) + " – " + fDate(r.to), nm(r.amount), nm(r.vat), "<b>" + nm(r.total) + "</b>", esc(r.createdBy)]; } };
     if (kind === "bills") return { head: ["ID", "Station", "Billing month", "Invoice", "Invoice date", "kWh billed", "Amount (USD)", "USD / kWh", "Supplier"], row: function (r) {
       return [esc(r.id), esc(stName(r.station)), esc(r.month), esc(r.invoice), fDate(r.invoiceDate), '<span class="num">' + n0(r.kwh) + "</span>", '<span class="num">' + n0(r.amount) + "</span>", '<span class="num">' + (r.kwh ? (r.amount / r.kwh).toFixed(3) : "—") + "</span>", esc(r.supplier)]; } };
     if (kind === "expenses") return { head: ["ID", "Month", "Station", "Category", "Amount (USD)", "Vendor / payee", "Reference", "Notes"], row: function (r) {
       return [esc(r.id), esc(r.month), esc(stName(r.station)), esc(r.category), '<span class="num">' + n0(r.amount) + "</span>", esc(r.vendor), esc(r.ref), '<div class="desc">' + esc(r.notes) + "</div>"]; } };
     if (kind === "csat") return { head: ["ID", "Station", "Survey date", "Responses", "Satisfied", "CSAT", "Notes"], row: function (r) {
       return [esc(r.id), esc(stName(r.station)), fDate(r.date), '<span class="num">' + n0(r.responses) + "</span>", '<span class="num">' + n0(r.satisfied) + "</span>", '<span class="num">' + pct(div(+r.satisfied, +r.responses)) + "</span>", '<div class="desc">' + esc(r.notes) + "</div>"]; } };
-    return { head: ["ID", "Sale date", "Station", "Charger", "Customer type", "Status", "kWh", "Revenue (KHR)", "Notes"], row: function (r) {
-      return [esc(r.id), fDT(r.date), esc(stName(r.station)), esc(r.charger), esc(r.custType), esc(r.chgStatus), '<span class="num">' + n1(r.kwh) + "</span>", '<span class="num">' + n0(r.revenue) + "</span>", '<div class="desc">' + esc(r.notes) + "</div>"]; } };
+    return { head: ["ID", "Sale date", "Station", "Charger", "Customer type", "Company", "Status", "kWh", "Revenue (KHR)", "Notes"], row: function (r) {
+      return [esc(r.id), fDT(r.date), esc(stName(r.station)), esc(r.charger), esc(r.custType), esc(r.company || ""), esc(r.chgStatus), '<span class="num">' + n1(r.kwh) + "</span>", '<span class="num">' + n0(r.revenue) + "</span>", '<div class="desc">' + esc(r.notes) + "</div>"]; } };
   }
 
   function renderList(kind) {
@@ -1248,12 +1303,14 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       var cls = "f" + (f.req ? " req" : "") + (f.w === 3 ? " w3" : f.w === 2 ? " w2" : "");
       var input;
       if (f.t === "station") input = '<select name="' + f.k + '">' + stationOptions(false) + "</select>";
+      else if (f.t === "stationOpt") input = '<select name="' + f.k + '"><option value="">— none —</option>' + stationOptions(false) + "</select>";
       else if (f.t === "select") { var o = f.opts().slice(); if (v && o.indexOf(v) < 0) o.push(v); input = '<select name="' + f.k + '"><option value="">Choose…</option>' + o.map(function (x) { return '<option value="' + esc(x) + '">' + esc(x) + "</option>"; }).join("") + "</select>"; }
       else if (f.t === "dt") input = '<div class="inrow"><input type="datetime-local" name="' + f.k + '" value="' + esc(String(v).replace(" ", "T").slice(0, 16)) + '">' + (f.now ? '<button type="button" class="btn ghost small" data-now="' + f.k + '">Now</button>' : "") + "</div>";
       else if (f.t === "date") input = '<input type="date" name="' + f.k + '" value="' + esc(v) + '">';
       else if (f.t === "month") input = '<input type="month" name="' + f.k + '" value="' + esc(v) + '">';
       else if (f.t === "long") input = '<textarea name="' + f.k + '" maxlength="3000">' + esc(v) + "</textarea>";
       else if (f.t === "num" || f.t === "int") input = '<input type="number" min="0" step="' + (f.t === "int" ? "1" : "any") + '" name="' + f.k + '" value="' + esc(v) + '">';
+      else if (f.t === "company") input = '<input name="' + f.k + '" list="dlCompany" value="' + esc(v) + '" maxlength="120"><datalist id="dlCompany">' + knownCompanies().map(function (c) { return '<option value="' + esc(c) + '">'; }).join("") + "</datalist>";
       else if (f.t === "charger") input = '<input name="' + f.k + '" list="dlCharger" value="' + esc(v) + '" maxlength="60"><datalist id="dlCharger"></datalist>';
       else if (f.t === "linkI" || f.t === "linkF") input = '<input name="' + f.k + '" list="dl' + f.t + '" value="' + esc(v) + '" maxlength="20" placeholder="' + (f.t === "linkI" ? "I-0001" : "F-0001") + '"><datalist id="dl' + f.t + '"></datalist>';
       else if (f.t === "info") { html += '<div class="' + cls + '" data-info="' + f.k + '"><span class="hint"></span></div>'; return; }
@@ -1262,7 +1319,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     });
     $("recFields").innerHTML = html;
     var form = $("formRec");
-    K.fields.forEach(function (f) { if ((f.t === "station" || f.t === "select") && rec) form.elements[f.k].value = rec[f.k] || ""; });
+    K.fields.forEach(function (f) { if ((f.t === "station" || f.t === "stationOpt" || f.t === "select") && rec) form.elements[f.k].value = rec[f.k] || ""; });
     if (!rec && kind === "nonsys") { form.elements.custType.value = S.cfg.custTypes[0] || ""; form.elements.chgStatus.value = "Succeeded"; }
     if (!rec && kind === "incidents") { form.elements.damage.value = "No"; form.elements.impact.value = "None"; }
     if (!rec && kind === "caps") { form.elements.capStatus.value = "Open"; form.elements.raised.value = today(); }
@@ -1276,8 +1333,12 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       if (kind === "faults" && !rec.end) left += '<button class="btn ghost" type="button" data-quick="end">Back in service now</button>';
       if (kind === "complaints" && !rec.resolved) left += '<button class="btn ghost" type="button" data-quick="resolved">Resolved now</button>';
     }
+    if (rec && kind === "invoices") left += '<button class="btn ghost" type="button" id="recInvDl">Print / save PDF again</button>';
     $("recLeft").innerHTML = left;
-    $("recSave").disabled = !!(rec && !active(rec) && S.role !== "admin");
+    if ($("recInvDl")) $("recInvDl").onclick = function () { $("dlgRec").close(); reprintInvoice(rec); };
+    var ro = !!K.noSave || !canEdit(KIND_AREA[kind]);
+    $("recSave").disabled = !!(rec && !active(rec) && S.role !== "admin") || ro;
+    $("recSave").hidden = ro;
     refreshDynamic();
     if (!$("dlgRec").open) $("dlgRec").showModal();
   }
@@ -1358,7 +1419,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
   }
   function afterDataChange() {
     updateCounts();
-    if (S.view === "dash") renderDash(); else if (S.view === "inputs") renderList(S.sub || "bills"); else if (KINDS[S.view]) renderList(S.view);
+    if (S.view === "dash") renderDash(); else if (S.view === "inputs") renderList(S.sub || "bills"); else if (S.view === "acct") { var as = S.acSub || "acinv"; if (KINDS[as]) renderList(as); else showAcSub(as); } else if (KINDS[S.view]) renderList(S.view);
     else if (S.view === "audit") { if (AU.editing) drawFindings(); else renderAuditList(); }
     else if (S.view === "kpi" && S.lastKpi) drawKpi();
   }
@@ -1458,7 +1519,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     if (!found) throw new Error("No Sale Order table found. The file needs the export headers “SO Code”, “SO Date”, “Station” and “Charging Status”.");
     var h = found.h, col = function (want, starts) { for (var i = 0; i < h.length; i++) if (starts ? h[i].indexOf(want) === 0 : h[i] === want) return i; return -1; };
     var C = { code: col("so code"), txn: col("transaction id"), date: col("so date"), type: col("type"), station: col("station"), charger: col("charger"), status: col("charging status"),
-      kwh: col("power delivered", true), cost: col("costing price", true), rev: col("total payment", true) };
+      kwh: col("power delivered", true), cost: col("costing price", true), rev: col("total payment", true), company: col("company name"), dur: col("duration") };
     ["date", "station", "status", "kwh", "rev"].forEach(function (k) { if (C[k] < 0) throw new Error("Column for " + k + " is missing in the export (sheet " + found.sheet + ")."); });
     var map = {}; S.data.stationMap.forEach(function (m) { map[norm(m[0])] = m[1]; });
     var daily = {}, hourly = {}, unknown = {}, seen = {}, chargers = {}, dates = {}, orders = 0, revenue = 0, dupes = 0, bad = 0;
@@ -1477,9 +1538,10 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       var kwh = +r[C.kwh] || 0, rev = +r[C.rev] || 0, cost = C.cost >= 0 ? +r[C.cost] || 0 : 0;
       var skey = sid || ("?" + stRaw);
       if (!sid) { var u = unknown[stRaw] || (unknown[stRaw] = { n: 0, rev: 0 }); u.n++; u.rev += rev; }
-      var k = d + "|" + skey + "|" + ch + "|" + ct, a = daily[k] || (daily[k] = [d, skey, ch, ct, 0, 0, 0, 0, 0, 0, 0]);
+      var co = C.company >= 0 ? String(r[C.company] || "").trim().slice(0, 120) : "", du = C.dur >= 0 ? +r[C.dur] || 0 : 0;
+      var k = d + "|" + skey + "|" + ch + "|" + ct + "|" + co, a = daily[k] || (daily[k] = [d, skey, ch, ct, 0, 0, 0, 0, 0, 0, 0, co, 0]);
       a[4]++; if (stt === "succeeded") a[5]++; else if (stt === "failed") a[6]++; else if (stt === "canceled" || stt === "cancelled") a[7]++;
-      a[8] += kwh; a[9] += rev; a[10] += cost;
+      a[8] += kwh; a[9] += rev; a[10] += cost; a[12] += du;
       var hk = d + "|" + skey + "|" + hr; hourly[hk] = (hourly[hk] || 0) + 1;
       if (ch) chargers[skey + "|" + ch] = 1;
       var dd = dates[d] || (dates[d] = { n: 0, rev: 0 }); dd.n++; dd.rev += rev;
@@ -1524,9 +1586,9 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       var guess = S.data.stations.filter(function (st) { return norm(name).indexOf(norm(st.short)) >= 0; })[0];
       if (guess) s.value = guess.id; else s.value = "-";
     });
-    var upd = function () { var n = $("impPreview").querySelectorAll("[data-date]:checked").length; $("impSel").textContent = n + " of " + ds.length + " dates ticked" + (risky ? " · " + risky + " flagged" : ""); $("impGo").disabled = !n || !can("entry"); };
+    var upd = function () { var n = $("impPreview").querySelectorAll("[data-date]:checked").length; $("impSel").textContent = n + " of " + ds.length + " dates ticked" + (risky ? " · " + risky + " flagged" : ""); $("impGo").disabled = !n || !canEdit("import"); };
     $("impPreview").addEventListener("change", upd); upd();
-    if (!can("entry")) $("impSel").textContent += " · your role can't import";
+    if (!canEdit("import")) $("impSel").textContent += " · your role can't import";
   }
   function runImport() {
     var sel = {}; $("impPreview").querySelectorAll("[data-date]:checked").forEach(function (c) { sel[c.getAttribute("data-date")] = 1; });
@@ -1537,13 +1599,14 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     var daily = {}, hourly = {}, chargers = {};
     Object.keys(IMP.daily).forEach(function (k) {
       var a = IMP.daily[k], s = fix(a[1]); if (!s || !sel[a[0]]) return;
-      var nk = a[0] + "|" + s + "|" + a[2] + "|" + a[3], b = daily[nk] || (daily[nk] = [a[0], s, a[2], a[3], 0, 0, 0, 0, 0, 0, 0]);
+      var nk = a[0] + "|" + s + "|" + a[2] + "|" + a[3] + "|" + a[11], b = daily[nk] || (daily[nk] = [a[0], s, a[2], a[3], 0, 0, 0, 0, 0, 0, 0, a[11], 0]);
       for (var i = 4; i <= 10; i++) b[i] += a[i];
+      b[12] += a[12];
     });
     Object.keys(IMP.hourly).forEach(function (k) { var p = k.split("|"), s = fix(p[1]); if (!s || !sel[p[0]]) return; var nk = p[0] + "|" + s + "|" + p[2]; hourly[nk] = (hourly[nk] || 0) + IMP.hourly[k]; });
     Object.keys(IMP.chargers).forEach(function (k) { var p = k.split("|"), s = fix(p[0]); if (s) chargers[s + "|" + p[1]] = [s, p[1]]; });
     var dates = Object.keys(sel).sort();
-    var dRows = Object.keys(daily).map(function (k) { var a = daily[k]; a[8] = Math.round(a[8] * 1000) / 1000; a[9] = Math.round(a[9] * 100) / 100; a[10] = Math.round(a[10] * 100) / 100; return a; });
+    var dRows = Object.keys(daily).map(function (k) { var a = daily[k]; a[8] = Math.round(a[8] * 1000) / 1000; a[9] = Math.round(a[9] * 100) / 100; a[10] = Math.round(a[10] * 100) / 100; a[12] = Math.round(a[12] * 100) / 100; return a; });
     var hRows = Object.keys(hourly).map(function (k) { var p = k.split("|"); return [p[0], p[1], +p[2], hourly[k]]; });
     var chunks = []; for (var i = 0; i < dates.length; i += 20) chunks.push(dates.slice(i, i + 20));
     var orders = 0, revenue = 0; dates.forEach(function (d) { orders += IMP.dates[d].n; revenue += IMP.dates[d].rev; });
@@ -1579,7 +1642,10 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     el.innerHTML = '<div class="section-title"><h2>Users &amp; settings</h2>' + (SHEET_URL ? '<a class="btn ghost" target="_blank" rel="noopener" href="' + esc(SHEET_URL) + '">Open the Google Sheet</a>' : "") + "</div>" +
       '<p class="muted" style="margin-top:0">These lists are read from the Google Sheet. To change them, edit the <b>Stations</b>, <b>StationMap</b>, <b>Chargers</b> or <b>Settings</b> tab in the Sheet, then select Refresh here.</p>' +
       '<div class="panel accent"><div class="section-title"><h3 style="margin:0"><i class="ti ti-users"></i> Users</h3><button class="btn" type="button" id="btnAddUser"><i class="ti ti-user-plus"></i> Add user</button></div>' +
-      '<p class="small muted" style="margin-top:0"><b>Admin</b> — everything. <b>Ops01</b> — dashboard, data entry, Station KPI, audits, CAP list, bills, expenses and CSAT. <b>Ops02</b> — dashboard and data entry (faults, complaints, incidents, non-system sales). Voiding records, importing sales, backups and users are Admin only. Switching a user off signs them out at once.</p><div class="tbl-wrap" id="usersT"></div></div>' +
+      '<p class="small muted" style="margin-top:0">What each role can see and change is set in <b>Roles &amp; permissions</b> below. Admin can do everything; voiding records, verifying audits, backups and users stay Admin only. Switching a user off signs them out at once.</p><div class="tbl-wrap" id="usersT"></div></div>' +
+      '<div class="panel" id="permP" style="margin-top:16px"><div class="section-title"><h3 style="margin:0"><i class="ti ti-lock-access"></i> Roles &amp; permissions</h3><div class="inrow"><button class="btn ghost" type="button" id="permAdd"><i class="ti ti-plus"></i> Add role</button><button class="btn ghost" type="button" id="permReset">Undo changes</button><button class="btn" type="button" id="permSave">Save permissions</button></div></div>' +
+      '<p class="small muted" style="margin-top:0"><b>View</b> shows the tab; <b>Edit</b> also lets the role add and change records there (Edit includes View). Dashboard and Station KPI are reports, so they only have View. Changes apply when each person\'s page next refreshes (within 3 minutes, or at once with Refresh).</p>' +
+      '<div class="tbl-wrap" id="permT"></div><p class="small" id="permMsg" style="margin:8px 0 0"></p></div>' +
       '<div class="grid2" style="margin-top:16px"><div class="panel"><h3>Data safety</h3><p style="margin-top:0">Last backup: <b>' + (lb ? esc(fDT(lb.at)) + "</b> — " + esc(lb.name) : "none yet</b>") + "</p>" +
       '<p class="small muted">Backups are full copies of the Sheet in the “Daily Ops DB – Backups” Drive folder. A backup also runs automatically before an import when the last one is over 24 h old, and weekly once the trigger is installed (see guide). Voided records stay in the Sheet; every create, edit, void and import is written to the Audit_Log tab.</p>' +
       '<p class="small" style="margin:0 0 8px"><b>Sales history:</b> the database keeps the latest ' + (d.archiveYears || 3) + ' years of system sales (the dashboard and KPI can show any period in that window). Older sales move — never deleted — into one archive spreadsheet per year in the <b>Daily Ops DB – Sales Archive</b> folder, checked before anything leaves the database. Hour-by-hour sales are kept for the latest 13 months; older months keep monthly totals per station, weekday and hour for the peak-hour heat map, and the full detail goes to the archive. ' +
@@ -1605,6 +1671,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     simpleTable("tIT", ["Incident type"], c.incTypes.map(function (x) { return [esc(x)]; }), 9);
     USERS = null; drawUsers();
     $("btnAddUser").onclick = function () { openUser(null); };
+    permsUI();
     var bb = $("btnBackup");
     if (bb) bb.onclick = function () { bb.disabled = true; bb.textContent = "Backing up…"; api({ action: "backup" }).then(function (j) { S.data.lastBackup = j.backup; renderAdmin(); setSync("ok", "Backup done " + timeNow()); }).catch(function (e) { bb.disabled = false; bb.textContent = "Back up now"; notice(esc(errText(e)), "bad"); }); };
   }
@@ -1667,11 +1734,506 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       { k: "evidence", l: "Evidence / comments", t: "long", w: 3 }
     ] };
 
+  /* =================== ACCOUNTING: customer invoice + daily sale report =================== */
+  var VET_LOGO_KH = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAsAAAACmCAYAAADUHTmBAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAIdUAACHVAQSctJ0AACU9SURBVHhe7d1/rGRnfR7wMWV378yAaWHXorTQNiVUGINTEMF7Ddl1IMGhJvmjOAKMvXtnZt02qVqpVSjedeOqVdNGSUoD2FaqkBY1hICaPxpVTdSqoqoahVYoKhFNVZvU4HrvzN1dbFJ+24TtfM8+5+x73vc5Z95z5j1zZ+59PtKDduf7vO+Ze+6516+XXW9PRERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERETS2Tv3gqtdBNuv3F/+pTv27dr7bW/c32Ofi8OYD/3VNz130+0PXj3sOb79wE/j8RARERHDDg6pg0utxDs/derQHH5nk+G32f0+rHnjHT9JD4DKteCxEREROdyevu/I69hBoovgkp2yw+8tD5/6H/jpgcTu7WEPO+wpPHiMREREDi92mOgyuGwn7PD72kd+8ED+A57dS0UH3zbBIyUiInJ4sUNFl/l/O70TuHRSdvi99dE7rr7mw295O17aeBdHg3PsHio6+C6T49sPfBGPmIiIyOHFDhhdBpdNxg6/B+lXf/cm/Z9k9025FnaoU5oFj5qIiMjhxQ4ZXQeXXpp3+L3h2qubi90r5XrYYU5pHjxukpj7rOIlEZF94X4/KjLu/wOMJUdvVIfBZZfiHn43/Vd/2T1SrufJ8YvoQU5pFzx2Emk6GjwyHQ9+Bz+t5D6z08nwQP9hXDlY3GfXz3QyeAY12RDs8+gGNTGzyeAKu0ldBpduJT/8vu6RO3T4PQRhhzilffDoSY2L7+kdZ8+im91R/ydQz8wPvd9x53hZZK25z+yiYImsMfZ584Oq5NhN6jK4bGP54XfTf/V3b9Jf+b90bGLY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";
+  KINDS.customers = { label: "Customer", plural: "Customers (invoice addresses and agreed prices)", list: "customers", dateField: "company", group: "acct", noStation: true,
+    intro: "One row per company you invoice, or per station owner who pays royalty. For energy invoices, “Company” must match the Company Name column of the Sale Order export exactly and the agreed prices are KHR per kWh per customer type. For royalty, set the Royalty station and Royalty %.",
+    fields: [
+      { k: "company", l: "Company (as in export)", t: "company", req: 1, w: 2 }, { k: "billName", l: "Bill-to name", t: "text", req: 1 },
+      { k: "address", l: "Address", t: "long", w: 3 }, { k: "phone", l: "Phone", t: "text" }, { k: "contact", l: "Signatory name", t: "text" }, { k: "position", l: "Signatory position", t: "text" },
+      { k: "pDriver", l: "Price — Driver (KHR/kWh)", t: "num" }, { k: "pCustomer", l: "Price — Customer (KHR/kWh)", t: "num" }, { k: "pApp", l: "Price — Customer App (KHR/kWh)", t: "num" },
+      { k: "pUnify", l: "Price — UnifyCharge App (KHR/kWh)", t: "num" },
+      { k: "royStation", l: "Royalty station", t: "stationOpt", hint: "Only for a station owner who pays royalty" }, { k: "royPct", l: "Royalty % of station revenue", t: "num", hint: "e.g. 5" },
+      { k: "notes", l: "Notes", t: "long", w: 3 }
+    ] };
+  KINDS.otherinc = { label: "Other income", plural: "Other income", list: "otherinc", dateField: "date", group: "acct",
+    intro: "Income at a station that is not charging (e.g. parking, rental, shop). It appears in section 3 of the Daily Sale report.",
+    fields: [
+      { k: "date", l: "Date", t: "date", req: 1 }, { k: "station", l: "Station", t: "station", req: 1 }, { k: "description", l: "Description", t: "text", req: 1, w: 2 },
+      { k: "amount", l: "Amount (KHR)", t: "num", req: 1 }, { k: "ref", l: "Reference", t: "text", hint: "Receipt or voucher no." }, { k: "notes", l: "Notes", t: "long", w: 3 }
+    ] };
+  KINDS.invoices = { label: "Invoice", plural: "Invoice log", list: "invoices", dateField: "date", group: "acct", noStation: true, noSave: true, noNew: true,
+    intro: "Every invoice issued from Customer invoice and Royalty fee. Numbers run per series (e.g. VET-HQ-2611-00047, VET-ROY-2611-00003). Open one to print it again; an Admin can void a wrong one.",
+    fields: [
+      { k: "docType", l: "Type", t: "text" }, { k: "date", l: "Invoice date", t: "date" }, { k: "due", l: "Due date", t: "date" }, { k: "company", l: "Company", t: "text", w: 2 }, { k: "custType", l: "Customer type", t: "text" },
+      { k: "stations", l: "Stations", t: "text", w: 2 }, { k: "from", l: "Period from", t: "date" }, { k: "to", l: "Period to", t: "date" }, { k: "kwhSys", l: "kWh (system)", t: "num" }, { k: "kwhNs", l: "kWh (non-system)", t: "num" },
+      { k: "amount", l: "Subtotal (KHR)", t: "num" }, { k: "vat", l: "VAT (KHR)", t: "num" }, { k: "total", l: "Total (KHR)", t: "num" }, { k: "ref", l: "Reference", t: "text" }
+    ] };
+  var TYPE_PRICE = { "Driver": "pDriver", "Customer": "pCustomer", "Customer App": "pApp", "UnifyCharge App": "pUnify" };
+  var TYPE_LABEL = { "Driver": "VET Driver", "Customer": "VET Customers", "Customer App": "VET Customers App", "UnifyCharge App": "UnifyCharge App" };
+  function lc(s) { return String(s || "").trim().toLowerCase(); }
+  function knownCompanies() {
+    var set = {};
+    (S.sales && S.sales.daily || []).forEach(function (r) { if (r[11]) set[r[11]] = 1; });
+    (S.data.nonsys || []).forEach(function (r) { if (r.company) set[r.company] = 1; });
+    (S.data.customers || []).forEach(function (r) { if (r.company) set[r.company] = 1; });
+    return Object.keys(set).sort();
+  }
+  function invFrom() {
+    var g = S.cfg.invFrom || {};
+    var v = function (k, ph) { return g[k] !== undefined && String(g[k]).trim() !== "" ? String(g[k]).trim() : ph; };
+    return { name: v("Company name", "[Our company name]"), address: v("Address", "[Address]"), phone: v("Phone", ""),
+      bank: v("Bank", "[Bank]"), accName: v("Account name", "[Account name]"), accNo: v("Account number", "[Account number]"),
+      email: v("Email", ""), signName: v("Signatory name", ""), signPos: v("Signatory position", ""), note: v("Payment note", "Payment is due within 30 days of receiving this invoice.") };
+  }
+  function acctStationOpts() {
+    return '<option value="*">All stations</option><option value="type:VET-owned">VET-owned stations</option><option value="type:Franchised (PNP)">Franchised (PNP) stations</option><option value="type:HSP">Host-site (HSP) stations</option>' +
+      S.data.stations.map(function (s) { return '<option value="' + esc(s.id) + '">' + esc(s.id + " · " + s.short) + "</option>"; }).join("");
+  }
+  function drawRateBar() {
+    var el = $("acRate"); if (!el) return;
+    el.innerHTML = '<i class="ti ti-currency-dollar"></i> Exchange rate: <b>' + n0(S.cfg.khrUsd) + " KHR/USD</b>" +
+      (canEdit("acct") ? ' <button class="btn ghost small" type="button" id="rateEdit">Change</button>' : "") +
+      '<span class="muted"> — used for “Total in USD” on new invoices and for every USD figure on the Dashboard and Station KPI. Invoices already issued keep their own rate.</span>';
+    if ($("rateEdit")) $("rateEdit").onclick = function () {
+      var v = prompt("New exchange rate (KHR per 1 USD):", String(S.cfg.khrUsd)); if (v === null) return;
+      v = +String(v).replace(/[, ]/g, "");
+      if (!(v >= 1000 && v <= 10000)) { alert("Enter a rate between 1,000 and 10,000."); return; }
+      setSync("busy", "Saving exchange rate…");
+      api({ action: "setRate", rate: v }).then(function (j) {
+        S.cfg.khrUsd = j.rate;
+        (S.data.settings || []).forEach(function (r) { if (r[0] === "General" && r[1] === "KHR per USD") r[2] = j.rate; });
+        S.cfg.general["KHR per USD"] = j.rate; KS.mcache = {};
+        setSync("ok", "Exchange rate " + n0(j.rate) + " KHR/USD saved"); showAcSub(S.acSub || "acinv");
+      }).catch(function (e) { handleError(e, "Saving exchange rate"); });
+    };
+  }
+  function showAcSub(sub) {
+    S.acSub = sub; drawRateBar();
+    document.querySelectorAll("#acSub [data-sub]").forEach(function (b) { b.setAttribute("aria-selected", b.getAttribute("data-sub") === sub ? "true" : "false"); });
+    ["acinv", "acroy", "acdaily", "customers", "otherinc", "invoices"].forEach(function (x) { $("v-" + x).hidden = x !== sub; });
+    if (sub === "acinv") renderInvoiceTool(); else if (sub === "acroy") renderRoyaltyTool(); else if (sub === "acdaily") renderDailyTool(); else buildListView(sub);
+  }
+
+  /* ---------- customer invoice ---------- */
+  var INV = null;
+  function renderInvoiceTool() {
+    var el = $("v-acinv");
+    if (!el.querySelector("#ivFrom")) {
+      var lm = presetRange("lastmonth");
+      el.innerHTML = '<div class="section-title"><h2>Customer invoice</h2></div>' +
+        '<p class="muted" style="margin-top:0">Bills a company for the energy its drivers or customers used: kWh from system sales (by Company Name in the Sale Order export) and from non-system sales recorded for that company, × the agreed price per kWh in <b>Customers</b>. Our company and bank details, the invoice series, due days and VAT come from the Settings tab (InvoiceFrom, InvoiceType).</p>' +
+        '<div class="panel tools"><label class="f"><span>Period from</span><input type="date" id="ivFrom"></label><label class="f"><span>Period to</span><input type="date" id="ivTo"></label>' +
+        '<label class="f"><span>Company</span><select id="ivCo"></select></label><label class="f"><span>Customer type</span><select id="ivType"></select></label>' +
+        '<label class="f"><span>Stations</span><select id="ivSt">' + acctStationOpts() + '</select></label><label class="f"><span>Invoice date</span><input type="date" id="ivDate"></label>' +
+        '<label class="f grow"><span>Note on the invoice (optional)</span><input id="ivNote" maxlength="300"></label></div>' +
+        '<div id="ivOut" style="margin-top:12px"></div>';
+      $("ivFrom").value = lm[0]; $("ivTo").value = lm[1]; $("ivDate").value = today();
+      ["ivFrom", "ivTo", "ivCo", "ivType", "ivSt", "ivDate", "ivNote"].forEach(function (id) { $(id).addEventListener("change", drawInvoice); });
+      el.addEventListener("click", function (ev) {
+        if (ev.target.closest("#ivDraft")) invoicePrint(false);
+        if (ev.target.closest("#ivIssue")) invoicePrint(true);
+      });
+    }
+    var cur = $("ivCo").value, custs = (S.data.customers || []).filter(active).sort(function (a, b) { return a.billName.localeCompare(b.billName); });
+    $("ivCo").innerHTML = custs.length ? custs.map(function (c) { return '<option value="' + esc(c.id) + '">' + esc(c.billName + " — " + c.company) + "</option>"; }).join("") : '<option value="">Add a customer first</option>';
+    if (cur) $("ivCo").value = cur;
+    var ct = $("ivType").value;
+    $("ivType").innerHTML = '<option value="*">All customer types</option>' + S.cfg.custTypes.map(function (t) { return '<option value="' + esc(t) + '">' + esc(t) + "</option>"; }).join("");
+    if (ct) $("ivType").value = ct;
+    drawInvoice();
+  }
+  function invoiceCompute(o) {
+    var cust = (S.data.customers || []).filter(function (c) { return c.id === o.custId; })[0];
+    var ids = {}; kpiIds(o.st).forEach(function (id) { ids[id] = 1; });
+    var co = cust ? lc(cust.company) : "", byT = {}, nCo = 0, anyCompany = false;
+    var want = function (t) { return o.type === "*" || t === o.type; };
+    (S.sales.daily || []).forEach(function (r) {
+      if (r[0] < o.from || r[0] > o.to || !ids[r[1]]) return;
+      if (r[11]) anyCompany = true;
+      if (!cust || lc(r[11]) !== co || !want(r[3])) return;
+      var b = byT[r[3]] || (byT[r[3]] = { sys: 0, ns: 0, ses: 0 }); b.sys += +r[8] || 0; b.ses += +r[4] || 0; nCo++;
+    });
+    (S.data.nonsys || []).forEach(function (r) {
+      var d = String(r.date).slice(0, 10);
+      if (!active(r) || d < o.from || d > o.to || !ids[r.station] || !cust || lc(r.company) !== co || !want(r.custType)) return;
+      if (lc(r.chgStatus) && lc(r.chgStatus) !== "succeeded") return;
+      var b = byT[r.custType] || (byT[r.custType] = { sys: 0, ns: 0, ses: 0 }); b.ns += +r.kwh || 0;
+    });
+    var order = S.cfg.custTypes.concat(Object.keys(byT).filter(function (t) { return S.cfg.custTypes.indexOf(t) < 0; }));
+    var lines = [], warn = [];
+    order.forEach(function (t) {
+      var b = byT[t]; if (!b) return;
+      var pk = TYPE_PRICE[t], price = cust && pk && cust[pk] !== "" ? +cust[pk] : null;
+      if (price === null) warn.push("No agreed price for <b>" + esc(t) + "</b> in this customer's record — the line is priced at 0.");
+      var lab = "Consumption by " + (TYPE_LABEL[t] || t);
+      if (b.sys > 0) lines.push({ desc: lab + " (System)", price: price || 0, kwh: Math.round(b.sys * 1000) / 1000, type: t });
+      if (b.ns > 0) lines.push({ desc: lab + " (Non-System)", price: price || 0, kwh: Math.round(b.ns * 1000) / 1000, type: t });
+    });
+    var sr = S.data.salesRange;
+    if (!sr || sr.last < o.to) warn.push("System sales are stored up to " + (sr ? fDate(sr.last) : "—") + "; later days in this period are not included yet.");
+    if (!anyCompany && (S.sales.daily || []).some(function (r) { return r[0] >= o.from && r[0] <= o.to && ids[r[1]]; }))
+      warn.push("The system sales stored for this period don't carry Company names yet (they were imported before this feature). Import the Sale Order exports for these dates again on the Import sales tab.");
+    var stTxt = o.st === "*" ? "All stations" : o.st.indexOf("type:") === 0 ? o.st.slice(5) + " stations" : o.st + " · " + ((S.cfg.stById[o.st] || {}).short || "");
+    return { cust: cust, lines: lines, warn: warn, stTxt: stTxt, kwhSys: lines.filter(function (l) { return / \(System\)$/.test(l.desc); }).reduce(function (t, l) { return t + l.kwh; }, 0),
+      kwhNs: lines.filter(function (l) { return /Non-System/.test(l.desc); }).reduce(function (t, l) { return t + l.kwh; }, 0),
+      amount: lines.reduce(function (t, l) { return t + l.kwh * l.price; }, 0) };
+  }
+  function invOpts() {
+    var f = $("ivFrom").value, t = $("ivTo").value; if (f > t) { var x = f; f = t; t = x; }
+    return { from: f, to: t, custId: $("ivCo").value, type: $("ivType").value, st: $("ivSt").value, date: $("ivDate").value || today(), note: $("ivNote").value.trim() };
+  }
+  function drawInvoice() {
+    var o = invOpts(), out = $("ivOut");
+    if (!o.custId) { out.innerHTML = '<div class="notice">Add the companies you invoice on the <b>Customers</b> sub-tab first.</div>'; return; }
+    out.innerHTML = '<p class="muted small">Calculating…</p>';
+    ensureSales(o.from, o.to).then(function () {
+      var R = invoiceCompute(o); INV = { o: o, R: R };
+      var h = R.warn.map(function (w) { return '<div class="notice warn" style="margin-bottom:6px">' + w + "</div>"; }).join("");
+      h += '<div class="tbl-wrap"><table><thead><tr><th>No.</th><th>Description</th><th class="num">Pricing (KHR/kWh)</th><th class="num">Consumption (kWh)</th><th class="num">Amount (KHR)</th></tr></thead><tbody>' +
+        (R.lines.length ? R.lines.map(function (l, i) { return "<tr><td>" + (i + 1) + "</td><td>" + esc(l.desc) + '</td><td class="num">' + n0(l.price) + '</td><td class="num">' + n1(l.kwh) + '</td><td class="num">' + n0(l.kwh * l.price) + "</td></tr>"; }).join("")
+          : '<tr><td colspan="5" class="muted">No consumption for this company, type and stations in the period.</td></tr>') +
+        '<tr class="total"><td></td><td>Total</td><td></td><td class="num">' + n1(R.kwhSys + R.kwhNs) + '</td><td class="num">' + n0(R.amount) + "</td></tr></tbody></table></div>" +
+        '<div class="inrow" style="margin-top:10px"><button class="btn ghost" type="button" id="ivDraft">Print / save PDF (draft)</button><button class="btn" type="button" id="ivIssue"' + (R.lines.length && canEdit("acct") ? "" : " disabled") + '>Issue invoice &amp; print</button>' +
+        '<span class="small muted">“Issue” gives the next ' + esc(invTypeCfg("inv").prefix) + ' number and records it in the Invoice log; a draft has no number. In the print window choose “Save as PDF” to keep a PDF.</span></div>';
+      out.innerHTML = h;
+    }).catch(function (e) { handleError(e, "Loading sales"); });
+  }
+  /* ---------- daily sale report ---------- */
+  function segName(type, company) {
+    var base = type === "Driver" ? "Agent" : type === "Customer" || !type ? "Retail Customer" : type;
+    return company ? base + " (" + company + ")" : base;
+  }
+  function dailySale(d, sid) {
+    var seg = {}, segOrder = [];
+    (S.sales.daily || []).forEach(function (r) {
+      if (r[0] !== d || r[1] !== sid) return;
+      var k = segName(r[3], r[11]); if (!seg[k]) { seg[k] = { name: k, kwh: 0, rev: 0, dur: 0, ses: 0 }; segOrder.push(k); }
+      var g = seg[k]; g.kwh += +r[8] || 0; g.rev += +r[9] || 0; g.dur += +r[12] || 0; g.ses += +r[4] || 0;
+    });
+    var energy = segOrder.sort().map(function (k) { var g = seg[k]; g.price = g.kwh ? g.rev / g.kwh : 0; return g; });
+    var ns = (S.data.nonsys || []).filter(function (r) { return active(r) && String(r.date).slice(0, 10) === d && r.station === sid && (+r.revenue || 0) > 0; }).map(function (r) {
+      return { item: (r.custType || "Non-system") + (r.company ? " — " + r.company : "") + (r.ref ? " · " + r.ref : ""), qty: +r.kwh || 0, rate: r.kwh ? (+r.revenue || 0) / r.kwh : 0, total: +r.revenue || 0 };
+    });
+    var oi = (S.data.otherinc || []).filter(function (r) { return active(r) && String(r.date).slice(0, 10) === d && r.station === sid; }).map(function (r) { return { desc: r.description + (r.ref ? " · " + r.ref : ""), amount: +r.amount || 0 }; });
+    var t1 = energy.reduce(function (t, g) { return t + g.rev; }, 0), t2 = ns.reduce(function (t, x) { return t + x.total; }, 0), t3 = oi.reduce(function (t, x) { return t + x.amount; }, 0);
+    return { d: d, sid: sid, energy: energy, ns: ns, oi: oi, t1: t1, t2: t2, t3: t3, kwh: energy.reduce(function (t, g) { return t + g.kwh; }, 0), dur: energy.reduce(function (t, g) { return t + g.dur; }, 0) };
+  }
+  function renderDailyTool() {
+    var el = $("v-acdaily");
+    if (!el.querySelector("#dsDate")) {
+      el.innerHTML = '<div class="section-title"><h2>Daily sale report</h2></div>' +
+        '<p class="muted" style="margin-top:0">One report per station and day: 1. energy revenue from system sales by segment (Driver → Agent, Customer → Retail Customer, with the company in brackets), 2. non-system sales, 3. other income, and the daily summary. “All stations” downloads one tab per station that had sales or income that day.</p>' +
+        '<div class="panel tools"><label class="f"><span>Date</span><input type="date" id="dsDate"></label><label class="f"><span>Stations</span><select id="dsSt">' + acctStationOpts() + '</select></label>' +
+        '<div class="inrow" style="align-self:end"><button class="btn" type="button" id="dsX">Download (.xlsx)</button></div></div><div id="dsOut" style="margin-top:12px"></div>';
+      $("dsDate").value = addDays(today(), -1);
+      ["dsDate", "dsSt"].forEach(function (id) { $(id).addEventListener("change", drawDaily); });
+      $("dsX").addEventListener("click", function () { withExcel(buildDailyXl, function () { notice("The spreadsheet tool couldn't load. Check the internet connection and try again.", "bad"); }); });
+    }
+    drawDaily();
+  }
+  function dailyStations() {
+    var d = $("dsDate").value, ids = kpiIds($("dsSt").value);
+    return ids.map(function (id) { return dailySale(d, id); }).filter(function (x) { return x.energy.length || x.ns.length || x.oi.length || ids.length === 1; });
+  }
+  function drawDaily() {
+    var d = $("dsDate").value, out = $("dsOut"); if (!d) return;
+    out.innerHTML = '<p class="muted small">Loading…</p>';
+    ensureSales(d, d).then(function () {
+      var L = dailyStations(), sr = S.data.salesRange, h = "";
+      if (!sr || sr.last < d) h += '<div class="notice warn">System sales are stored up to ' + (sr ? fDate(sr.last) : "—") + ". Import the Sale Order export for " + fDate(d) + " first.</div>";
+      if ((S.sales.daily || []).some(function (r) { return r[0] === d && !r[11] && r[3] !== "" && r[12] === 0; })) h += '<div class="notice info">Some sales for this day were imported before company names and durations were kept, so they show without a company and with 0 duration. Import that day\'s export again to fill them in.</div>';
+      h += '<div class="tbl-wrap"><table><thead><tr><th>Station</th><th class="num">Energy kWh</th><th class="num">1. Energy revenue</th><th class="num">2. Non-system</th><th class="num">3. Other income</th><th class="num">Total revenue (KHR)</th></tr></thead><tbody>' +
+        (L.length ? L.map(function (x) { return "<tr><td>" + esc(x.sid + " · " + (S.cfg.stById[x.sid] || {}).short) + '</td><td class="num">' + n1(x.kwh) + '</td><td class="num">' + n0(x.t1) + '</td><td class="num">' + n0(x.t2) + '</td><td class="num">' + n0(x.t3) + '</td><td class="num"><b>' + n0(x.t1 + x.t2 + x.t3) + "</b></td></tr>"; }).join("")
+          : '<tr><td colspan="6" class="muted">No sales or other income recorded for ' + fDate(d) + ".</td></tr>") + "</tbody></table></div>";
+      out.innerHTML = h; $("dsX").disabled = !L.length;
+    }).catch(function (e) { handleError(e, "Loading sales"); });
+  }
+  function buildDailyXl(EJ) {
+    var L = dailyStations(); if (!L.length) return Promise.resolve();
+    var wb = new EJ.Workbook(); wb.creator = "VET-ENERGY Daily Operation Record";
+    var logo = wb.addImage({ base64: VET_LOGO_KH, extension: "png" });
+    var OR = "FFC65911", TT = "FFE36C09", SOFT = "FFFDE9D9";
+    var bd = { style: "thin", color: { argb: "FFBFBFBF" } }, box = { top: bd, bottom: bd, left: bd, right: bd };
+    var f = function (o) { var x = { name: "Calibri", size: 10 }; for (var k in o) x[k] = o[k]; return x; };
+    var KHR = '_("៛"* #,##0.00_);_("៛"* \\(#,##0.00\\);_("៛"* "-"??_);_(@_)', NUM = "#,##0.00";
+    var used = {};
+    L.forEach(function (x) {
+      var s = S.cfg.stById[x.sid] || {}, nm = String(s.short || x.sid).replace(/[\\\/\?\*\[\]:]/g, " ").slice(0, 28); while (used[nm]) nm += "_"; used[nm] = 1;
+      var ws = wb.addWorksheet(nm, { views: [{ showGridLines: false }] });
+      [3.66, 7.44, 36.89, 15.89, 16, 16.33, 21.33].forEach(function (w, i) { ws.getColumn(i + 1).width = w; });
+      var cell = function (ref, v, font, al, nf) { var c = ws.getCell(ref); c.value = v; if (font) c.font = font; if (al) c.alignment = al; if (nf) c.numFmt = nf; return c; };
+      ws.getRow(1).height = 78.75; ws.addImage(logo, { tl: { col: 1.05, row: 0.15 }, ext: { width: 290, height: 68 }, editAs: "oneCell" });
+      cell("G1", "Updated on:", f(), { horizontal: "right", vertical: "bottom" });
+      cell("G2", fDate(x.d), f({ bold: true }), { horizontal: "right" });
+      cell("B2", "Daily Revenue Report", f({ size: 24, color: { argb: TT } })); ws.getRow(2).height = 33.75;
+      ws.mergeCells("B3:G3"); cell("B3", 'Branch: "' + String(s.name || s.short || x.sid).toUpperCase() + '"', f({ size: 18, bold: true }), { vertical: "middle" }); ws.getCell("B3").fill = { type: "pattern", pattern: "solid", fgColor: { argb: SOFT } }; ws.getRow(3).height = 36;
+      var r = 5;
+      var head = function (cols) { cols.forEach(function (c) { var x2 = cell(c[0] + r, c[1], f({ bold: true, color: { argb: "FFFFFFFF" } }), { horizontal: "center", vertical: "middle", wrapText: true }); x2.fill = { type: "pattern", pattern: "solid", fgColor: { argb: OR } }; x2.border = box; if (c[2]) { ws.mergeCells(c[0] + r + ":" + c[2] + r); } }); ws.getRow(r).height = 18.75; r++; };
+      var rowB = function (cols, bold) { cols.forEach(function (c) { var x2 = cell(c[0] + r, c[1], f({ bold: !!bold }), { horizontal: c[3] || "center", vertical: "middle", wrapText: true }, c[2]); x2.border = box; if (c[4]) { ws.mergeCells(c[0] + r + ":" + c[4] + r); } }); ws.getRow(r).height = 18.75; r++; };
+      cell("B" + r, "1. Energy Revenue", f({ bold: true })); r++;
+      head([["B", "Nº"], ["C", "Segmentation"], ["D", "Total Power (kWh)"], ["E", "Pricing (៛/kWh)"], ["F", "Total Duration (min)"], ["G", "Total Payment (៛)"]]);
+      var e0 = r;
+      (x.energy.length ? x.energy : [{ name: "—", kwh: 0, price: 0, dur: 0, rev: 0 }]).forEach(function (g, i) { rowB([["B", i + 1], ["C", g.name], ["D", g.kwh, NUM], ["E", g.price, KHR], ["F", g.dur, NUM], ["G", g.rev, NUM]]); });
+      var e1 = r - 1;
+      ws.mergeCells("B" + r + ":C" + r);
+      rowB([["B", "Subtotal"], ["D", { formula: "SUM(D" + e0 + ":D" + e1 + ")", result: x.kwh }, NUM], ["E", ""], ["F", { formula: "SUM(F" + e0 + ":F" + e1 + ")", result: x.dur }, '#,##0.00" min"'], ["G", { formula: "SUM(G" + e0 + ":G" + e1 + ")", result: x.t1 }, KHR]], true);
+      ws.getCell("C" + (r - 1)).border = box; var s1 = r - 1; r++;
+      cell("B" + r, "2. Non-System Energy Revenue", f({ bold: true })); r++;
+      head([["B", "Nº"], ["C", "Item / Service", "D"], ["E", "Quantity (kWh)"], ["F", "Rate (៛)"], ["G", "Total Payment (៛)"]]);
+      var n0r = r;
+      (x.ns.length ? x.ns : [{ item: "", qty: "", rate: "", total: "" }]).forEach(function (g, i) { rowB([["B", x.ns.length ? i + 1 : ""], ["C", g.item, null, "left", "D"], ["E", g.qty, NUM], ["F", g.rate, KHR], ["G", g.total, NUM]]); ws.getCell("D" + (r - 1)).border = box; });
+      var n1r = r - 1;
+      ws.mergeCells("B" + r + ":D" + r);
+      rowB([["B", "Subtotal"], ["E", { formula: "SUM(E" + n0r + ":E" + n1r + ")", result: x.ns.reduce(function (t, g) { return t + g.qty; }, 0) }, NUM], ["F", ""], ["G", { formula: "SUM(G" + n0r + ":G" + n1r + ")", result: x.t2 }, KHR]], true);
+      ["C", "D"].forEach(function (cl) { ws.getCell(cl + (r - 1)).border = box; }); var s2 = r - 1; r++;
+      cell("B" + r, "3. Other Income", f({ bold: true })); r++;
+      head([["B", "Nº"], ["C", "Description", "D"], ["E", "Total Payment (៛)"]]);
+      var o0 = r;
+      (x.oi.length ? x.oi : [{ desc: "", amount: "" }]).forEach(function (g, i) { rowB([["B", x.oi.length ? i + 1 : ""], ["C", g.desc, null, "left", "D"], ["E", g.amount, NUM]]); ws.getCell("D" + (r - 1)).border = box; });
+      var o1 = r - 1;
+      ws.mergeCells("B" + r + ":D" + r);
+      rowB([["B", "Subtotal"], ["E", { formula: "SUM(E" + o0 + ":E" + o1 + ")", result: x.t3 }, KHR]], true);
+      ["C", "D"].forEach(function (cl) { ws.getCell(cl + (r - 1)).border = box; }); var s3 = r - 1; r++;
+      cell("B" + r, "Daily Revenue Summary", f({ bold: true })); r++;
+      head([["B", "Revenue Stream", "C"], ["D", "Amount (៛)"]]);
+      var sumRow = function (label, formula, result, bold) { ws.mergeCells("B" + r + ":C" + r); var a = cell("B" + r, label, f({ size: 11, bold: !!bold }), { vertical: "middle" }); a.border = box; ws.getCell("C" + r).border = box;
+        var b = cell("D" + r, { formula: formula, result: result }, f({ size: 11, bold: true }), { horizontal: "right" }, KHR); b.border = box; ws.getRow(r).height = 18.75; r++; };
+      var q1 = r; sumRow("1. Energy Revenue (system)", "G" + s1, x.t1);
+      var q2 = r; sumRow("2. Non-System Energy Revenue", "G" + s2, x.t2);
+      var q3 = r; sumRow("3. Other Income", "E" + s3, x.t3);
+      sumRow("4. Total Non-System + Other (2 + 3)", "D" + q2 + "+D" + q3, x.t2 + x.t3);
+      sumRow("Total Revenue (1 + 2 + 3)", "D" + q1 + "+D" + q2 + "+D" + q3, x.t1 + x.t2 + x.t3, true);
+      r += 2;
+      var sigs = S.cfg.dailySign.length ? S.cfg.dailySign : [{ role: "Prepared By", title: "Accountant & Admin" }, { role: "Verified By", title: "Operations Manager" }, { role: "Acknowledged By", title: "Chief Operating Officer" }];
+      var cols = [["B", "C"], ["D", "E"], ["F", "G"]];
+      sigs.slice(0, 3).forEach(function (sg, i) {
+        cell(cols[i][0] + r, sg.role + ":", f({ size: 11 }));
+        ws.getCell(cols[i][0] + (r + 4)).border = { bottom: { style: "thin" } }; ws.getCell(cols[i][1] + (r + 4)).border = { bottom: { style: "thin" } };
+        cell(cols[i][0] + (r + 5), sg.title + (sg.name ? " — " + sg.name : ""), f({ size: 11, bold: true }));
+      });
+      ws.pageSetup = { paperSize: 9, orientation: "portrait", fitToPage: true, fitToWidth: 1, fitToHeight: 1, margins: { left: 0.4, right: 0.4, top: 0.4, bottom: 0.4, header: 0.2, footer: 0.2 }, printArea: "A1:G" + (r + 6) };
+    });
+    return wb.xlsx.writeBuffer().then(function (buf) {
+      var blob = new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), url = URL.createObjectURL(blob), a = document.createElement("a");
+      var sel = $("dsSt"); a.href = url; a.download = "Daily_Sale_" + $("dsDate").value + "_" + (sel.value === "*" ? "All_stations" : sel.options[sel.selectedIndex].text.replace(/[^A-Za-z0-9]+/g, "_")) + ".xlsx";
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+    });
+  }
+
+  /* ---------- invoice documents (A4, printed / saved as PDF) ---------- */
+  function invTypeCfg(kind) {
+    var t = (S.cfg.invTypes || {})[kind === "roy" ? "Royalty fee" : "Customer invoice"] || {};
+    var def = kind === "roy" ? { prefix: "VET-ROY", due: 15, vat: 10 } : { prefix: "VET-HQ", due: 10, vat: 0 };
+    var num = function (v, d) { return v === "" || v === undefined || v === null || isNaN(+v) ? d : +v; };
+    var prefix = String(t.prefix || def.prefix).trim().toUpperCase();
+    return { prefix: prefix, due: num(t.due, def.due), vat: num(t.vat, def.vat), start: num((S.cfg.invStart || {})[prefix], 1) };
+  }
+  var ONES = ["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"];
+  var TENS = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"];
+  function words3(n) {
+    var h = Math.floor(n / 100), r = n % 100, out = [];
+    if (h) out.push(ONES[h] + " hundred");
+    if (r) out.push(r < 20 ? ONES[r] : TENS[Math.floor(r / 10)] + (r % 10 ? "-" + ONES[r % 10] : ""));
+    return out.join(" ");
+  }
+  function amountWords(n) {
+    n = Math.round(Math.abs(n)); if (!n) return "Zero riels only";
+    var units = ["", " thousand", " million", " billion", " trillion"], parts = [], i = 0;
+    while (n > 0) { var c = n % 1000; if (c) parts.unshift(words3(c) + units[i]); n = Math.floor(n / 1000); i++; }
+    var s = parts.join(" ") + " riels only"; return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+  function dmy(d) { return d ? ("0" + (+d.slice(8, 10))).slice(-2) + " " + MON[+d.slice(5, 7) - 1] + " " + d.slice(0, 4) : ""; }
+  function khr(v) { return "KHR " + n0(Math.round(v)); }
+  /* doc: { no, kind, date, due, rate, ref, bill: {name, lines[]}, items: [{desc, qty, qtyTxt, unit, price, amount}], vatPct } */
+  function invoiceTotals(doc) {
+    var sub = doc.items.reduce(function (t, it) { return t + Math.round(it.amount); }, 0), vat = Math.round(sub * (doc.vatPct || 0) / 100);
+    return { sub: sub, vat: vat, total: sub + vat, usd: doc.rate ? (sub + vat) / doc.rate : 0 };
+  }
+  function invoiceHtml(doc) {
+    var F = invFrom(), T = invoiceTotals(doc), tax = (doc.vatPct || 0) > 0;
+    var title = tax ? "TAX INVOICE" : "INVOICE", titleKh = tax ? "វិក្កយបត្រអាករ" : "វិក្កយបត្រ";
+    var meta = [["Invoice no. / លេខវិក្កយបត្រ", doc.no], ["Issue date / កាលបរិច្ឆេទ", dmy(doc.date)], ["Due date / ថ្ងៃផុតកំណត់", dmy(doc.due)], ["Currency / រូបិយប័ណ្ណ", "KHR"],
+      ["Exchange rate / អត្រាប្តូរប្រាក់", n0(doc.rate) + " KHR/USD"], ["Reference / យោង", doc.ref || ""]];
+    return '<div class="iv-page"><div class="iv-head"><div class="iv-co"><img src="' + VET_LOGO_KH + '" alt=""><div><div class="iv-coname">' + esc(F.name) + '</div><div class="iv-small">' + esc(F.address) + "<br>" +
+      esc([F.phone ? "Phone: " + F.phone : "", F.email ? "Email: " + F.email : ""].filter(Boolean).join("  |  ")) + '</div></div></div>' +
+      '<div class="iv-title"><div class="t1">' + title + '</div><div class="t2">' + titleKh + '</div><div class="t3">' + esc(doc.no) + "</div></div></div>" +
+      '<div class="iv-bill"><div><div class="iv-lbl">Bill to / អតិថិជន</div><div class="iv-bname">' + esc(doc.bill.name) + "</div>" + doc.bill.lines.filter(Boolean).map(function (l) { return "<div>" + esc(l) + "</div>"; }).join("") + "</div>" +
+      '<table class="iv-meta">' + meta.map(function (m) { return '<tr><td class="k">' + m[0] + '</td><td class="v">' + esc(m[1]) + "</td></tr>"; }).join("") + "</table></div>" +
+      '<table class="iv-items"><thead><tr><th class="no">No.<span>ល.រ</span></th><th>Description<span>បរិយាយ</span></th><th class="ivr">Qty<span>បរិមាណ</span></th><th>Unit<span>ឯកតា</span></th><th class="ivr">Unit price<span>តម្លៃឯកតា</span></th><th class="ivr">Amount<span>ថ្លៃទំនិញ</span></th></tr></thead><tbody>' +
+      (doc.items.length ? doc.items.map(function (it, i) { return '<tr><td class="no">' + (i + 1) + "</td><td>" + esc(it.desc) + '</td><td class="ivr">' + esc(it.qtyTxt) + "</td><td>" + esc(it.unit) + '</td><td class="ivr">' + khr(it.price) + '</td><td class="ivr">' + khr(it.amount) + "</td></tr>"; }).join("")
+        : '<tr><td></td><td colspan="5" class="iv-small">No chargeable items in the period.</td></tr>') + "</tbody></table>" +
+      '<div class="iv-tot"><table><tr><td>Subtotal / សរុប</td><td class="ivr">' + khr(T.sub) + "</td></tr><tr><td>VAT " + (doc.vatPct || 0) + '% / អាករលើតម្លៃបន្ថែម</td><td class="ivr">' + khr(T.vat) + "</td></tr>" +
+      '<tr class="g"><td>TOTAL / សរុបរួម</td><td class="ivr">' + khr(T.total) + '</td></tr><tr class="u"><td>Total in USD / សរុបជាដុល្លារ</td><td class="ivr">$' + T.usd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</td></tr></table></div>" +
+      '<div class="iv-lbl" style="margin-top:22px">Amount in words / ចំនួនទឹកប្រាក់ជាអក្សរ</div><div class="iv-words">' + esc(amountWords(T.total)) + "</div>" +
+      '<div class="iv-lbl" style="margin-top:16px">Payment details / ព័ត៌មានទូទាត់ប្រាក់</div><div>Bank Account: ' + esc(F.bank) + "</div><div>Account Name: " + esc(F.accName) + "</div><div>Account Number: " + esc(F.accNo) + "</div>" +
+      (doc.note ? '<div class="iv-small" style="margin-top:10px">' + esc(doc.note) + "</div>" : "") +
+      '<div class="iv-sign"><div><div class="ln"></div>Seller\'s signature &amp; stamp<br><span>ហត្ថលេខា និងត្រាអ្នកលក់</span></div><div><div class="ln"></div>Buyer\'s signature<br><span>ហត្ថលេខាអ្នកទិញ</span></div></div>' +
+      '<div class="iv-foot">' + esc(doc.no) + "  |  Page 1 of 1</div></div>";
+  }
+  function printInvoices(docs) {
+    $("printArea").innerHTML = docs.map(invoiceHtml).join("");
+    var st = document.createElement("style"); st.id = "ivPage"; st.textContent = "@page { size: A4 portrait; margin: 0; }"; document.head.appendChild(st);
+    document.body.classList.add("printing", "printing-iv");
+    var done = function () { document.body.classList.remove("printing", "printing-iv"); var x = $("ivPage"); if (x) x.remove(); window.removeEventListener("afterprint", done); };
+    window.addEventListener("afterprint", done);
+    setTimeout(function () { window.print(); setTimeout(done, 500); }, 150);
+  }
+  function billLines(c) {
+    return [c.address, c.contact ? "Attn: " + c.contact + (c.position ? ", " + c.position : "") : "", c.phone ? "Tel: " + c.phone : ""];
+  }
+  function customerInvoiceDoc(o, R, no) {
+    var cfg = invTypeCfg("inv");
+    return { no: no, kind: "inv", date: o.date, due: addDays(o.date, cfg.due), rate: S.cfg.khrUsd, vatPct: cfg.vat, note: o.note,
+      ref: o.st === "*" ? "All stations" : o.st.indexOf("type:") === 0 ? o.st.slice(5) + " stations" : "Station " + ((S.cfg.stById[o.st] || {}).name || o.st),
+      bill: { name: R.cust.billName, lines: billLines(R.cust) },
+      items: R.lines.map(function (l) { return { desc: l.desc, qty: l.kwh, qtyTxt: l.kwh.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), unit: "kWh", price: l.price, amount: Math.round(l.kwh * l.price) }; }) };
+  }
+  function invoicePrint(issue) {
+    if (!INV) return;
+    var o = INV.o, R = INV.R, cfg = invTypeCfg("inv");
+    if (!issue) { printInvoices([customerInvoiceDoc(o, R, "DRAFT")]); return; }
+    var doc = customerInvoiceDoc(o, R, ""), T = invoiceTotals(doc);
+    if (!confirm("Issue invoice to " + R.cust.billName + " for KHR " + n0(T.total) + "?\n\nIt gets the next " + cfg.prefix + " number and is recorded in the Invoice log.")) return;
+    setSync("busy", "Issuing invoice…");
+    api({ action: "issueInvoice", invoice: { prefix: cfg.prefix, minNo: cfg.start, docType: "Customer invoice", date: o.date, due: doc.due, company: R.cust.company, custType: o.type === "*" ? "All" : o.type,
+      stations: R.stTxt, from: o.from, to: o.to, kwhSys: R.kwhSys, kwhNs: R.kwhNs, amount: T.sub, vat: T.vat, total: T.total, rate: doc.rate, ref: doc.ref,
+      notes: JSON.stringify({ doc: doc }) } })
+      .then(function (j) { upsertLocal("invoices", j.record); setSync("ok", "Invoice " + j.record.id + " issued"); doc.no = j.record.id; printInvoices([doc]); })
+      .catch(function (e) { handleError(e, "Issuing invoice"); });
+  }
+  function reprintInvoice(rec) {
+    var meta = {}; try { meta = JSON.parse(rec.notes || "{}"); } catch (e) {}
+    if (!meta.doc) { notice("This invoice can't be printed again automatically.", "bad"); return; }
+    meta.doc.no = rec.id; printInvoices([meta.doc]);
+  }
+
+  /* ---------- royalty fee report ---------- */
+  var ROY = null;
+  function royaltyRows(month) {
+    var from = month + "-01", to = monthEnd(from);
+    var custs = (S.data.customers || []).filter(function (c) { return active(c) && c.royStation && +c.royPct > 0; });
+    return custs.map(function (c) {
+      var sid = c.royStation, sys = 0, ns = 0;
+      (S.sales.daily || []).forEach(function (r) { if (r[1] === sid && r[0] >= from && r[0] <= to) sys += +r[9] || 0; });
+      (S.data.nonsys || []).forEach(function (r) { var d = String(r.date).slice(0, 10); if (active(r) && r.station === sid && d >= from && d <= to) ns += +r.revenue || 0; });
+      var rev = Math.round(sys + ns), fee = Math.round(rev * (+c.royPct) / 100), cfg = invTypeCfg("roy"), vat = Math.round(fee * cfg.vat / 100);
+      var issued = (S.data.invoices || []).filter(function (i) { return active(i) && i.docType === "Royalty fee" && i.company === c.company && String(i.from).slice(0, 7) === month; });
+      return { c: c, sid: sid, st: S.cfg.stById[sid] || {}, sys: sys, ns: ns, rev: rev, pct: +c.royPct, fee: fee, vat: vat, total: fee + vat, issued: issued.map(function (i) { return i.id; }) };
+    });
+  }
+  function royaltyDoc(x, month, date, no) {
+    var cfg = invTypeCfg("roy"), mLab = MON[+month.slice(5) - 1] + " " + month.slice(0, 4), stName = x.st.name || x.sid;
+    return { no: no, kind: "roy", date: date, due: addDays(date, cfg.due), rate: S.cfg.khrUsd, vatPct: cfg.vat, ref: "Royalty " + mLab,
+      bill: { name: x.c.billName, lines: billLines(x.c) },
+      items: [{ desc: "Royalty fee " + x.pct + "% of station revenue: " + stName + ", " + mLab + " (revenue KHR " + n0(x.rev) + ")", qty: 1, qtyTxt: "1", unit: "month", price: x.fee, amount: x.fee }] };
+  }
+  function renderRoyaltyTool() {
+    var el = $("v-acroy");
+    if (!el.querySelector("#ryMonth")) {
+      var lm = presetRange("lastmonth")[0].slice(0, 7), months = []; for (var i = 0; i < 24; i++) months.push(monthAdd(lm + "-01", -i).slice(0, 7));
+      el.innerHTML = '<div class="section-title"><h2>Royalty fee report</h2></div>' +
+        '<p class="muted" style="margin-top:0">Monthly royalty for each station that pays one: <b>station revenue</b> (system + non-system sales) × the royalty % set on that owner\'s record in <b>Customers</b>, plus VAT. Issue the tax invoices from here; each gets the next ' + esc(invTypeCfg("roy").prefix) + ' number.</p>' +
+        '<div class="panel tools"><label class="f"><span>Month</span><select id="ryMonth">' + months.map(function (m) { return '<option value="' + m + '">' + MONL[+m.slice(5) - 1] + " " + m.slice(0, 4) + "</option>"; }).join("") + '</select></label>' +
+        '<label class="f"><span>Invoice date</span><input type="date" id="ryDate"></label>' +
+        '<div class="inrow" style="align-self:end"><button class="btn ghost" type="button" id="ryX">Download report (.xlsx)</button><button class="btn ghost" type="button" id="ryDraft">Print drafts</button><button class="btn" type="button" id="ryIssue">Issue ticked &amp; print</button></div></div><div id="ryOut" style="margin-top:12px"></div>';
+      $("ryDate").value = today();
+      ["ryMonth", "ryDate"].forEach(function (id) { $(id).addEventListener("change", drawRoyalty); });
+      $("ryDraft").addEventListener("click", function () { var L = royTicked(); if (L.length) printInvoices(L.map(function (x) { return royaltyDoc(x, ROY.month, $("ryDate").value || today(), "DRAFT"); })); });
+      $("ryIssue").addEventListener("click", royaltyIssue);
+      $("ryX").addEventListener("click", function () { withExcel(buildRoyaltyXl, function () { notice("The spreadsheet tool couldn't load.", "bad"); }); });
+    }
+    drawRoyalty();
+  }
+  function royTicked() { if (!ROY) return []; return ROY.rows.filter(function (x, i) { var c = document.querySelector('[data-roy="' + i + '"]'); return c && c.checked; }); }
+  function drawRoyalty() {
+    var m = $("ryMonth").value, out = $("ryOut"), from = m + "-01", to = monthEnd(from);
+    out.innerHTML = '<p class="muted small">Calculating…</p>';
+    ensureSales(from, to).then(function () {
+      var rows = royaltyRows(m); ROY = { month: m, rows: rows };
+      var sr = S.data.salesRange, h = "";
+      if (!rows.length) h += '<div class="notice">No station pays royalty yet. In <b>Customers</b>, open the station owner\'s record and fill in <b>Royalty station</b> and <b>Royalty %</b>.</div>';
+      if (!sr || sr.last < to) h += '<div class="notice warn">System sales are stored up to ' + (sr ? fDate(sr.last) : "—") + "; the month isn't complete yet.</div>";
+      h += '<div class="tbl-wrap"><table><thead><tr><th></th><th>Station</th><th>Bill to</th><th class="num">System revenue</th><th class="num">Non-system revenue</th><th class="num">Station revenue</th><th class="num">Royalty %</th><th class="num">Royalty fee</th><th class="num">VAT ' + invTypeCfg("roy").vat + '%</th><th class="num">Total (KHR)</th><th>Issued</th></tr></thead><tbody>' +
+        rows.map(function (x, i) { return '<tr><td><input type="checkbox" data-roy="' + i + '"' + (x.issued.length ? "" : " checked") + "></td><td>" + esc(x.sid + " · " + (x.st.short || "")) + "</td><td>" + esc(x.c.billName) + '</td><td class="num">' + n0(x.sys) + '</td><td class="num">' + n0(x.ns) + '</td><td class="num">' + n0(x.rev) + '</td><td class="num">' + x.pct + '%</td><td class="num">' + n0(x.fee) + '</td><td class="num">' + n0(x.vat) + '</td><td class="num"><b>' + n0(x.total) + "</b></td><td>" + (x.issued.length ? '<span class="chip ok">' + esc(x.issued.join(", ")) + "</span>" : '<span class="muted small">not yet</span>') + "</td></tr>"; }).join("") +
+        (rows.length ? '<tr class="total"><td></td><td colspan="2">Total</td><td class="num">' + n0(rows.reduce(function (t, x) { return t + x.sys; }, 0)) + '</td><td class="num">' + n0(rows.reduce(function (t, x) { return t + x.ns; }, 0)) + '</td><td class="num">' + n0(rows.reduce(function (t, x) { return t + x.rev; }, 0)) + '</td><td></td><td class="num">' + n0(rows.reduce(function (t, x) { return t + x.fee; }, 0)) + '</td><td class="num">' + n0(rows.reduce(function (t, x) { return t + x.vat; }, 0)) + '</td><td class="num"><b>' + n0(rows.reduce(function (t, x) { return t + x.total; }, 0)) + "</b></td><td></td></tr>" : "") +
+        "</tbody></table></div><p class=\"small muted\">Stations already invoiced for this month are unticked, so they aren't billed twice.</p>";
+      out.innerHTML = h; $("ryIssue").disabled = !rows.length || !canEdit("acct");
+    }).catch(function (e) { handleError(e, "Loading sales"); });
+  }
+  function royaltyIssue() {
+    var L = royTicked(); if (!L.length) { notice("Tick the stations to invoice.", "info"); return; }
+    var date = $("ryDate").value || today(), cfg = invTypeCfg("roy"), m = ROY.month;
+    var dup = L.filter(function (x) { return x.issued.length; });
+    if (!confirm("Issue " + L.length + " royalty tax invoice" + (L.length > 1 ? "s" : "") + " for " + MONL[+m.slice(5) - 1] + " " + m.slice(0, 4) + "?" + (dup.length ? "\n\nWarning: " + dup.length + " of them already have an invoice for this month." : ""))) return;
+    var docs = [], chain = Promise.resolve();
+    L.forEach(function (x) {
+      chain = chain.then(function () {
+        var doc = royaltyDoc(x, m, date, ""), T = invoiceTotals(doc);
+        return api({ action: "issueInvoice", invoice: { prefix: cfg.prefix, minNo: cfg.start, docType: "Royalty fee", date: date, due: doc.due, company: x.c.company, custType: "",
+          stations: x.sid + " · " + (x.st.name || ""), from: m + "-01", to: monthEnd(m + "-01"), amount: T.sub, vat: T.vat, total: T.total, rate: doc.rate, ref: doc.ref, notes: JSON.stringify({ doc: doc }) } })
+          .then(function (j) { upsertLocal("invoices", j.record); doc.no = j.record.id; docs.push(doc); });
+      });
+    });
+    setSync("busy", "Issuing royalty invoices…");
+    chain.then(function () { setSync("ok", docs.length + " royalty invoice(s) issued"); drawRoyalty(); printInvoices(docs); })
+      .catch(function (e) { handleError(e, "Issuing royalty invoices"); if (docs.length) { drawRoyalty(); printInvoices(docs); } });
+  }
+  function buildRoyaltyXl(EJ) {
+    if (!ROY) return Promise.resolve();
+    var m = ROY.month, X = XBook(EJ), mLab = MONL[+m.slice(5) - 1] + " " + m.slice(0, 4), cfg = invTypeCfg("roy");
+    var sh = X.sheet("Royalty " + mLab, { title: "ROYALTY FEE REPORT — " + mLab.toUpperCase(), docKey: "Royalty report", info: ["Station revenue = system + non-system sales in the month · VAT " + cfg.vat + "%", "Exported " + nowStr() + " by " + S.user], freezeCols: 2,
+      cols: [{ h: "Station ID", w: 10 }, { h: "Station", w: 26, wrap: true }, { h: "Bill to", w: 28, wrap: true }, { h: "System revenue (KHR)", w: 16, f: "khr" }, { h: "Non-system revenue (KHR)", w: 16, f: "khr" }, { h: "Station revenue (KHR)", w: 16, f: "khr" },
+        { h: "Royalty %", w: 9, f: "n1" }, { h: "Royalty fee (KHR)", w: 15, f: "khr" }, { h: "VAT (KHR)", w: 13, f: "khr" }, { h: "Total (KHR)", w: 15, f: "khr" }, { h: "Total (USD)", w: 12, f: "usd" }, { h: "Invoice no.", w: 22, wrap: true }] });
+    var t = [0, 0, 0, 0, 0, 0];
+    ROY.rows.forEach(function (x) { sh.add([x.sid, x.st.name || "", x.c.billName, x.sys, x.ns, x.rev, x.pct, x.fee, x.vat, x.total, S.cfg.khrUsd ? x.total / S.cfg.khrUsd : "", x.issued.join(", ")]);
+      t[0] += x.sys; t[1] += x.ns; t[2] += x.rev; t[3] += x.fee; t[4] += x.vat; t[5] += x.total; });
+    sh.add(["Total", "", "", t[0], t[1], t[2], "", t[3], t[4], t[5], S.cfg.khrUsd ? t[5] / S.cfg.khrUsd : "", ""], { bold: true, fill: sh.SOFT });
+    sh.done();
+    return X.save("Royalty_Fee_Report_" + m + ".xlsx");
+  }
+
   function showSub(sub) {
     S.sub = sub;
     document.querySelectorAll("#inSub [data-sub]").forEach(function (b) { b.setAttribute("aria-selected", b.getAttribute("data-sub") === sub ? "true" : "false"); });
     ["bills", "expenses", "csat"].forEach(function (x) { $("v-" + x).hidden = x !== sub; });
     buildListView(sub);
+  }
+
+  /* ---------- roles & permissions grid (Admin) ---------- */
+  var PM = null;
+  function drawPerms() {
+    var box = $("permT"); if (!box) return;
+    if (!PM) PM = JSON.parse(JSON.stringify(S.data.permMatrix || {}));
+    var roles = Object.keys(PM).sort();
+    var h = '<table class="perm"><thead><tr><th rowspan="2">Tab</th>' + roles.map(function (r) { return '<th colspan="2" class="c">' + esc(roleLabel(r)) + ' <button type="button" class="btn small ghost" data-prm-del="' + esc(r) + '" title="Remove role">✕</button></th>'; }).join("") +
+      '<th rowspan="2" class="c muted">Admin</th></tr><tr>' + roles.map(function () { return '<th class="c small">View</th><th class="c small">Edit</th>'; }).join("") + "</tr></thead><tbody>";
+    AREAS.forEach(function (a) {
+      h += "<tr><td>" + esc(a[1]) + "</td>" + roles.map(function (r) {
+        var l = PM[r][a[0]] || 0;
+        return '<td class="c"><input type="checkbox" data-prm="' + esc(r) + "|" + a[0] + '|1"' + (l >= 1 ? " checked" : "") + '></td><td class="c">' + (VIEW_ONLY[a[0]] ? '<span class="muted small">—</span>' : '<input type="checkbox" data-prm="' + esc(r) + "|" + a[0] + '|2"' + (l >= 2 ? " checked" : "") + ">") + "</td>";
+      }).join("") + '<td class="c muted">✓</td></tr>';
+    });
+    box.innerHTML = h + "</tbody></table>";
+  }
+  function permsUI() {
+    var el = $("permP"); if (!el) return;
+    PM = null; drawPerms();
+    el.addEventListener("change", function (ev) {
+      var c = ev.target.closest("[data-prm]"); if (!c) return;
+      var p = c.getAttribute("data-prm").split("|"), r = p[0], a = p[1], want = +p[2];
+      var cur = PM[r][a] || 0;
+      if (want === 1) PM[r][a] = c.checked ? Math.max(cur, 1) : 0;
+      else PM[r][a] = c.checked ? 2 : (cur >= 1 ? 1 : 0);
+      drawPerms(); $("permMsg").textContent = "Not saved yet.";
+    });
+    el.addEventListener("click", function (ev) {
+      var d = ev.target.closest("[data-prm-del]");
+      if (d) { var r = d.getAttribute("data-prm-del"); if (confirm("Remove the role " + roleLabel(r) + "? Users who have it must be moved to another role first.")) { delete PM[r]; drawPerms(); $("permMsg").textContent = "Not saved yet."; } return; }
+      if (ev.target.closest("#permAdd")) {
+        var n = prompt("Name of the new role (letters, numbers, dot, dash or underscore — e.g. finance or ops03):");
+        if (!n) return; n = n.trim().toLowerCase();
+        if (!/^[a-z0-9._-]{2,20}$/.test(n) || n === "admin") { alert("Use 2–20 letters, numbers, dots, dashes or underscores (not “admin”)."); return; }
+        if (PM[n]) { alert("That role already exists."); return; }
+        PM[n] = { dash: 1 }; drawPerms(); $("permMsg").textContent = "Not saved yet.";
+      }
+      if (ev.target.closest("#permSave")) {
+        $("permMsg").textContent = "Saving…";
+        api({ action: "savePerms", perms: PM }).then(function (j) { S.data.permMatrix = j.perms; S.data.roles = j.roles; PM = null; drawPerms(); $("permMsg").textContent = "Saved " + timeNow() + ". People see the change the next time their page refreshes."; setSync("ok", "Saved " + timeNow()); })
+          .catch(function (e) { $("permMsg").textContent = errText(e); });
+      }
+      if (ev.target.closest("#permReset")) { PM = null; drawPerms(); $("permMsg").textContent = ""; }
+    });
   }
 
   /* ---------- KPI engine (same rules as VET-ENERGY_Station_KPI) ---------- */
@@ -2012,7 +2574,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     return { score: any ? tot : "", pct: pc, n: c, scored: scored, nc: nc, pc: pcs, blank: blank };
   }
   function audEditable(a) {
-    if (!can("kpi") || !a) return false;
+    if (!canEdit("audit") || !a) return false;
     if (!a.id) return true;
     if (!active(a) || a.auditStatus === "Verified") return false;
     if (a.auditStatus === "Submitted") return S.role === "admin";
@@ -2026,14 +2588,14 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
   function renderAuditList() {
     var el = $("v-audit"), f = AU.filt;
     el.innerHTML = '<div class="section-title"><h2><i class="ti ti-clipboard-check"></i> Station audits (AUD-R01)</h2><div class="inrow noprint"><button class="btn ghost" type="button" id="audListX"><i class="ti ti-file-spreadsheet"></i> Export list (.xlsx)</button>' +
-      '<button class="btn" type="button" id="audNew"><i class="ti ti-plus"></i> New audit</button></div></div>' +
+      '' + (canEdit("audit") ? '<button class="btn" type="button" id="audNew"><i class="ti ti-plus"></i> New audit</button>' : "") + '</div></div>' +
       '<p class="muted" style="margin-top:0">Fill in the 41-item checklist on the page. The score uses the AUD-R01 weights (A 30% · B 20% · C 20% · D 15% · E 15%; N/A items are left out). Each non-compliant item needs a finding; submitting the audit adds the findings to the CAP master list with new CAP-F01 numbers. An Admin verifies and locks the audit.</p>' +
       '<div class="panel tools noprint"><label class="f"><span>Station</span><select id="audFs">' + stationOptions(true) + '</select></label><label class="f"><span>Status</span><select id="audFt"><option value="all">All active</option><option value="Draft">Draft</option><option value="Submitted">Submitted</option><option value="Verified">Verified</option><option value="void">Voided</option></select></label></div>' +
       '<div class="kpis" id="audTiles" style="margin-top:12px"></div><div class="tbl-wrap" id="audT" style="margin-top:12px"></div>';
     $("audFs").value = f.station; $("audFt").value = f.status;
     $("audFs").onchange = function () { f.station = this.value; renderAuditList(); };
     $("audFt").onchange = function () { f.status = this.value; renderAuditList(); };
-    $("audNew").onclick = function () { openAudit(null); };
+    if ($("audNew")) $("audNew").onclick = function () { openAudit(null); };
     $("audListX").onclick = exportAuditList;
     var list = (S.data.audits || []).filter(function (a) {
       if (f.station !== "*" && a.station !== f.station) return false;
@@ -2986,7 +3548,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
   /* ---------- dashboard: compliance tiles ---------- */
   function drawCompliance(ids) {
     var wrap = $("kComplianceWrap");
-    if (!can("kpi") || !S.data.audits) { wrap.hidden = true; return; }
+    if (!S.data.audits) { wrap.hidden = true; return; }
     wrap.hidden = false;
     var set = {}; ids.forEach(function (id) { set[id] = 1; });
     var latest = {}; S.data.audits.forEach(function (a) { if (active(a) && set[a.station] && a.auditStatus !== "Draft" && !kNum(a.score) && (!latest[a.station] || latest[a.station].date < a.date)) latest[a.station] = a; });
@@ -3010,7 +3572,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     var box = $("usersT"); if (!box) return;
     if (!USERS) { box.innerHTML = '<p class="muted">Loading…</p>'; api({ action: "users" }).then(function (j) { USERS = j.users; drawUsers(); }).catch(function (e) { box.innerHTML = '<p class="err-box">' + esc(errText(e)) + "</p>"; }); return; }
     box.innerHTML = "<table><thead><tr><th>Username</th><th>Name</th><th>Role</th><th>Active</th><th>Last sign-in</th><th>Password</th><th>Created</th></tr></thead><tbody>" +
-      USERS.map(function (u) { return '<tr class="click' + (u.active ? "" : " void") + '" data-user="' + esc(u.username) + '"><td>' + esc(u.username) + "</td><td>" + esc(u.name) + '</td><td><span class="chip">' + esc(ROLE_LABEL[u.role] || u.role) + "</span></td><td>" + (u.active ? "Yes" : "No") + "</td><td>" + (u.lastLogin ? fDT(u.lastLogin) : "never") + "</td><td>" + (u.mustChange ? '<span class="chip warn">must change</span>' : "set") + "</td><td>" + fDT(u.created) + " by " + esc(u.createdBy) + "</td></tr>"; }).join("") + "</tbody></table>";
+      USERS.map(function (u) { return '<tr class="click' + (u.active ? "" : " void") + '" data-user="' + esc(u.username) + '"><td>' + esc(u.username) + "</td><td>" + esc(u.name) + '</td><td><span class="chip">' + esc(roleLabel(u.role)) + "</span></td><td>" + (u.active ? "Yes" : "No") + "</td><td>" + (u.lastLogin ? fDT(u.lastLogin) : "never") + "</td><td>" + (u.mustChange ? '<span class="chip warn">must change</span>' : "set") + "</td><td>" + fDT(u.created) + " by " + esc(u.createdBy) + "</td></tr>"; }).join("") + "</tbody></table>";
     box.querySelectorAll("[data-user]").forEach(function (tr) { tr.onclick = function () { openUser(tr.getAttribute("data-user")); }; });
   }
   function openUser(username) {
@@ -3018,7 +3580,9 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     UED = u; var f = $("formUser");
     $("userTitle").textContent = u ? "Edit " + u.username : "Add user"; $("userErr").textContent = "";
     f.elements.username.value = u ? u.username : ""; f.elements.username.readOnly = !!u;
-    f.elements.name.value = u ? u.name : ""; f.elements.role.value = u ? u.role : "ops02"; f.elements.active.value = u && !u.active ? "N" : "Y"; f.elements.password.value = "";
+    var roles = (S.data.roles || ["admin", "ops01", "ops02"]);
+    f.elements.role.innerHTML = roles.map(function (r) { return '<option value="' + esc(r) + '">' + esc(roleLabel(r) + (r === "admin" ? " — full control" : " — see Roles & permissions")) + "</option>"; }).join("");
+    f.elements.name.value = u ? u.name : ""; f.elements.role.value = u ? u.role : (roles.indexOf("ops02") >= 0 ? "ops02" : roles[1] || "admin"); f.elements.active.value = u && !u.active ? "N" : "Y"; f.elements.password.value = "";
     $("userPwLabel").textContent = u ? "Reset password (leave empty to keep)" : "Temporary password";
     $("dlgUser").showModal();
   }
@@ -3034,20 +3598,22 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       .catch(function (e) { $("userErr").textContent = errText(e); });
   });
   $("inSub").addEventListener("click", function (ev) { var b = ev.target.closest("[data-sub]"); if (b) showSub(b.getAttribute("data-sub")); });
+  $("acSub").addEventListener("click", function (ev) { var b = ev.target.closest("[data-sub]"); if (b) showAcSub(b.getAttribute("data-sub")); });
 
   /* ---------------- views, loading, sign-in ---------------- */
   function show(v) {
     S.view = v;
     document.querySelectorAll("#tabs button").forEach(function (b) { b.setAttribute("aria-selected", b.getAttribute("data-v") === v ? "true" : "false"); });
-    ["dash", "faults", "complaints", "incidents", "nonsys", "caps", "kpi", "audit", "inputs", "import", "admin"].forEach(function (x) { $("v-" + x).hidden = x !== v; });
+    ["dash", "faults", "complaints", "incidents", "nonsys", "caps", "kpi", "audit", "inputs", "acct", "import", "admin"].forEach(function (x) { $("v-" + x).hidden = x !== v; });
     if (!S.data) return;
     if (v === "dash") renderDash();
     else if (v === "inputs") showSub(S.sub || "bills");
+    else if (v === "acct") showAcSub(S.acSub || "acinv");
     else if (KINDS[v]) buildListView(v);
     else if (v === "admin") renderAdmin();
     else if (v === "kpi") renderKpi();
     else if (v === "audit") renderAudits();
-    else if (v === "import") $("impManagerOnly").hidden = can("entry");
+    else if (v === "import") $("impManagerOnly").hidden = canEdit("import");
   }
 
   function fillStationFilter() {
@@ -3065,9 +3631,9 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       S.data = j; S.role = j.role; S.user = j.user; S.username = j.username; S.cfg = buildCfg(j);
       S.lastLoad = Date.now();
       $("whoName").textContent = S.user;
-      $("whoRole").textContent = ROLE_LABEL[S.role] || S.role; $("whoRole").hidden = false;
+      $("whoRole").textContent = roleLabel(S.role); $("whoRole").hidden = false;
       document.querySelectorAll("#tabs [data-need]").forEach(function (b) { b.hidden = !can(b.getAttribute("data-need")); });
-      if (document.querySelector('#tabs [data-v="' + S.view + '"]').hidden) S.view = "dash";
+      if (document.querySelector('#tabs [data-v="' + S.view + '"]').hidden) { var first = document.querySelector("#tabs [data-v]:not([hidden])"); S.view = first ? first.getAttribute("data-v") : "dash"; }
       if (j.mustChange) openPw(true);
       fillStationFilter();
       notice("");
