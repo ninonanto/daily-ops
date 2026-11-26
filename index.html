@@ -288,7 +288,9 @@ body.printing #printArea { display: block; padding: 0 8mm; }
       <label class="f"><span>From</span><input type="date" id="fFrom"></label>
       <label class="f"><span>To</span><input type="date" id="fTo"></label>
       <label class="f"><span>Compare with</span>
-        <select id="fCompare"><option value="prev">Previous period</option><option value="none">No comparison</option></select></label>
+        <select id="fCompare"><option value="prev">Previous period (same length)</option><option value="custom">Custom dates…</option><option value="none">No comparison</option></select></label>
+      <label class="f" id="fCmpFromW" hidden><span>Compare from</span><input type="date" id="fCmpFrom"></label>
+      <label class="f" id="fCmpToW" hidden><span>Compare to</span><input type="date" id="fCmpTo"></label>
       <label class="f"><span>Stations</span><select id="fStation"></select></label>
       <div class="inrow" style="align-self:end">
         <button class="btn ghost" type="button" id="btnExport">Export report (.xlsx)</button>
@@ -829,7 +831,14 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     var from = $("fFrom").value, to = $("fTo").value;
     if (!from || !to) { r = presetRange("last7"); from = r[0]; to = r[1]; }
     if (from > to) { var x = from; from = to; to = x; }
-    var cmp = $("fCompare").value === "none" ? null : compareRange(from, to);
+    var cv = $("fCompare").value, cmp = null;
+    $("fCmpFromW").hidden = $("fCmpToW").hidden = cv !== "custom";
+    if (cv === "custom") {
+      var cf = $("fCmpFrom").value, ct = $("fCmpTo").value;
+      if (!cf || !ct) { var d0 = compareRange(from, to); cf = cf || d0[0]; ct = ct || d0[1]; $("fCmpFrom").value = cf; $("fCmpTo").value = ct; }
+      if (cf > ct) { var y = cf; cf = ct; ct = y; }
+      cmp = [cf, ct];
+    } else if (cv !== "none") cmp = compareRange(from, to);
     return { from: from, to: to, cmp: cmp };
   }
 
@@ -845,7 +854,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
   function renderDash() {
     if (!S.data) return;
     var P = periodFromUI();
-    try { localStorage.setItem(LS_PRESET, JSON.stringify({ p: $("fPreset").value, f: P.from, t: P.to, c: $("fCompare").value, s: $("fStation").value })); } catch (e) {}
+    try { localStorage.setItem(LS_PRESET, JSON.stringify({ p: $("fPreset").value, f: P.from, t: P.to, c: $("fCompare").value, cf: $("fCmpFrom").value, ct: $("fCmpTo").value, s: $("fStation").value })); } catch (e) {}
     var lo = P.cmp ? P.cmp[0] : P.from;
     ensureSales(lo, P.to).then(function () { drawDash(P); }).catch(function (e) { handleError(e, "Loading sales"); drawDash(P); });
   }
@@ -875,7 +884,9 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     S.lastCalc = { P: P, A: A, B: B };
     var a = A.net, b = B ? B.net : null;
     var sel = $("fStation"); var selTxt = sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : "All stations";
-    $("periodLabel").textContent = selTxt + " · " + fDate(P.from) + " to " + fDate(P.to) + " (" + A.days + " day" + (A.days > 1 ? "s" : "") + ")" + (P.cmp ? " · compared with " + fDate(P.cmp[0]) + " to " + fDate(P.cmp[1]) : "");
+    var cd = P.cmp ? daysBetween(P.cmp[0], P.cmp[1]) + 1 : 0, pd = daysBetween(P.from, P.to) + 1;
+    $("periodLabel").innerHTML = esc(selTxt) + " · " + fDate(P.from) + " to " + fDate(P.to) + " (<b>" + pd + " day" + (pd > 1 ? "s" : "") + "</b>)" +
+      (P.cmp ? " · compared with " + fDate(P.cmp[0]) + " to " + fDate(P.cmp[1]) + " (<b>" + cd + " day" + (cd > 1 ? "s" : "") + "</b>)" + (cd !== pd ? ' <span class="chip warn">' + pd + " vs " + cd + " days — totals are not like-for-like; compare averages or rates</span>" : "") : "");
     var sr = S.data.salesRange, note = "";
     if (!sr) note = "No system sales are stored yet. Import a Sale Order export on the Import sales tab.";
     else if (sr.last < P.to) note = "System sales are stored up to <b>" + fDate(sr.last) + "</b>. Sessions, revenue, success rate and “per 1,000 sessions” figures after that date are missing until the next Sale Order export is imported.";
@@ -2770,7 +2781,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
   function printDash() {
     if (!S.lastCalc) return;
     var P = S.lastCalc.P, doc = reportDoc("Period report"), stTxt = $("fStation").options[$("fStation").selectedIndex].text;
-    var info = "Stations: " + esc(stTxt) + " · Period: " + fDate(P.from) + " to " + fDate(P.to) + " · Compared with: " + (P.cmp ? fDate(P.cmp[0]) + " to " + fDate(P.cmp[1]) : "—");
+    var info = "Stations: " + esc(stTxt) + " · Period: " + fDate(P.from) + " to " + fDate(P.to) + " (" + (daysBetween(P.from, P.to) + 1) + " days) · Compared with: " + (P.cmp ? fDate(P.cmp[0]) + " to " + fDate(P.cmp[1]) + " (" + (daysBetween(P.cmp[0], P.cmp[1]) + 1) + " days)" : "—");
     var grab = function (id) { var e = $(id); return e ? e.innerHTML : ""; };
     var img = function (id) { var cv = $(id); if (!cv || !cv.width) return ""; try { var t = document.createElement("canvas"); t.width = cv.width; t.height = cv.height; var c = t.getContext("2d"); c.fillStyle = "#fff"; c.fillRect(0, 0, t.width, t.height); c.drawImage(cv, 0, 0); return '<img src="' + t.toDataURL("image/png") + '" alt="">'; } catch (e) { return ""; } };
     var grp = function (wrap, id) {
@@ -2806,7 +2817,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
   function exportReportXl(EJ) {
     var A = S.lastCalc.A, B = S.lastCalc.B, P = S.lastCalc.P, a = A.net, b = B ? B.net : {};
     var X = XBook(EJ), stTxt = $("fStation").options[$("fStation").selectedIndex].text;
-    var info = ["Stations: " + stTxt + "   ·   Period: " + fDate(P.from) + " to " + fDate(P.to) + "   ·   Compared with: " + (P.cmp ? fDate(P.cmp[0]) + " to " + fDate(P.cmp[1]) : "—"), "Exported " + nowStr() + " by " + S.user];
+    var info = ["Stations: " + stTxt + "   ·   Period: " + fDate(P.from) + " to " + fDate(P.to) + " (" + (daysBetween(P.from, P.to) + 1) + " days)   ·   Compared with: " + (P.cmp ? fDate(P.cmp[0]) + " to " + fDate(P.cmp[1]) + " (" + (daysBetween(P.cmp[0], P.cmp[1]) + 1) + " days)" : "—"), "Exported " + nowStr() + " by " + S.user];
     var M = [
       ["Sales — system + non-system"], ["Revenue (KHR)", "totRev", "khr"], ["of which non-system (KHR)", "nsRev", "khr"], ["Energy (kWh)", "totKwh", "n1"], ["Charging sessions", "totSessions", "int"], ["of which non-system sessions", "nsSessions", "int"],
       ["Failed + canceled", null, "int", function (x) { return x.failed + x.canceled; }], ["Session success", "success", "pct"], ["Gross margin %", "gmPct", "pct"],
@@ -2916,7 +2927,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
   function exportAuditList() { withExcel(exportAuditListXl, exportAuditListPlain); }
   function exportAuditListXl(EJ) {
     var X = XBook(EJ), info = ["All stations · all audits on record", "Exported " + nowStr() + " by " + S.user];
-    var al = X.sheet("Audits", { title: "STATION AUDIT REGISTER", docKey: "audit:Report", info: info, freezeCols: 1,
+    var al = X.sheet("Audits", { title: "STATION AUDIT REGISTER", docKey: "Audit list", info: info, freezeCols: 1,
       cols: [{ h: "Audit ID", w: 11 }, { h: "Station ID", w: 9 }, { h: "Station", w: 24, wrap: true }, { h: "Audit date", w: 11, f: "date" }, { h: "Auditor", w: 16, wrap: true }, { h: "Status", w: 11, center: true }, { h: "Overall score", w: 10, f: "pct" }, { h: "Rating", w: 22, wrap: true }]
         .concat(AUD_CATS.map(function (c) { return { h: "Cat " + c[0] + " %", w: 9, f: "pct" }; }))
         .concat([{ h: "Items scored", w: 8, f: "int" }, { h: "Partially compliant", w: 10, f: "int" }, { h: "Non-compliant", w: 10, f: "int" }, { h: "CAPs", w: 7, f: "int" }, { h: "Open CAPs", w: 8, f: "int" }, { h: "Record status", w: 10 }]) });
@@ -2928,7 +2939,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       if (a.auditStatus === "Draft") al.tint(rr, 6, "N");
     });
     al.done();
-    var cl = X.sheet("CAP master list", { title: "CORRECTIVE ACTION (CAP) MASTER LIST", docKey: "audit:CAP form", info: info, freezeCols: 1,
+    var cl = X.sheet("CAP master list", { title: "CORRECTIVE ACTION (CAP) MASTER LIST", docKey: "CAP list", info: info, freezeCols: 1,
       cols: [{ h: "CAP ID", w: 13 }, { h: "Audit ID", w: 10 }, { h: "Station ID", w: 9 }, { h: "Station", w: 20, wrap: true }, { h: "Audit date", w: 11, f: "date" }, { h: "Item #", w: 7, f: "int", center: true }, { h: "SOP ref", w: 11 }, { h: "Category", w: 12 }, { h: "Non-conformance", w: 36, wrap: true }, { h: "Risk", w: 9, center: true }, { h: "Root cause", w: 30, wrap: true }, { h: "Corrective action", w: 30, wrap: true }, { h: "Preventive action", w: 30, wrap: true }, { h: "Responsible", w: 15, wrap: true }, { h: "Date raised", w: 11, f: "date" }, { h: "Target date", w: 11, f: "date" }, { h: "CAP status", w: 11 }, { h: "Closed on", w: 11, f: "date" }, { h: "Status (calc)", w: 18, wrap: true }, { h: "Days overdue", w: 9, f: "int", center: true }, { h: "Verification method", w: 18, wrap: true }, { h: "Verified by", w: 14 }, { h: "Verified on", w: 11, f: "date" }, { h: "Evidence / comments", w: 30, wrap: true }] });
     (S.data.caps || []).filter(active).forEach(function (c) {
       var i = capInfo(c), rr = cl.add([c.id, c.auditId, c.station, stName(c.station), c.auditDate, c.item, c.sop, c.category, c.nonconf, c.risk, c.rootCause, c.corrective, c.preventive, c.responsible, c.raised, c.target, c.capStatus, c.closedOn, i.label, i.days || "", c.verifyMethod, c.verifiedBy, c.verifiedOn, c.evidence]);
@@ -3091,7 +3102,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     try { S.token = localStorage.getItem(LS_TOK) || sessionStorage.getItem(LS_TOK) || ""; S.username = localStorage.getItem(LS_USER) || ""; } catch (e) {}
     try {
       var p = JSON.parse(localStorage.getItem(LS_PRESET) || "null");
-      if (p) { $("fPreset").value = p.p || "last7"; if (p.p === "custom") { $("fFrom").value = p.f; $("fTo").value = p.t; } $("fCompare").value = p.c || "prev"; S.pendingStation = p.s; }
+      if (p) { $("fPreset").value = p.p || "last7"; if (p.p === "custom") { $("fFrom").value = p.f; $("fTo").value = p.t; } $("fCompare").value = p.c || "prev"; if (p.c === "custom") { $("fCmpFrom").value = p.cf || ""; $("fCmpTo").value = p.ct || ""; } S.pendingStation = p.s; }
       else $("fPreset").value = "last7";
     } catch (e) { $("fPreset").value = "last7"; }
     if (!S.token) { signOut(""); return; }
@@ -3130,7 +3141,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
   $("btnRefresh").addEventListener("click", function () { S.sales = null; loadAll(); });
   $("tabs").addEventListener("click", function (ev) { var b = ev.target.closest("button[data-v]"); if (b) show(b.getAttribute("data-v")); });
   ["fFrom", "fTo"].forEach(function (id) { $(id).addEventListener("change", function () { $("fPreset").value = "custom"; renderDash(); }); });
-  ["fPreset", "fCompare", "fStation"].forEach(function (id) { $(id).addEventListener("change", renderDash); });
+  ["fPreset", "fCompare", "fStation", "fCmpFrom", "fCmpTo"].forEach(function (id) { $(id).addEventListener("change", renderDash); });
   $("btnExport").addEventListener("click", exportReport);
   document.querySelectorAll("[data-st]").forEach(function (b) { b.addEventListener("click", function () {
     S.stationTable = b.getAttribute("data-st");
