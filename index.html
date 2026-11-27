@@ -352,7 +352,7 @@ body.printing #printArea { display: block; padding: 0 8mm; }
     </div>
 
     <div class="grid3" style="margin-top:16px">
-      <div class="panel"><h3>Revenue by station type</h3><div class="tbl-wrap" id="tByType"></div></div>
+      <div class="panel"><h3>Revenue by station type</h3><div class="tbl-wrap" id="tByType"></div><div class="chart-box" style="height:230px;margin-top:12px"><canvas id="cTypePie"></canvas></div></div>
       <div class="panel"><h3>Revenue by customer type (system)</h3><div class="tbl-wrap" id="tByCust"></div><div class="chart-box" style="height:230px;margin-top:12px"><canvas id="cCustPie"></canvas></div></div>
       <div class="panel"><h3>Incidents by severity</h3><div class="tbl-wrap" id="tIncSev"></div></div>
     </div>
@@ -377,8 +377,8 @@ body.printing #printArea { display: block; padding: 0 8mm; }
       </div>
     </div>
 
-    <details class="panel" style="margin-top:16px"><summary>Daily detail</summary><div class="tbl-wrap" id="tDaily" style="margin-top:8px"></div></details>
-    <details class="panel" style="margin-top:12px"><summary>Charger performance</summary><div class="tbl-wrap" id="tChargers" style="margin-top:8px"></div></details>
+    <details class="panel" style="margin-top:16px"><summary>Daily detail</summary><div class="inrow" style="margin-top:8px"><button class="btn ghost small" type="button" id="dlDaily"><i class="ti ti-download"></i> Download (.xlsx)</button></div><div class="tbl-wrap" id="tDaily" style="margin-top:8px"></div></details>
+    <details class="panel" style="margin-top:12px"><summary>Charger performance</summary><div class="inrow" style="margin-top:8px"><button class="btn ghost small" type="button" id="dlChargers"><i class="ti ti-download"></i> Download (.xlsx)</button></div><div class="tbl-wrap" id="tChargers" style="margin-top:8px"></div></details>
   </section>
 
   <!-- ============ LOG VIEWS (built by script) ============ -->
@@ -1040,6 +1040,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     $("tStations").innerHTML = "<table><thead><tr>" + h.map(function (x) { return "<th>" + esc(x) + "</th>"; }).join("") + "</tr></thead><tbody>" + rows.join("") + "</tbody></table>";
   }
 
+  function chargerMix(s) { return [120, 180, 240, 320].filter(function (k) { return +s["c" + k] > 0; }).map(function (k) { return s["c" + k] + " × " + k + " kW"; }).join(" + "); }
   function simpleTable(el, head, rows, numFrom, empty) {
     numFrom = numFrom === undefined ? 1 : numFrom;
     $(el).innerHTML = "<table><thead><tr>" + head.map(function (x, i) { return "<th" + (i >= numFrom ? ' class="num"' : "") + ">" + esc(x) + "</th>"; }).join("") + "</tr></thead><tbody>" +
@@ -1151,6 +1152,16 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       ] },
       options: { maintainAspectRatio: false, interaction: { mode: "index", intersect: false }, plugins: { legend: { position: "bottom", labels: { boxWidth: 12 } } },
         scales: { y: { beginAtZero: true, title: { display: true, text: "Sessions" } }, y1: { position: "right", beginAtZero: true, grid: { drawOnChartArea: false }, title: { display: true, text: "Issue rate %" } }, y2: { display: false, beginAtZero: true } } }
+    });
+    // station-type pie (system + non-system revenue)
+    var tk = ["VET-owned", "Franchised (PNP)", "HSP"].filter(function (k) { var x = A.types[k]; return x && (x.rev + x.nsRev) > 0; });
+    var ttot = tk.reduce(function (t, k) { return t + A.types[k].rev + A.types[k].nsRev; }, 0), TCOL = { "VET-owned": acc, "Franchised (PNP)": warn, "HSP": "#7a9e3f" };
+    if (S.charts.typePie) S.charts.typePie.destroy();
+    S.charts.typePie = new Chart($("cTypePie"), {
+      type: "pie",
+      data: { labels: tk.map(function (k) { var v = A.types[k].rev + A.types[k].nsRev; return k + " " + (ttot ? (v / ttot * 100).toFixed(1) : "0") + "%"; }), datasets: [{ data: tk.map(function (k) { return A.types[k].rev + A.types[k].nsRev; }), backgroundColor: tk.map(function (k) { return TCOL[k]; }), borderColor: "#fff", borderWidth: 2 }] },
+      options: { maintainAspectRatio: false, plugins: { legend: { position: "right", labels: { boxWidth: 12 } },
+        tooltip: { callbacks: { label: function (c) { return " " + n0(c.raw) + " KHR"; } } } } }
     });
     // customer-type pie (system revenue)
     var ck = Object.keys(A.cust).filter(function (k) { return A.cust[k].rev > 0; }).sort(function (p, q) { return A.cust[q].rev - A.cust[p].rev; });
@@ -1721,7 +1732,8 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       '<div class="panel"><h3>Fault categories · channels · customer types</h3><div class="tbl-wrap" id="tLists"></div></div>' +
       '<div class="panel"><h3>Incident types</h3><div class="tbl-wrap" id="tIT"></div></div></div>';
     simpleTable("tImp", ["Import", "When", "By", "Dates", "Orders"], d.imports.map(function (x) { return [esc(x.id), fDT(x.at), esc(x.by), fDate(x.first) + " – " + fDate(x.last), n0(x.orders)]; }), 4);
-    simpleTable("tSt", ["ID", "Name", "Short name", "Type", "Province", "Chargers", "Connectors", "kW", "Hrs/day", "Opened", "Active", "Notes"], d.stations.map(function (s) { return [esc(s.id), esc(s.name), esc(s.short), esc(s.type), esc(s.province), s.chargers, s.connectors, s.kw, s.hrs, fDate(s.opened), s.active ? "Y" : "N", '<span class="small">' + esc(s.notes) + "</span>"]; }), 5);
+    simpleTable("tSt", ["ID", "Name", "Short name", "Type", "Province", "Transformer (kVA)", "Chargers", "Charger mix", "Guns (CCS2 / GB/T)", "Total kW", "Hrs/day", "Opened", "Active", "Notes"], d.stations.map(function (s) { return [esc(s.id), esc(s.name), esc(s.short), esc(s.type), esc(s.province), s.kva === "" || s.kva === undefined ? "—" : n0(s.kva), s.chargers, esc(chargerMix(s) || "—"),
+      s.ccs === "" && s.gbt === "" ? n0(s.connectors) : (s.ccs || 0) + " / " + (s.gbt || 0), n0(s.kw), s.hrs, fDate(s.opened), s.active ? "Y" : "N", '<span class="small">' + esc(s.notes) + "</span>"]; }), 5);
     simpleTable("tThr", ["KPI", "Better", "Green if", "Amber if", "Note"], thr, 2);
     simpleTable("tSev", ["Severity", "Report within (hrs)", "Close within (days)", "Meaning"], c.sev.map(function (s) { return [esc(s.name), s.reportHrs, s.closeDays, '<span class="small">' + esc(s.note) + "</span>"]; }), 1);
     simpleTable("tCC", ["Category", "SLA hrs"], c.compCats.map(function (x) { return [esc(x.name), x.sla]; }));
@@ -3445,13 +3457,13 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       r += nRows * 5;
     });
     // --- charts (pictures of the website charts)
-    var chartSets = [[["cDaily", 1], ["cMonthly", 7]], [["cCustPie", 1]]];
+    var chartSets = [[["cDaily", 1], ["cMonthly", 7]], [["cTypePie", 1], ["cCustPie", 7]]];
     chartSets.forEach(function (charts, setNo) {
     var chartRows = 0, imgs = [];
     charts.forEach(function (c) {
       var cv = $(c[0]); if (!cv || !cv.width) return;
       var url; try { var tmp = document.createElement("canvas"); tmp.width = cv.width; tmp.height = cv.height; var cx = tmp.getContext("2d"); cx.fillStyle = "#fff"; cx.fillRect(0, 0, tmp.width, tmp.height); cx.drawImage(cv, 0, 0); url = tmp.toDataURL("image/png"); } catch (e) { return; }
-      var wpx = (c[0] === "cCustPie" ? 4 : 6) * (CW * 7 + 5) - 12, hpx = Math.round(wpx * cv.height / cv.width);
+      var wpx = (/Pie$/.test(c[0]) ? 5 : 6) * (CW * 7 + 5) - 12, hpx = Math.round(wpx * cv.height / cv.width);
       imgs.push({ id: X.wb.addImage({ base64: url, extension: "png" }), col: c[1], w: wpx, h: hpx, title: cv.closest(".panel").querySelector("h3").textContent.trim() });
       chartRows = Math.max(chartRows, Math.ceil(hpx / 20) + 1);
     });
@@ -3576,7 +3588,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       var lbl = wrap ? $(wrap).querySelector(".group-label") : box.previousElementSibling;
       return '<section class="pd-blk"><div class="group-label">' + (lbl ? lbl.innerHTML : "") + '</div><div class="kpis pd-kpis">' + box.innerHTML + "</div></section>";
     };
-    var panel = function (id, cls) { var p = $(id) && $(id).closest(".panel"); if (!p) return ""; var h = p.querySelector("h3"); return '<div class="pd-panel ' + (cls || "") + '"><h3>' + (h ? esc(h.textContent) : "") + "</h3>" + grab(id) + (id === "tByCust" ? '<div class="pd-pie">' + img("cCustPie") + "</div>" : "") + "</div>"; };
+    var panel = function (id, cls) { var p = $(id) && $(id).closest(".panel"); if (!p) return ""; var h = p.querySelector("h3"); return '<div class="pd-panel ' + (cls || "") + '"><h3>' + (h ? esc(h.textContent) : "") + "</h3>" + grab(id) + (id === "tByCust" || id === "tByType" ? '<div class="pd-pie">' + img(id === "tByCust" ? "cCustPie" : "cTypePie") + "</div>" : "") + "</div>"; };
     var body =
       '<p class="pd-info">' + info + "</p>" +
       grp("kComplianceWrap", "kComp") + grp(null, "kSales") + grp(null, "kIncome") + grp(null, "kOps") + grp(null, "kInc") +
@@ -3600,6 +3612,36 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
   function exportReport() {
     if (!S.lastCalc) return;
     withExcel(exportReportXl, exportReportPlain);
+  }
+  function dashInfo() {
+    var P = S.lastCalc.P, stTxt = $("fStation").options[$("fStation").selectedIndex].text;
+    return ["Stations: " + stTxt + "   ·   Period: " + fDate(P.from) + " to " + fDate(P.to) + " (" + (daysBetween(P.from, P.to) + 1) + " days)", "Exported " + nowStr() + " by " + S.user];
+  }
+  function dailySheet(X, A, info) {
+    var dy = X.sheet("Daily", { title: "DAILY DETAIL", docKey: "Period report", info: info, freezeCols: 1,
+      cols: [{ h: "Date", w: 12, f: "date" }, { h: "Day", w: 6 }, { h: "Sessions", w: 11, f: "int" }, { h: "Failed + canceled", w: 11, f: "int" }, { h: "Issue rate", w: 9, f: "pct" }, { h: "Revenue (KHR)", w: 16, f: "khr" }, { h: "Faults started", w: 10, f: "int" }, { h: "Chargers down at day end", w: 13, f: "int" }, { h: "Complaints", w: 11, f: "int" }, { h: "Incidents", w: 11, f: "int" }] });
+    var t = [0, 0, 0, 0, 0, 0];
+    A.dayList.forEach(function (d) { var x = A.daily[d]; dy.add([d, ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][dow(d)], x.sessions, x.bad, x.sessions ? x.bad / x.sessions : "", x.rev, x.faults, x.down, x.comp, x.inc]);
+      t[0] += x.sessions; t[1] += x.bad; t[2] += x.rev; t[3] += x.faults; t[4] += x.comp; t[5] += x.inc; });
+    dy.add(["Total", "", t[0], t[1], t[0] ? t[1] / t[0] : "", t[2], t[3], "", t[4], t[5]], { bold: true, fill: dy.SOFT });
+    dy.done();
+  }
+  function chargerSheet(X, A, info) {
+    var ch = X.sheet("Charger performance", { title: "CHARGER PERFORMANCE", docKey: "Period report", info: info, freezeCols: 1,
+      cols: [{ h: "Charger", w: 18 }, { h: "Station ID", w: 10 }, { h: "Station", w: 20, wrap: true }, { h: "Revenue (KHR)", w: 15, f: "khr" }, { h: "Sessions", w: 10, f: "int" }, { h: "Energy (kWh)", w: 12, f: "n1" }, { h: "Failed", w: 9, f: "int" }, { h: "Canceled", w: 9, f: "int" },
+        { h: "Issue rate", w: 9, f: "pct" }, { h: "Rev./session (KHR)", w: 12, f: "khr" }, { h: "kWh/session", w: 10, f: "n1" }, { h: "Faults", w: 8, f: "int" }, { h: "Down hrs", w: 9, f: "n1" }] });
+    Object.keys(A.chargers).map(function (k) { return A.chargers[k]; }).sort(function (p, q) { return q.rev - p.rev; }).forEach(function (c) {
+      ch.add([c.charger, c.station, stName(c.station), c.rev, c.sessions, c.kwh, c.failed, c.canceled, c.sessions ? (c.failed + c.canceled) / c.sessions : "", c.sessions ? c.rev / c.sessions : "", c.sessions ? c.kwh / c.sessions : "", c.faults, c.downHrs]);
+    });
+    ch.done();
+  }
+  function dashTableXl(which) {
+    if (!S.lastCalc) return;
+    withExcel(function (EJ) {
+      var X = XBook(EJ), A = S.lastCalc.A, P = S.lastCalc.P;
+      if (which === "daily") dailySheet(X, A, dashInfo()); else chargerSheet(X, A, dashInfo());
+      return X.save((which === "daily" ? "Daily_Detail_" : "Charger_Performance_") + P.from + "_to_" + P.to + ".xlsx");
+    }, function () { notice("The spreadsheet tool couldn't load. Check the internet connection and try again.", "bad"); });
   }
   function exportReportXl(EJ) {
     var A = S.lastCalc.A, B = S.lastCalc.B, P = S.lastCalc.P, a = A.net, b = B ? B.net : {};
@@ -3631,10 +3673,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     Object.keys(A.st).forEach(function (id) { var x = A.st[id], s = S.cfg.stById[id]; ss.add([id, s.short, s.type, x.chargers, x.rev, x.nsRev, x.sessions, x.kwh, x.cost, nz(x.gmPct), nz(x.success), x.faults, x.downHrs, nz(x.uptime), nz(x.mttr), x.openF, x.comp, nz(x.per1k), nz(x.slaPct), x.openC, x.overC, x.inc, x.critMaj, x.injuries, x.cost$, nz(x.repPct), x.openI, x.overI, x.flags, x.statusTxt]); });
     ss.add(["Network", "Selected stations", "", a.chargers, a.rev, a.nsRev, a.sessions, a.kwh, a.cost, nz(a.gmPct), nz(a.success), a.faults, a.downHrs, nz(a.uptime), nz(a.mttr), a.openF, a.comp, nz(a.per1k), nz(a.slaPct), a.openC, a.overC, a.inc, a.critMaj, a.injuries, a.cost$, nz(a.repPct), a.openI, a.overI, "", ""], { bold: true, fill: ss.SOFT });
     ss.done();
-    var dy = X.sheet("Daily", { title: "DAILY TOTALS", docKey: "Period report", info: info,
-      cols: [{ h: "Date", w: 12, f: "date" }, { h: "Sessions", w: 11, f: "int" }, { h: "Failed + canceled", w: 11, f: "int" }, { h: "Revenue (KHR)", w: 16, f: "khr" }, { h: "Faults started", w: 10, f: "int" }, { h: "Chargers down at day end", w: 13, f: "int" }, { h: "Complaints", w: 11, f: "int" }, { h: "Incidents", w: 11, f: "int" }] });
-    A.dayList.forEach(function (d) { var x = A.daily[d]; dy.add([d, x.sessions, x.bad, x.rev, x.faults, x.down, x.comp, x.inc]); });
-    dy.done();
+    dailySheet(X, A, info); chargerSheet(X, A, info);
     var ids = {}; Object.keys(A.st).forEach(function (id) { ids[id] = 1; });
     ["faults", "complaints", "incidents", "nonsys"].forEach(function (kind) {
       var K = KINDS[kind], fl = K.fields.filter(function (f) { return f.t !== "info"; }), now = Date.now();
@@ -3824,6 +3863,8 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       .catch(function (e) { $("userErr").textContent = errText(e); });
   });
   $("inSub").addEventListener("click", function (ev) { var b = ev.target.closest("[data-sub]"); if (b) showSub(b.getAttribute("data-sub")); });
+  $("dlDaily").addEventListener("click", function () { dashTableXl("daily"); });
+  $("dlChargers").addEventListener("click", function () { dashTableXl("chargers"); });
   $("acSub").addEventListener("click", function (ev) { var b = ev.target.closest("[data-sub]"); if (b) showAcSub(b.getAttribute("data-sub")); });
 
   /* ---------------- views, loading, sign-in ---------------- */
