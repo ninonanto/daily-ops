@@ -286,10 +286,10 @@ body.printing #printArea { display: block; padding: 0 8mm; }
     <button type="button" data-v="complaints" data-need="complaints" hidden><i class="ti ti-message-report"></i>Complaints <span class="count" id="cntComplaints" hidden></span></button>
     <button type="button" data-v="incidents" data-need="incidents" hidden><i class="ti ti-alert-triangle"></i>Incidents <span class="count" id="cntIncidents" hidden></span></button>
     <button type="button" data-v="nonsys" data-need="nonsys" hidden><i class="ti ti-receipt"></i>Non-system sales</button>
-    <button type="button" data-v="kpi" data-need="kpi" hidden><i class="ti ti-chart-bar"></i>Station KPI</button>
+    <button type="button" data-v="kpi" data-need="kpi" hidden><i class="ti ti-chart-bar"></i>Station KPI &amp; targets</button>
     <button type="button" data-v="audit" data-need="audit" hidden><i class="ti ti-clipboard-check"></i>Audits</button>
     <button type="button" data-v="caps" data-need="caps" hidden><i class="ti ti-checklist"></i>CAP list <span class="count" id="cntCaps" hidden></span></button>
-    <button type="button" data-v="inputs" data-need="inputs" hidden><i class="ti ti-file-invoice"></i>Bills, expenses &amp; CSAT</button>
+    <button type="button" data-v="inputs" data-need="inputs" hidden><i class="ti ti-file-invoice"></i>Bills &amp; expenses</button>
     <button type="button" data-v="acct" data-need="acct" hidden><i class="ti ti-calculator"></i>Accounting</button>
     <button type="button" data-v="import" data-need="import" hidden><i class="ti ti-file-import"></i>Import sales</button>
     <button type="button" data-v="admin" data-need="admin" hidden><i class="ti ti-settings"></i>Users &amp; settings</button>
@@ -385,21 +385,33 @@ body.printing #printArea { display: block; padding: 0 8mm; }
 
   <!-- ============ LOG VIEWS (built by script) ============ -->
   <section id="v-faults" hidden></section>
-  <section id="v-complaints" hidden></section>
+  <section id="v-cmp" hidden>
+    <nav class="sub" id="cpSub">
+      <button type="button" data-sub="complaints" aria-selected="true"><i class="ti ti-message-report"></i> Complaints</button>
+      <button type="button" data-sub="csat"><i class="ti ti-mood-smile"></i> CSAT surveys</button>
+    </nav>
+    <section id="v-complaints"></section><section id="v-csat" hidden></section>
+  </section>
   <section id="v-incidents" hidden></section>
   <section id="v-nonsys" hidden></section>
   <section id="v-caps" hidden></section>
 
   <!-- ============ STATION KPI / AUDITS / INPUTS ============ -->
-  <section id="v-kpi" hidden></section>
+  <section id="v-kpiw" hidden>
+    <nav class="sub noprint" id="kpSub">
+      <button type="button" data-sub="kpi" aria-selected="true"><i class="ti ti-chart-bar"></i> KPI scorecard</button>
+      <button type="button" data-sub="targets"><i class="ti ti-target-arrow"></i> Sales targets</button>
+    </nav>
+    <section id="v-kpi"></section><section id="v-targets" hidden></section>
+  </section>
   <section id="v-audit" hidden></section>
   <section id="v-inputs" hidden>
     <nav class="sub" id="inSub">
-      <button type="button" data-sub="bills" aria-selected="true"><i class="ti ti-bolt"></i> Electricity bills</button>
+      <button type="button" data-sub="expov" aria-selected="true"><i class="ti ti-chart-pie"></i> Expense overview</button>
+      <button type="button" data-sub="bills"><i class="ti ti-bolt"></i> Electricity bills</button>
       <button type="button" data-sub="expenses"><i class="ti ti-wallet"></i> Operating expenses</button>
-      <button type="button" data-sub="csat"><i class="ti ti-mood-smile"></i> CSAT surveys</button>
     </nav>
-    <section id="v-bills"></section><section id="v-expenses" hidden></section><section id="v-csat" hidden></section>
+    <section id="v-expov"></section><section id="v-bills" hidden></section><section id="v-expenses" hidden></section>
   </section>
 
   <section id="v-acct" hidden>
@@ -491,7 +503,7 @@ body.printing #printArea { display: block; padding: 0 8mm; }
       <div class="form">
         <label class="f req"><span>Username</span><input name="username" maxlength="40" autocapitalize="none" spellcheck="false"><span class="hint">3–40 letters, numbers, . _ -</span></label>
         <label class="f req w2"><span>Full name</span><input name="name" maxlength="60"></label>
-        <label class="f req"><span>Role</span><select name="role"><option value="admin">Admin — full control</option><option value="ops01">Ops01 — KPI, audits, data entry + sales import</option><option value="ops02">Ops02 — data entry + sales import</option></select></label>
+        <div class="f req w3"><span>Roles <span class="muted small" style="font-weight:400">— tick one or more; the user gets the highest access any of them gives</span></span><div class="multi" id="userRoles"></div></div>
         <label class="f"><span>Active</span><select name="active"><option value="Y">Yes</option><option value="N">No — can't sign in</option></select></label>
         <label class="f"><span id="userPwLabel">Temporary password</span><input name="password" type="text" autocomplete="off"><span class="hint" id="userPwHint">They must change it at first sign-in</span></label>
       </div>
@@ -516,11 +528,11 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
   var OFF = 7 * 3600e3;                     // Cambodia is UTC+7 all year
   var LS_TOK = "dor.token", LS_USER = "dor.username", LS_PRESET = "dor.preset";
   var ROLE_LABEL = { admin: "Admin", ops01: "Ops01", ops02: "Ops02" };
-  function roleLabel(r) { return ROLE_LABEL[r] || (String(r).charAt(0).toUpperCase() + String(r).slice(1)); }
+  function roleLabel(r) { return String(r || "").split(/\s*,\s*/).map(function (x) { return ROLE_LABEL[x] || (x.charAt(0).toUpperCase() + x.slice(1)); }).join(" + "); }
   var CAN = { entry: ["admin", "ops01", "ops02"], kpi: ["admin", "ops01"], acct: ["admin", "ops01"], admin: ["admin"] };
-  var AREAS = [["dash", "Dashboard"], ["faults", "Charger faults"], ["complaints", "Complaints"], ["incidents", "Incidents"], ["nonsys", "Non-system sales"], ["kpi", "Station KPI"], ["audit", "Audits"], ["caps", "CAP list"], ["inputs", "Bills, expenses & CSAT"], ["acct", "Accounting"], ["import", "Import sales"]];
+  var AREAS = [["dash", "Dashboard"], ["faults", "Charger faults"], ["complaints", "Complaints"], ["incidents", "Incidents"], ["nonsys", "Non-system sales"], ["kpi", "Station KPI & targets"], ["audit", "Audits"], ["caps", "CAP list"], ["inputs", "Bills & expenses"], ["acct", "Accounting"], ["import", "Import sales"]];
   var VIEW_ONLY = { dash: 1, kpi: 1 };
-  var KIND_AREA = { faults: "faults", complaints: "complaints", incidents: "incidents", nonsys: "nonsys", bills: "inputs", expenses: "inputs", csat: "inputs", caps: "caps", customers: "acct", prices: "acct", recurring: "acct", otherinc: "acct", invoices: "acct" };
+  var KIND_AREA = { faults: "faults", complaints: "complaints", incidents: "incidents", nonsys: "nonsys", bills: "inputs", expenses: "inputs", targets: "inputs", csat: "complaints", caps: "caps", customers: "acct", prices: "acct", recurring: "acct", otherinc: "acct", invoices: "acct" };
   function lvl(area) { if (S.role === "admin") return 2; var p = S.data && S.data.perms; return p ? p[area] || 0 : 0; }
   function can(what) { return what === "admin" ? S.role === "admin" : lvl(what) >= 1; }
   function canEdit(area) { return lvl(area) >= 2; }
@@ -1143,7 +1155,8 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
   /* Doughnut with the total in the middle and a call-out (name · % · amount) for every slice on the right.
      The largest slice is turned to face left so no leader line crosses the chart. */
   function mKhr(v) { return Math.abs(v) >= 1e6 ? (v / 1e6).toLocaleString("en-US", { maximumFractionDigits: 1 }) + "M" : n0(v); }
-  function calloutDonut(id, old, labels, values, colors) {
+  function calloutDonut(id, old, labels, values, colors, unit) {
+    var fm = unit === "USD" ? function (v) { return "$" + n0(v); } : function (v) { return mKhr(v) + " KHR"; };
     if (old) old.destroy();
     var cv = $(id); if (!cv) return null;
     var tot = values.reduce(function (t, v) { return t + v; }, 0), w = cv.parentNode.clientWidth || 380;
@@ -1154,7 +1167,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
         var v = values[i]; if (!v) return;
         var p = arc.getProps(["x", "y", "startAngle", "endAngle", "outerRadius", "innerRadius"], true), mid = (p.startAngle + p.endAngle) / 2;
         if (Math.cos(mid) < 0) mid = p.endAngle - 0.12;   // slice facing left: anchor near its top-right edge
-        items.push({ mid: mid, p: p, color: colors[i], l1: labels[i] + "  " + (v / tot * 100).toFixed(1) + "%", l2: mKhr(v) + " KHR", y: p.y + Math.sin(mid) * (p.outerRadius + 18) });
+        items.push({ mid: mid, p: p, color: colors[i], l1: labels[i] + "  " + (v / tot * 100).toFixed(1) + "%", l2: fm(v), y: p.y + Math.sin(mid) * (p.outerRadius + 18) });
       });
       items.sort(function (a, b) { return a.y - b.y; });
       var top = chart.chartArea.top - 12, bot = chart.chartArea.bottom + 12, k;
@@ -1172,7 +1185,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       if (meta.data[0]) {
         var c = meta.data[0].getProps(["x", "y", "innerRadius"], true), fs = Math.max(10, Math.min(15, Math.floor(c.innerRadius / 4.2)));
         ctx.save(); ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = MUT; ctx.font = "11px Inter, Arial, sans-serif"; ctx.fillText("Total", c.x, c.y - 9);
-        ctx.fillStyle = INK; ctx.font = "700 " + fs + "px Inter, Arial, sans-serif"; ctx.fillText(mKhr(tot) + " KHR", c.x, c.y + 9); ctx.restore();
+        ctx.fillStyle = INK; ctx.font = "700 " + fs + "px Inter, Arial, sans-serif"; ctx.fillText(fm(tot), c.x, c.y + 9); ctx.restore();
       }
     } };
     return new Chart(cv, {
@@ -1180,7 +1193,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       data: { labels: labels, datasets: [{ data: values, backgroundColor: colors, borderColor: "#fff", borderWidth: 2 }] },
       options: { maintainAspectRatio: false, cutout: "58%", rotation: tot ? 270 - values[0] / tot * 180 : 0,
         layout: { padding: { left: 6, right: Math.min(190, Math.round(w * 0.5)), top: 26, bottom: 26 } },
-        plugins: { legend: { display: false }, tooltip: { callbacks: { label: function (c) { return " " + n0(c.raw) + " KHR (" + (tot ? (c.raw / tot * 100).toFixed(1) : 0) + "%)"; } } } } },
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: function (c) { return " " + (unit === "USD" ? "$" + n0(c.raw) : n0(c.raw) + " KHR") + " (" + (tot ? (c.raw / tot * 100).toFixed(1) : 0) + "%)"; } } } } },
       plugins: [plug]
     });
   }
@@ -1289,11 +1302,11 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     var K = KINDS[kind], el = $("v-" + kind);
     LF[kind] = LF[kind] || { station: "*", status: "open", from: "", to: "", q: "" };
     var f = LF[kind];
-    var simple = kind === "nonsys" || kind === "bills" || kind === "expenses" || kind === "csat" || kind === "customers" || kind === "otherinc" || kind === "invoices";
+    var simple = kind === "nonsys" || kind === "bills" || kind === "expenses" || kind === "targets" || kind === "csat" || kind === "customers" || kind === "otherinc" || kind === "invoices";
     if (simple && f.status === "open") f.status = "all";
     var statusOpts = simple ? [["all", "All active"], ["void", "Voided"]] :
       [["open", "Open"], ["overdue", "Overdue / over alert"], ["closed", "Closed"], ["all", "All active"], ["void", "Voided"]];
-    el.innerHTML = '<div class="section-title"><h2>' + esc(K.plural) + '</h2><div class="inrow noprint"><button class="btn ghost" type="button" data-csv="' + kind + '">Download CSV</button>' + (K.noNew || !canEdit(KIND_AREA[kind]) ? "" : '<button class="btn" type="button" data-new="' + kind + '">+ New ' + esc(K.label.toLowerCase()) + "</button>") + "</div></div>" +
+    el.innerHTML = '<div class="section-title"><h2>' + esc(K.plural) + '</h2><div class="inrow noprint"><button class="btn ghost" type="button" data-csv="' + kind + '">Download CSV</button>' + (K.noNew || !canEdit(KIND_AREA[kind]) ? "" : '<button class="btn" type="button" data-new="' + kind + '">+ New ' + esc(K.label.replace(/^[A-Z][a-z]/, function (c) { return c.toLowerCase(); })) + "</button>") + "</div></div>" +
       '<p class="muted" style="margin-top:0">' + esc(K.intro) + "</p>" +
       '<div class="panel tools noprint"><label class="f"><span>Station</span><select data-lf="station">' + stationOptions(true) + '</select></label>' +
       '<label class="f"><span>Status</span><select data-lf="status">' + statusOpts.map(function (o) { return '<option value="' + o[0] + '">' + o[1] + "</option>"; }).join("") + "</select></label>" +
@@ -1357,6 +1370,8 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     if (kind === "invoices") return { head: ["Invoice no.", "Type", "Invoice date", "Due date", "Bill to (company)", "Stations", "Period", "Subtotal", "VAT", "Total (KHR)", "Issued by"], row: function (r) {
       var nm = function (v) { return '<span class="num">' + n0(v) + "</span>"; };
       return [esc(r.id), esc(r.docType), fDate(r.date), fDate(r.due), esc(r.company), esc(r.stations), fDate(r.from) + " – " + fDate(r.to), nm(r.amount), nm(r.vat), "<b>" + nm(r.total) + "</b>", esc(r.createdBy)]; } };
+    if (kind === "targets") return { head: ["ID", "Station", "From", "To", "Monthly target (USD)", "Notes"], row: function (r) {
+      return [esc(r.id), esc(stName(r.station)), esc(r.from), r.to ? esc(r.to) : '<span class="muted">open-ended</span>', '<span class="num">' + n0(+r.target || 0) + "</span>", esc(r.notes || "")]; } };
     if (kind === "bills") return { head: ["ID", "Station", "Billing month", "Invoice", "Invoice date", "kWh billed", "Amount (USD)", "USD / kWh", "Supplier"], row: function (r) {
       return [esc(r.id), esc(stName(r.station)), esc(r.month), esc(r.invoice), fDate(r.invoiceDate), '<span class="num">' + n0(r.kwh) + "</span>", '<span class="num">' + n0(r.amount) + "</span>", '<span class="num">' + (r.kwh ? (r.amount / r.kwh).toFixed(3) : "—") + "</span>", esc(r.supplier)]; } };
     if (kind === "expenses") return { head: ["ID", "Month", "Station", "Category", "Amount (USD)", "Vendor / payee", "Reference", "Notes"], row: function (r) {
@@ -1527,9 +1542,9 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
   }
   function afterDataChange() {
     updateCounts();
-    if (S.view === "dash") renderDash(); else if (S.view === "inputs") renderList(S.sub || "bills"); else if (S.view === "acct") { var as = S.acSub || "acinv"; if (KINDS[as]) renderList(as); else showAcSub(as); } else if (KINDS[S.view]) renderList(S.view);
+    if (S.view === "dash") renderDash(); else if (S.view === "inputs") { if ((S.sub || "expov") === "expov") renderExpOv(); else renderList(S.sub); } else if (S.view === "kpi" && S.kpSub === "targets") renderList("targets"); else if (S.view === "complaints") renderList(S.cpSub || "complaints"); else if (S.view === "acct") { var as = S.acSub || "acinv"; if (KINDS[as]) renderList(as); else showAcSub(as); } else if (KINDS[S.view]) renderList(S.view);
     else if (S.view === "audit") { if (AU.editing) drawFindings(); else renderAuditList(); }
-    else if (S.view === "kpi" && S.lastKpi) drawKpi();
+    else if (S.view === "kpi" && S.lastKpi && S.kpSub !== "targets") drawKpi();
   }
 
   /* --- CSV --- */
@@ -1760,7 +1775,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       (d.archives && d.archives.length ? 'Archives: ' + d.archives.map(function (x) { return '<a target="_blank" rel="noopener" href="' + esc(x.url) + '">' + esc(x.name.replace(/^.* – /, "")) + "</a>"; }).join(" · ") : "No sales have needed archiving yet.") + "</p>" +
       (d.cells ? '<p class="small" style="margin:0 0 8px"><b>Database size:</b> ' + n0(d.cells) + " of 10,000,000 cells (" + pct(d.cells / 1e7, 0) + ")" + (d.cells > 7e6 ? ' <span class="chip bad">getting full — ask for the hourly-data compaction or a shorter window</span>' : d.cells > 5e6 ? ' <span class="chip warn">keep an eye on it</span>' : ' <span class="chip ok">plenty of room</span>') + "</p>" : "") +
       (S.role === "admin" ? '<button class="btn" type="button" id="btnBackup">Back up now</button>' : '<p class="small muted">An Admin can run a backup from here.</p>') +
-      '<p class="small muted" style="margin-bottom:0">Server ' + esc(d.version) + " · server time " + esc(fDT(d.serverTime)) + " · signed in as " + esc(S.user) + " (" + esc(S.role) + ")</p></div>" +
+      '<p class="small muted" style="margin-bottom:0">Server ' + esc(d.version) + " · server time " + esc(fDT(d.serverTime)) + " · signed in as " + esc(S.user) + " (" + esc(roleLabel(S.role)) + ")</p></div>" +
       '<div class="panel"><h3>Import history</h3><div class="tbl-wrap" style="max-height:260px;overflow:auto" id="tImp"></div></div></div>' +
       '<div class="panel" style="margin-top:16px"><h3>Stations</h3><div class="tbl-wrap" id="tSt"></div></div>' +
       '<div class="grid2" style="margin-top:16px"><div class="panel"><h3>KPI thresholds</h3><div class="tbl-wrap" id="tThr"></div></div>' +
@@ -1822,6 +1837,12 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       { k: "category", l: "Category", t: "select", opts: function () { return S.cfg.expCats; }, req: 1 },
       { k: "amount", l: "Amount (USD)", t: "num", req: 1 }, { k: "vendor", l: "Vendor / payee", t: "text" }, { k: "ref", l: "Reference", t: "text", hint: "Invoice or voucher no." },
       { k: "notes", l: "Notes", t: "long", w: 3 }
+    ] };
+  KINDS.targets = { label: "Sales target", plural: "Monthly sales targets", list: "targets", dateField: "from", group: "kpi",
+    intro: "Revenue target per station per month (USD), used by KPI C2 \u201cRevenue vs target\u201d. One row can cover a range of months; leave \u201cTo month\u201d empty to keep it going. Months with no row here use the station\u2019s default target in the Stations tab (column Q). Rows for the same station can\u2019t overlap.",
+    fields: [
+      { k: "station", l: "Station", t: "station", req: 1 }, { k: "from", l: "From month", t: "month", req: 1 }, { k: "to", l: "To month", t: "month", hint: "Empty = no end" },
+      { k: "target", l: "Monthly target (USD)", t: "num", req: 1 }, { k: "notes", l: "Notes", t: "long", w: 3 }
     ] };
   KINDS.csat = { label: "CSAT survey", plural: "CSAT surveys", list: "csat", dateField: "date", group: "kpi",
     intro: "Customer satisfaction survey results. KPI S1 = satisfied ÷ responses for surveys dated in the period.",
@@ -2491,7 +2512,98 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
   function showSub(sub) {
     S.sub = sub;
     document.querySelectorAll("#inSub [data-sub]").forEach(function (b) { b.setAttribute("aria-selected", b.getAttribute("data-sub") === sub ? "true" : "false"); });
-    ["bills", "expenses", "csat"].forEach(function (x) { $("v-" + x).hidden = x !== sub; });
+    ["expov", "bills", "expenses"].forEach(function (x) { $("v-" + x).hidden = x !== sub; });
+    if (sub === "expov") renderExpOv(); else buildListView(sub);
+  }
+
+  /* ---------- Bills & expenses: expense overview ---------- */
+  var EO = { st: "*", from: "", to: "", elec: true };
+  function renderExpOv() {
+    var el = $("v-expov");
+    if (!EO.to) { EO.to = today().slice(0, 7); EO.from = monthAdd(EO.to + "-01", -11).slice(0, 7); }
+    var stOpt = '<option value="*">All stations</option><option value="type:VET-owned">VET-owned stations</option><option value="type:Franchised (PNP)">Franchised (PNP) stations</option><option value="type:HSP">Host-site (HSP) stations</option>' +
+      S.data.stations.map(function (s) { return '<option value="' + esc(s.id) + '">' + esc(s.id + " · " + s.short) + "</option>"; }).join("");
+    el.innerHTML = '<div class="section-title"><h2><i class="ti ti-chart-pie"></i> Operating expense overview</h2><div class="inrow noprint"><button class="btn ghost" type="button" id="eoXl"><i class="ti ti-file-spreadsheet"></i> Download (.xlsx)</button></div></div>' +
+      '<p class="muted" style="margin-top:0">Electricity bills plus the operating expenses entered on the other two sub-tabs, in USD by billing / expense month.</p>' +
+      '<div class="panel tools noprint"><label class="f"><span>Station</span><select id="eoSt">' + stOpt + '</select></label>' +
+      '<label class="f"><span>From month</span><input type="month" id="eoFrom"></label><label class="f"><span>To month</span><input type="month" id="eoTo"></label>' +
+      '<label style="align-self:end;display:flex;gap:6px;align-items:center;padding-bottom:10px;white-space:nowrap;cursor:pointer"><input type="checkbox" id="eoElec" style="width:16px;height:16px;margin:0">Include electricity bills</label></div>' +
+      '<div class="kpis" id="eoK" style="margin-top:12px"></div>' +
+      '<div class="kc-grid" style="margin-top:16px"><div class="panel"><h3>Operating expenses by month (USD)</h3><div class="chart-box" style="height:300px"><canvas id="eoBar"></canvas></div></div>' +
+      '<div class="panel"><h3>Share by expense type</h3><div class="chart-box" style="height:300px"><canvas id="eoPie"></canvas></div></div></div>' +
+      '<div class="panel" style="margin-top:16px"><h3>By expense type</h3><div class="tbl-wrap" id="eoT"></div></div>';
+    $("eoSt").value = EO.st; if (!$("eoSt").value) { EO.st = "*"; $("eoSt").value = "*"; }
+    $("eoFrom").value = EO.from; $("eoTo").value = EO.to; $("eoElec").checked = EO.elec;
+    $("eoSt").onchange = function () { EO.st = this.value; drawExpOv(); };
+    $("eoFrom").onchange = function () { if (this.value) EO.from = this.value; drawExpOv(); };
+    $("eoTo").onchange = function () { if (this.value) EO.to = this.value; drawExpOv(); };
+    $("eoElec").onchange = function () { EO.elec = this.checked; drawExpOv(); };
+    $("eoXl").onclick = expOvXl;
+    drawExpOv();
+  }
+  function expOvData() {
+    var from = EO.from <= EO.to ? EO.from : EO.to, to = EO.from <= EO.to ? EO.to : EO.from;
+    var ids = S.data.stations.map(function (s) { return s.id; });
+    if (EO.st.indexOf("type:") === 0) { var g = EO.st.slice(5); ids = ids.filter(function (id) { return typeGroup(stType(id)) === g; }); } else if (EO.st !== "*") ids = [EO.st];
+    var set = {}; ids.forEach(function (id) { set[id] = 1; });
+    var months = monthsBetween(from + "-01", to + "-01"), by = {}, types = [];
+    var add = function (t, m, v) { if (!by[t]) { by[t] = {}; types.push(t); } by[t][m] = (by[t][m] || 0) + v; };
+    if (EO.elec) (S.data.bills || []).forEach(function (r) { if (active(r) && set[r.station] && r.month >= from && r.month <= to) add("Electricity", r.month, +r.amount || 0); });
+    (S.data.expenses || []).forEach(function (r) { if (active(r) && set[r.station] && r.month >= from && r.month <= to) add(r.category || "Other", r.month, +r.amount || 0); });
+    var order = ["Electricity"].concat(S.cfg.expCats);
+    types.sort(function (a, b) { var i = order.indexOf(a), j = order.indexOf(b); return (i < 0 ? 99 : i) - (j < 0 ? 99 : j); });
+    var tot = {}; types.forEach(function (t) { tot[t] = months.reduce(function (x, m) { return x + (by[t][m] || 0); }, 0); });
+    var grand = types.reduce(function (x, t) { return x + tot[t]; }, 0);
+    var withData = months.filter(function (m) { return types.some(function (t) { return by[t][m]; }); }).length;
+    return { from: from, to: to, months: months, by: by, types: types, tot: tot, grand: grand, withData: withData };
+  }
+  function drawExpOv() {
+    var D = expOvData(), usd = function (v) { return "$" + n0(v); };
+    var css = getComputedStyle(document.documentElement), acc = css.getPropertyValue("--accent").trim(), warn = css.getPropertyValue("--warn").trim(), crit = css.getPropertyValue("--crit").trim();
+    var PAL = [acc, warn, "#7a9e3f", "#6b5ca5", crit, "#3b82a0", "#c08a1e", "#94a3b8", "#b5568f", "#4f6d7a"];
+    var col = function (t) { return PAL[D.types.indexOf(t) % PAL.length]; };
+    var elec = D.tot.Electricity || 0;
+    $("eoK").innerHTML = kpi("Total expenses", usd(D.grand), D.months.length + " months selected", null, "", "") +
+      kpi("Electricity", EO.elec ? usd(elec) : "—", EO.elec && D.grand ? (elec / D.grand * 100).toFixed(1) + "% of total" : "Not included", null, "", "") +
+      kpi("Other operating expenses", usd(D.grand - elec), D.grand ? ((D.grand - elec) / D.grand * 100).toFixed(1) + "% of total" : "", null, "", "") +
+      kpi("Monthly average", usd(D.withData ? D.grand / D.withData : 0), "over " + D.withData + " month" + (D.withData === 1 ? "" : "s") + " with entries", null, "", "");
+    $("eoT").innerHTML = D.types.length ? '<table><thead><tr><th>Expense type</th><th class="num">Total (USD)</th><th class="num">Share</th><th class="num">Monthly average (USD)</th></tr></thead><tbody>' +
+      D.types.map(function (t) { return '<tr><td><span style="display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;background:' + col(t) + '"></span>' + esc(t) + '</td><td class="num">' + n0(D.tot[t]) + '</td><td class="num">' + (D.grand ? (D.tot[t] / D.grand * 100).toFixed(1) : 0) + '%</td><td class="num">' + n0(D.withData ? D.tot[t] / D.withData : 0) + "</td></tr>"; }).join("") +
+      '<tr><td><b>Total</b></td><td class="num"><b>' + n0(D.grand) + '</b></td><td class="num"><b>100%</b></td><td class="num"><b>' + n0(D.withData ? D.grand / D.withData : 0) + "</b></td></tr></tbody></table>"
+      : '<p class="muted">No bills or expenses for this selection yet.</p>';
+    if (!window.Chart) return;
+    if (S.charts.eoBar) S.charts.eoBar.destroy();
+    var totals = D.months.map(function (m) { return D.types.reduce(function (x, t) { return x + (D.by[t][m] || 0); }, 0); });
+    S.charts.eoBar = new Chart($("eoBar"), { type: "bar",
+      data: { labels: D.months.map(function (m) { return MON[+m.slice(5) - 1] + " " + m.slice(2, 4); }),
+        datasets: D.types.map(function (t) { return { type: "bar", label: t, data: D.months.map(function (m) { return Math.round(D.by[t][m] || 0); }), backgroundColor: col(t), stack: "e", order: 2 }; })
+          .concat([{ type: "line", label: "Total", data: totals.map(Math.round), borderColor: css.getPropertyValue("--ink").trim() || "#10262b", backgroundColor: "transparent", borderWidth: 2, pointRadius: 3, tension: 0, order: 1 }]) },
+      options: { maintainAspectRatio: false, interaction: { mode: "index", intersect: false }, plugins: { legend: { position: "bottom", labels: { boxWidth: 12 } }, tooltip: { callbacks: { label: function (c) { return " " + c.dataset.label + ": $" + n0(c.raw); } } } },
+        scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true, ticks: { callback: function (v) { return "$" + n0(v); } } } } } });
+    S.charts.eoPie = calloutDonut("eoPie", S.charts.eoPie, D.types, D.types.map(function (t) { return D.tot[t]; }), D.types.map(col), "USD");
+  }
+  function expOvXl() {
+    var D = expOvData();
+    var stTxt = EO.st === "*" ? "All stations" : EO.st.indexOf("type:") === 0 ? EO.st.slice(5) + " stations" : EO.st + " · " + ((S.cfg.stById[EO.st] || {}).short || "");
+    var rows = [["Operating expense overview"], ["Stations", stTxt], ["Months", D.from + " to " + D.to], ["Electricity bills", EO.elec ? "Included" : "Not included"], [],
+      ["Expense type"].concat(D.months).concat(["Total (USD)", "Share"])];
+    D.types.forEach(function (t) { rows.push([t].concat(D.months.map(function (m) { return Math.round((D.by[t][m] || 0) * 100) / 100; })).concat([Math.round(D.tot[t] * 100) / 100, D.grand ? Math.round(D.tot[t] / D.grand * 1000) / 10 + "%" : ""])); });
+    rows.push(["Total"].concat(D.months.map(function (m) { return Math.round(D.types.reduce(function (x, t) { return x + (D.by[t][m] || 0); }, 0) * 100) / 100; })).concat([Math.round(D.grand * 100) / 100, "100%"]));
+    var wb = XLSX.utils.book_new(), ws = XLSX.utils.aoa_to_sheet(rows);
+    ws["!cols"] = [{ wch: 26 }].concat(D.months.map(function () { return { wch: 10 }; })).concat([{ wch: 12 }, { wch: 8 }]);
+    XLSX.utils.book_append_sheet(wb, ws, "Expenses");
+    XLSX.writeFile(wb, "Operating_Expenses_" + D.from + "_to_" + D.to + ".xlsx");
+  }
+  function showKpSub(sub) {
+    S.kpSub = sub;
+    document.querySelectorAll("#kpSub [data-sub]").forEach(function (b) { b.setAttribute("aria-selected", b.getAttribute("data-sub") === sub ? "true" : "false"); });
+    ["kpi", "targets"].forEach(function (x) { $("v-" + x).hidden = x !== sub; });
+    if (sub === "kpi") renderKpi(); else buildListView(sub);
+  }
+  function showCpSub(sub) {
+    S.cpSub = sub;
+    document.querySelectorAll("#cpSub [data-sub]").forEach(function (b) { b.setAttribute("aria-selected", b.getAttribute("data-sub") === sub ? "true" : "false"); });
+    ["complaints", "csat"].forEach(function (x) { $("v-" + x).hidden = x !== sub; });
     buildListView(sub);
   }
 
@@ -2524,7 +2636,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     });
     el.addEventListener("click", function (ev) {
       var d = ev.target.closest("[data-prm-del]");
-      if (d) { var r = d.getAttribute("data-prm-del"); if (confirm("Remove the role " + roleLabel(r) + "? Users who have it must be moved to another role first.")) { delete PM[r]; drawPerms(); $("permMsg").textContent = "Not saved yet."; } return; }
+      if (d) { var r = d.getAttribute("data-prm-del"); if (confirm("Remove the role " + roleLabel(r) + "? Users who have it must be given another role first.")) { delete PM[r]; drawPerms(); $("permMsg").textContent = "Not saved yet."; } return; }
       if (ev.target.closest("#permAdd")) {
         var n = prompt("Name of the new role (letters, numbers, dot, dash or underscore — e.g. finance or ops03):");
         if (!n) return; n = n.trim().toLowerCase();
@@ -2554,6 +2666,23 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     if (type === "month") return { from: key + "-01", to: monthEnd(key + "-01"), label: MON[+key.slice(5) - 1] + " " + key.slice(0, 4) };
     var y = key.slice(0, 4), q = +key.slice(6), f = y + "-" + ("0" + ((q - 1) * 3 + 1)).slice(-2) + "-01";
     return { from: f, to: monthEnd(monthAdd(f, 2)), label: "Q" + q + " " + y };
+  }
+  /* monthly sales target for a station: Sales targets list first, else the Stations tab default */
+  function targetOf(id, m) {
+    var t = (S.data.targets || []).filter(function (r) { return active(r) && r.station === id && r.from <= m && (!r.to || r.to >= m); }).sort(function (a, b) { return a.from < b.from ? 1 : -1; })[0];
+    if (t) return +t.target || 0;
+    return +((S.cfg.stById[id] || {}).target) || 0;
+  }
+  /* target pro-rated by day for the days from..to (each month's target × days covered ÷ days in that month) */
+  function targetUsd(id, from, to) {
+    if (!from || !to || to < from) return 0;
+    var tot = 0;
+    monthsBetween(from, to).forEach(function (m) {
+      var a = m + "-01", z = monthEnd(a), t = targetOf(id, m); if (!t) return;
+      var f = from > a ? from : a, e = to < z ? to : z;
+      if (e >= f) tot += t * (daysBetween(f, e) + 1) / (daysBetween(a, z) + 1);
+    });
+    return tot;
   }
   function kpiCompute(type, key) {
     var P = kpiRange(type, key), now = Date.now(), khr = S.cfg.khrUsd;
@@ -2605,7 +2734,8 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       v.A2 = ok ? 1 - (x.bad + x.nsBad) / (x.sessions + x.nsSessions) : "";
       v.A3 = x.faults > 0 ? x.downHrs / x.faults : "";
       v.C1 = ok && s.kw * (s.hrs || 24) > 0 ? (x.kwh + x.nsKwh) / (s.kw * (s.hrs || 24) * act) : "";
-      v.C2 = ok && +s.target > 0 ? x.revUsd / (+s.target * nMonths * act / periodDays) : "";
+      x.targetUsd = targetUsd(id, start, effTo);
+      v.C2 = ok && x.targetUsd > 0 ? x.revUsd / x.targetUsd : "";
       v.C3 = ok && s.chargers > 0 ? (x.sessions + x.nsSessions) / (s.chargers * act) : "";
       v.C4 = !isExempt && ok && complete && billKwh > 0 && billMonths >= monthsOpen ? 1 - (x.kwh + x.nsKwh) / billKwh : "";
       v.Q1 = aud ? aud.score : "";
@@ -2696,11 +2826,11 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       options: { indexAxis: "y", maintainAspectRatio: false, plugins: { legend: legend }, scales: { x: { stacked: true, ticks: { precision: 0 } }, y: { stacked: true } } } });
     // 3. revenue vs target by station (USD)
     var P = K.P, nMonths = monthsBetween(P.from, P.to).length, pDays = daysBetween(P.from, P.to) + 1;
-    var rv = K.rows.filter(function (x) { return x.revUsd > 0 || +((S.cfg.stById[x.id] || {}).target) > 0; }).sort(function (a, b) { return b.revUsd - a.revUsd; });
+    var rv = K.rows.filter(function (x) { return x.revUsd > 0 || x.targetUsd > 0; }).sort(function (a, b) { return b.revUsd - a.revUsd; });
     setH("kc3", rv.length * 1.4);
     mk("kc3", { type: "bar", data: { labels: rv.map(nameOf), datasets: [
         { label: "Revenue (USD)", data: rv.map(function (x) { return Math.round(x.revUsd); }), backgroundColor: ACC },
-        { label: "Target (USD, pro-rated)", data: rv.map(function (x) { var t = +((S.cfg.stById[x.id] || {}).target) || 0; return t ? Math.round(t * nMonths * x.active / pDays) : null; }), backgroundColor: "rgba(150,150,150,.55)" }] },
+        { label: "Target (USD, pro-rated)", data: rv.map(function (x) { return x.targetUsd ? Math.round(x.targetUsd) : null; }), backgroundColor: "rgba(150,150,150,.55)" }] },
       options: { indexAxis: "y", maintainAspectRatio: false, plugins: { legend: legend }, scales: { x: { beginAtZero: true } } } });
     // 4. energy utilisation by station (C1)
     var c1d = K.defs.filter(function (d) { return d.id === "C1"; })[0];
@@ -3908,7 +4038,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     var box = $("usersT"); if (!box) return;
     if (!USERS) { box.innerHTML = '<p class="muted">Loading…</p>'; api({ action: "users" }).then(function (j) { USERS = j.users; drawUsers(); }).catch(function (e) { box.innerHTML = '<p class="err-box">' + esc(errText(e)) + "</p>"; }); return; }
     box.innerHTML = "<table><thead><tr><th>Username</th><th>Name</th><th>Role</th><th>Active</th><th>Last sign-in</th><th>Password</th><th>Created</th></tr></thead><tbody>" +
-      USERS.map(function (u) { return '<tr class="click' + (u.active ? "" : " void") + '" data-user="' + esc(u.username) + '"><td>' + esc(u.username) + "</td><td>" + esc(u.name) + '</td><td><span class="chip">' + esc(roleLabel(u.role)) + "</span></td><td>" + (u.active ? "Yes" : "No") + "</td><td>" + (u.lastLogin ? fDT(u.lastLogin) : "never") + "</td><td>" + (u.mustChange ? '<span class="chip warn">must change</span>' : "set") + "</td><td>" + fDT(u.created) + " by " + esc(u.createdBy) + "</td></tr>"; }).join("") + "</tbody></table>";
+      USERS.map(function (u) { return '<tr class="click' + (u.active ? "" : " void") + '" data-user="' + esc(u.username) + '"><td>' + esc(u.username) + "</td><td>" + esc(u.name) + '</td><td>' + (u.roles || [u.role]).map(function (r) { return '<span class="chip">' + esc(roleLabel(r)) + "</span>"; }).join(" ") + "</td><td>" + (u.active ? "Yes" : "No") + "</td><td>" + (u.lastLogin ? fDT(u.lastLogin) : "never") + "</td><td>" + (u.mustChange ? '<span class="chip warn">must change</span>' : "set") + "</td><td>" + fDT(u.created) + " by " + esc(u.createdBy) + "</td></tr>"; }).join("") + "</tbody></table>";
     box.querySelectorAll("[data-user]").forEach(function (tr) { tr.onclick = function () { openUser(tr.getAttribute("data-user")); }; });
   }
   function openUser(username) {
@@ -3917,16 +4047,18 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     $("userTitle").textContent = u ? "Edit " + u.username : "Add user"; $("userErr").textContent = "";
     f.elements.username.value = u ? u.username : ""; f.elements.username.readOnly = !!u;
     var roles = (S.data.roles || ["admin", "ops01", "ops02"]);
-    f.elements.role.innerHTML = roles.map(function (r) { return '<option value="' + esc(r) + '">' + esc(roleLabel(r) + (r === "admin" ? " — full control" : " — see Roles & permissions")) + "</option>"; }).join("");
-    f.elements.name.value = u ? u.name : ""; f.elements.role.value = u ? u.role : (roles.indexOf("ops02") >= 0 ? "ops02" : roles[1] || "admin"); f.elements.active.value = u && !u.active ? "N" : "Y"; f.elements.password.value = "";
+    var mine = u ? (u.roles || String(u.role).split(/\s*,\s*/)) : [roles.indexOf("ops02") >= 0 ? "ops02" : roles[1] || "admin"];
+    $("userRoles").innerHTML = roles.map(function (r) { return '<label><input type="checkbox" value="' + esc(r) + '"' + (mine.indexOf(r) >= 0 ? " checked" : "") + "> " + esc(roleLabel(r)) + (r === "admin" ? ' <span class="muted small">— full control</span>' : "") + "</label>"; }).join("");
+    f.elements.name.value = u ? u.name : ""; f.elements.active.value = u && !u.active ? "N" : "Y"; f.elements.password.value = "";
     $("userPwLabel").textContent = u ? "Reset password (leave empty to keep)" : "Temporary password";
     $("dlgUser").showModal();
   }
   $("userClose").addEventListener("click", function () { $("dlgUser").close(); });
   $("formUser").addEventListener("submit", function (ev) {
     ev.preventDefault();
-    var f = $("formUser"), u = { username: f.elements.username.value.trim().toLowerCase(), name: f.elements.name.value.trim(), role: f.elements.role.value, active: f.elements.active.value === "Y", password: f.elements.password.value };
+    var f = $("formUser"), u = { username: f.elements.username.value.trim().toLowerCase(), name: f.elements.name.value.trim(), roles: Array.prototype.map.call($("userRoles").querySelectorAll("input:checked"), function (x) { return x.value; }), active: f.elements.active.value === "Y", password: f.elements.password.value };
     if (!u.username || !u.name) { $("userErr").textContent = "Enter the username and full name."; return; }
+    if (!u.roles.length) { $("userErr").textContent = "Tick at least one role."; return; }
     if (!UED && !u.password) { $("userErr").textContent = "Give a temporary password."; return; }
     if (u.password && (u.password.length < 8 || !/[A-Za-z]/.test(u.password) || !/[0-9]/.test(u.password))) { $("userErr").textContent = "Use at least 8 characters with letters and numbers for the password."; return; }
     $("userErr").textContent = "Saving…";
@@ -3934,6 +4066,8 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       .catch(function (e) { $("userErr").textContent = errText(e); });
   });
   $("inSub").addEventListener("click", function (ev) { var b = ev.target.closest("[data-sub]"); if (b) showSub(b.getAttribute("data-sub")); });
+  $("kpSub").addEventListener("click", function (ev) { var b = ev.target.closest("[data-sub]"); if (b) showKpSub(b.getAttribute("data-sub")); });
+  $("cpSub").addEventListener("click", function (ev) { var b = ev.target.closest("[data-sub]"); if (b) showCpSub(b.getAttribute("data-sub")); });
   $("dlDaily").addEventListener("click", function () { dashTableXl("daily"); });
   $("dlChargers").addEventListener("click", function () { dashTableXl("chargers"); });
   $("acSub").addEventListener("click", function (ev) { var b = ev.target.closest("[data-sub]"); if (b) showAcSub(b.getAttribute("data-sub")); });
@@ -3942,14 +4076,15 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
   function show(v) {
     S.view = v;
     document.querySelectorAll("#tabs button").forEach(function (b) { b.setAttribute("aria-selected", b.getAttribute("data-v") === v ? "true" : "false"); });
-    ["dash", "faults", "complaints", "incidents", "nonsys", "caps", "kpi", "audit", "inputs", "acct", "import", "admin"].forEach(function (x) { $("v-" + x).hidden = x !== v; });
+    ["dash", "faults", "cmp", "incidents", "nonsys", "caps", "kpiw", "audit", "inputs", "acct", "import", "admin"].forEach(function (x) { $("v-" + x).hidden = x !== (v === "complaints" ? "cmp" : v === "kpi" ? "kpiw" : v); });
     if (!S.data) return;
     if (v === "dash") renderDash();
-    else if (v === "inputs") showSub(S.sub || "bills");
+    else if (v === "inputs") showSub(S.sub || "expov");
+    else if (v === "complaints") showCpSub(S.cpSub || "complaints");
     else if (v === "acct") showAcSub(S.acSub || "acinv");
     else if (KINDS[v]) buildListView(v);
     else if (v === "admin") renderAdmin();
-    else if (v === "kpi") renderKpi();
+    else if (v === "kpi") showKpSub(S.kpSub || "kpi");
     else if (v === "audit") renderAudits();
     else if (v === "import") $("impManagerOnly").hidden = canEdit("import");
   }
