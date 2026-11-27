@@ -408,11 +408,12 @@ body.printing #printArea { display: block; padding: 0 8mm; }
       <button type="button" data-sub="acdaily"><i class="ti ti-report-money"></i> Daily sale report</button>
       <button type="button" data-sub="customers"><i class="ti ti-building"></i> Customers</button>
       <button type="button" data-sub="prices"><i class="ti ti-tag"></i> Special prices</button>
+      <button type="button" data-sub="recurring"><i class="ti ti-repeat"></i> Recurring charges</button>
       <button type="button" data-sub="otherinc"><i class="ti ti-coin"></i> Other income</button>
       <button type="button" data-sub="invoices"><i class="ti ti-list-numbers"></i> Invoice log</button>
     </nav>
     <div class="inrow small" id="acRate" style="margin:4px 0 10px"></div>
-    <section id="v-acinv"></section><section id="v-acroy" hidden></section><section id="v-acpay" hidden></section><section id="v-prices" hidden></section><section id="v-acdaily" hidden></section><section id="v-customers" hidden></section><section id="v-otherinc" hidden></section><section id="v-invoices" hidden></section>
+    <section id="v-acinv"></section><section id="v-acroy" hidden></section><section id="v-acpay" hidden></section><section id="v-prices" hidden></section><section id="v-acdaily" hidden></section><section id="v-customers" hidden></section><section id="v-recurring" hidden></section><section id="v-otherinc" hidden></section><section id="v-invoices" hidden></section>
   </section>
 
   <!-- ============ IMPORT ============ -->
@@ -517,7 +518,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
   var CAN = { entry: ["admin", "ops01", "ops02"], kpi: ["admin", "ops01"], acct: ["admin", "ops01"], admin: ["admin"] };
   var AREAS = [["dash", "Dashboard"], ["faults", "Charger faults"], ["complaints", "Complaints"], ["incidents", "Incidents"], ["nonsys", "Non-system sales"], ["kpi", "Station KPI"], ["audit", "Audits"], ["caps", "CAP list"], ["inputs", "Bills, expenses & CSAT"], ["acct", "Accounting"], ["import", "Import sales"]];
   var VIEW_ONLY = { dash: 1, kpi: 1 };
-  var KIND_AREA = { faults: "faults", complaints: "complaints", incidents: "incidents", nonsys: "nonsys", bills: "inputs", expenses: "inputs", csat: "inputs", caps: "caps", customers: "acct", prices: "acct", otherinc: "acct", invoices: "acct" };
+  var KIND_AREA = { faults: "faults", complaints: "complaints", incidents: "incidents", nonsys: "nonsys", bills: "inputs", expenses: "inputs", csat: "inputs", caps: "caps", customers: "acct", prices: "acct", recurring: "acct", otherinc: "acct", invoices: "acct" };
   function lvl(area) { if (S.role === "admin") return 2; var p = S.data && S.data.perms; return p ? p[area] || 0 : 0; }
   function can(what) { return what === "admin" ? S.role === "admin" : lvl(what) >= 1; }
   function canEdit(area) { return lvl(area) >= 2; }
@@ -1006,6 +1007,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       var d = String(r.date || "").slice(0, 10); if (!active(r) || d < from || d > to || !set[r.station]) return;
       oi += +r.amount || 0; oiN++;
     });
+    (S.data.rentIncome || []).forEach(function (l) { var d = l[1] + "-01"; if (d < from || d > to || !set[l[2]]) return; oi += +l[3] || 0; oiN++; });   // invoiced rent, dated the 1st of its month
     n.franRev = Math.round(fr); n.royalty = Math.round(roy); n.royN = royN; n.otherInc = Math.round(oi); n.oiN = oiN;
     n.vetIncome = Math.round(n.totRev - fr + roy + oi);
   }
@@ -1314,6 +1316,9 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     if (kind === "prices") return { head: ["ID", "Stations", "Customer types", "Companies", "Unit price (KHR/kWh)", "Effective", "Reason / remark"], row: function (r) {
       return [esc(r.id), esc(listTxt(r.stations, stName)), esc(r.custTypes || "All types"), esc(r.companies || "All companies"), '<span class="num"><b>' + n0(r.price) + "</b></span>",
         esc((r.from ? fDate(r.from) : "start") + " → " + (r.to ? fDate(r.to) : "open")), '<div class="desc">' + esc(r.reason) + "</div>"]; } };
+    if (kind === "recurring") return { head: ["ID", "Customer", "Description", "Station", "Monthly (KHR)", "From", "To", "Last month billed"], row: function (r) {
+      var c = custById(r.customer), last = (S.data.rentIncome || []).filter(function (l) { return l[0] === r.id; }).map(function (l) { return l[1]; }).sort().pop();
+      return [esc(r.id), esc(c ? c.billName : r.customer), esc(r.description), esc(stName(r.station)), '<span class="num">' + n0(r.amount) + "</span>", fDate(r.from), r.to ? fDate(r.to) : '<span class="chip ok">running</span>', last ? esc(MONL[+last.slice(5) - 1] + " " + last.slice(0, 4)) : '<span class="muted">—</span>']; } };
     if (kind === "otherinc") return { head: ["ID", "Date", "Station", "Description", "Amount (KHR)", "Bill to", "Reference", "Notes"], row: function (r) {
       var c = r.customer ? custById(r.customer) : null;
       return [esc(r.id), fDate(r.date), esc(stName(r.station)), esc(r.description), '<span class="num">' + n0(r.amount) + "</span>", r.customer ? esc(c ? c.billName : r.customer) : '<span class="muted">—</span>', esc(r.ref), '<div class="desc">' + esc(r.notes) + "</div>"]; } };
@@ -1366,7 +1371,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       var cls = "f" + (f.req ? " req" : "") + (f.w === 3 ? " w3" : f.w === 2 ? " w2" : "");
       var input;
       if (f.t === "station") input = '<select name="' + f.k + '">' + stationOptions(false) + "</select>";
-      else if (f.t === "custSel") input = '<select name="' + f.k + '"><option value="">— not billed —</option>' + (S.data.customers || []).filter(function (c) { return active(c) || c.id === v; }).sort(function (a, b) { return String(a.billName).localeCompare(String(b.billName)); }).map(function (c) { return '<option value="' + esc(c.id) + '">' + esc(c.billName + " · " + custCat(c)) + "</option>"; }).join("") + "</select>";
+      else if (f.t === "custSel") input = '<select name="' + f.k + '"><option value="">' + (f.req ? "Choose…" : "— not billed —") + "</option>" + (S.data.customers || []).filter(function (c) { return active(c) || c.id === v; }).sort(function (a, b) { return String(a.billName).localeCompare(String(b.billName)); }).map(function (c) { return '<option value="' + esc(c.id) + '">' + esc(c.billName + " · " + custCat(c)) + "</option>"; }).join("") + "</select>";
       else if (f.t === "multi") { var sel = String(v).split(";").map(function (x) { return x.trim(); }).filter(String), mo = f.opts();
         sel.forEach(function (x) { if (!mo.some(function (o) { return o[0] === x; })) mo.push([x, x]); });
         input = '<div class="multi" data-multi="' + f.k + '">' + (f.all ? '<label class="mall"><input type="checkbox" data-mall> <b>' + esc(f.all) + "</b></label>" : "") + mo.map(function (o) { return '<label><input type="checkbox" value="' + esc(o[0]) + '"' + (sel.indexOf(o[0]) >= 0 ? " checked" : "") + "> " + esc(o[1]) + "</label>"; }).join("") + "</div>"; }
@@ -1839,6 +1844,19 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
   function listTxt(v, fn) { var L = String(v || "").split(";").map(function (x) { return x.trim(); }).filter(String); return L.length ? L.map(fn || String).join(", ") : "All"; }
   function priceRule(id) { return (S.data.prices || []).filter(function (p) { return p.id === id; })[0]; }
   function spNote(id) { var p = priceRule(id); return "special price " + id + (p ? " @ " + n0(p.price) + " KHR/kWh" : ""); }
+  KINDS.recurring = { label: "Recurring charge", plural: "Recurring charges — monthly rent and fixed fees", list: "recurring", dateField: "from", group: "acct",
+    intro: "Fixed monthly fees such as a tenant's rent. Each line is billed once per month on the customer's Customer invoice — a month counts in full when the charge runs on any day of it. When the fee changes, set To on the old line (last day at the old fee) and add a new line with the same description from the new date, so earlier months keep their amount. If the change falls mid-month, that month is billed at the fee in force on the 1st and the new fee starts the following month. Rent counts as Other income on the Dashboard and Daily sale report only once it is invoiced, in the month it is for.",
+    fields: [
+      { k: "customer", l: "Customer", t: "custSel", req: 1, w: 2 }, { k: "station", l: "Station", t: "station", req: 1 },
+      { k: "description", l: "Description", t: "text", req: 1, w: 2, hint: "Printed on the invoice, e.g. “Kiosk rent”" }, { k: "amount", l: "Monthly amount (KHR)", t: "num", req: 1 },
+      { k: "from", l: "From", t: "date", req: 1 }, { k: "to", l: "To", t: "date", hint: "Empty = still running" }, { k: "notes", l: "Notes", t: "long", w: 3 }
+    ] };
+  function rentBilled(id, month) { var x = (S.data.rentIncome || []).filter(function (l) { return l[0] === id && l[1] === month; })[0]; return x ? x[4] : ""; }
+  function rentMonths(c, from, to) {   // months of [from, to] in which the charge runs on at least one day
+    var out = [], m = from.slice(0, 7), cTo = c.to ? String(c.to).slice(0, 10) : "9999-12-31", cFrom = String(c.from).slice(0, 10);
+    while (m <= to.slice(0, 7)) { var a = m + "-01", b = monthEnd(a); if (cFrom <= b && cTo >= a) out.push(m); m = monthAdd(a, 1).slice(0, 7); }
+    return out;
+  }
   KINDS.otherinc = { label: "Other income", plural: "Other income", list: "otherinc", dateField: "date", group: "acct",
     intro: "Income at a station that is not charging (e.g. parking, rental, shop). It appears in section 3 of the Daily Sale report.",
     fields: [
@@ -1895,7 +1913,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
   function showAcSub(sub) {
     S.acSub = sub; drawRateBar();
     document.querySelectorAll("#acSub [data-sub]").forEach(function (b) { b.setAttribute("aria-selected", b.getAttribute("data-sub") === sub ? "true" : "false"); });
-    ["acinv", "acroy", "acpay", "acdaily", "customers", "prices", "otherinc", "invoices"].forEach(function (x) { $("v-" + x).hidden = x !== sub; });
+    ["acinv", "acroy", "acpay", "acdaily", "customers", "prices", "recurring", "otherinc", "invoices"].forEach(function (x) { $("v-" + x).hidden = x !== sub; });
     if (sub === "acinv") renderInvoiceTool(); else if (sub === "acroy") renderRoyaltyTool(); else if (sub === "acpay") renderPayoutTool(); else if (sub === "acdaily") renderDailyTool(); else buildListView(sub);
   }
 
@@ -1906,7 +1924,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     if (!el.querySelector("#ivFrom")) {
       var lm = presetRange("lastmonth");
       el.innerHTML = '<div class="section-title"><h2>Customer invoice</h2></div>' +
-        '<p class="muted" style="margin-top:0"><b>Agents:</b> what their drivers or customers actually paid — the payments in the imported Sale Order export for its Company Name (unit price × kWh of each transaction), plus non-system sales recorded for that company. Sales under a <b>Special price</b> are shown on their own line with the special-price ID. <b>Tenants and other customers:</b> the <b>Other income</b> entries in the period that are set to bill them (rent, parking…). Franchisees are billed on the <b>Royalty fee</b> sub-tab. Our company and bank details, the invoice series, due days and VAT come from the Settings tab (InvoiceFrom, InvoiceType).</p>' +
+        '<p class="muted" style="margin-top:0"><b>Agents:</b> what their drivers or customers actually paid — the payments in the imported Sale Order export for its Company Name (unit price × kWh of each transaction), plus non-system sales recorded for that company. Sales under a <b>Special price</b> are shown on their own line with the special-price ID. <b>Tenants and other customers:</b> one line per month for each of their <b>Recurring charges</b> (rent — a month counts in full; months already invoiced are left out), plus the <b>Other income</b> entries in the period that are set to bill them. Franchisees are billed on the <b>Royalty fee</b> sub-tab. Our company and bank details, the invoice series, due days and VAT come from the Settings tab (InvoiceFrom, InvoiceType).</p>' +
         '<div class="panel tools"><label class="f"><span>Period from</span><input type="date" id="ivFrom"></label><label class="f"><span>Period to</span><input type="date" id="ivTo"></label>' +
         '<label class="f"><span>Bill to</span><select id="ivCo"></select></label><label class="f"><span>Customer type</span><select id="ivType"></select></label>' +
         '<label class="f"><span>Stations</span><select id="ivSt">' + acctStationOpts() + '</select></label><label class="f"><span>Invoice date</span><input type="date" id="ivDate"></label>' +
@@ -1932,7 +1950,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
   function invoiceCompute(o) {
     var cust = (S.data.customers || []).filter(function (c) { return c.id === o.custId; })[0];
     var ids = {}; kpiIds(o.st).forEach(function (id) { ids[id] = 1; });
-    var co = cust ? lc(cust.company) : "", byT = {}, nCo = 0, anyCompany = false, oiLines = [];
+    var co = cust ? lc(cust.company) : "", byT = {}, nCo = 0, anyCompany = false, oiLines = [], rentWarn = [];
     var want = function (t) { return o.type === "*" || t === o.type; };
     (S.sales.daily || []).forEach(function (r) {
       if (r[0] < o.from || r[0] > o.to || !ids[r[1]]) return;
@@ -1951,9 +1969,27 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       if (!cust || !active(r) || r.customer !== cust.id || d < o.from || d > o.to || !ids[r.station]) return;
       oiLines.push({ desc: r.description + " — " + stName(r.station) + ", " + fDate(d) + (r.ref ? " (ref. " + r.ref + ")" : ""), price: +r.amount || 0, amt: +r.amount || 0, kwh: 0, qty: 1, oi: true, d: d });
     });
+    // one line per charge (customer + station + description) and month; when the fee changes mid-month,
+    // the fee in force on the 1st of the month is billed and the new fee starts the next month
+    var pick = {};
+    (S.data.recurring || []).forEach(function (c) {
+      if (!cust || !active(c) || c.customer !== cust.id || !ids[c.station]) return;
+      rentMonths(c, o.from, o.to).forEach(function (m) {
+        var k = c.station + "|" + lc(c.description) + "|" + m, cur = pick[k], on1 = String(c.from).slice(0, 10) <= m + "-01";
+        if (!cur || (on1 && !cur.on1) || (on1 === cur.on1 && String(c.from) < String(cur.c.from))) pick[k] = { c: c, m: m, on1: on1 };
+      });
+    });
+    Object.keys(pick).map(function (k) { return pick[k]; }).forEach(function (x) {
+      var c = x.c;
+      [x.m].forEach(function (m) {
+        var inv = rentBilled(c.id, m), lab = MONL[+m.slice(5) - 1] + " " + m.slice(0, 4);
+        if (inv) { rentWarn.push(esc(c.description) + " for " + lab + " is already billed on " + esc(inv) + " — left out."); return; }
+        oiLines.push({ desc: c.description + " — " + stName(c.station) + ", " + lab, price: +c.amount || 0, amt: +c.amount || 0, kwh: 0, qty: 1, oi: true, d: m + "-01", rent: [c.id, m, c.station, +c.amount || 0] });
+      });
+    });
     oiLines.sort(function (a, b) { return a.d.localeCompare(b.d); });
     var tOrd = function (t) { var i = S.cfg.custTypes.indexOf(t); return i < 0 ? 99 : i; };
-    var lines = [], warn = [];
+    var lines = [], warn = rentWarn.slice();
     Object.keys(byT).map(function (k) { return byT[k]; }).sort(function (a, b) { return tOrd(a.t) - tOrd(b.t) || (a.ns ? 1 : 0) - (b.ns ? 1 : 0) || String(a.sp || "").localeCompare(String(b.sp || "")); }).forEach(function (b) {
       if (!(b.kwh > 0) && !(b.amt > 0)) return;
       var kwh = Math.round(b.kwh * 1000) / 1000, amt = Math.round(b.amt);
@@ -1983,7 +2019,7 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       var h = R.warn.map(function (w) { return '<div class="notice warn" style="margin-bottom:6px">' + w + "</div>"; }).join("");
       h += '<div class="tbl-wrap"><table><thead><tr><th>No.</th><th>Description</th><th class="num">Unit price (KHR)</th><th class="num">Qty</th><th class="num">Amount (KHR)</th></tr></thead><tbody>' +
         (R.lines.length ? R.lines.map(function (l, i) { return "<tr><td>" + (i + 1) + "</td><td>" + esc(l.desc) + '</td><td class="num">' + (l.oi ? n0(l.price) : n2(l.price) + "/kWh") + '</td><td class="num">' + (l.oi ? "1" : n1(l.kwh) + " kWh") + '</td><td class="num">' + n0(lineAmt(l)) + "</td></tr>"; }).join("")
-          : '<tr><td colspan="5" class="muted">Nothing to bill for this customer and stations in the period' + (R.cust && !R.cust.company ? " — link Other income entries to this customer (field “Bill to customer”)" : "") + ".</td></tr>") +
+          : '<tr><td colspan="5" class="muted">Nothing to bill for this customer and stations in the period' + (R.cust && !R.cust.company ? " — add its rent on the Recurring charges sub-tab, or link Other income entries to it (field “Bill to customer”)" : "") + ".</td></tr>") +
         '<tr class="total"><td></td><td>Total</td><td></td><td class="num">' + (R.kwhSys + R.kwhNs ? n1(R.kwhSys + R.kwhNs) + " kWh" : "") + '</td><td class="num">' + n0(R.amount) + "</td></tr></tbody></table></div>" +
         '<div class="inrow" style="margin-top:10px"><button class="btn ghost" type="button" id="ivDraft">Print / save PDF (draft)</button><button class="btn" type="button" id="ivIssue"' + (R.lines.length && canEdit("acct") ? "" : " disabled") + '>Issue invoice &amp; print</button>' +
         '<span class="small muted">“Issue” gives the next ' + esc(invTypeCfg("inv").prefix) + ' number and records it in the Invoice log; a draft has no number. In the print window choose “Save as PDF” to keep a PDF.</span></div>';
@@ -2006,7 +2042,9 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     var ns = (S.data.nonsys || []).filter(function (r) { return active(r) && String(r.date).slice(0, 10) === d && r.station === sid && (+r.revenue || 0) > 0; }).map(function (r) {
       return { item: (r.custType || "Non-system") + (r.company ? " — " + r.company : "") + (r.ref ? " · " + r.ref : ""), qty: +r.kwh || 0, rate: r.kwh ? (+r.revenue || 0) / r.kwh : 0, total: +r.revenue || 0 };
     });
-    var oi = (S.data.otherinc || []).filter(function (r) { return active(r) && String(r.date).slice(0, 10) === d && r.station === sid; }).map(function (r) { return { desc: r.description + (r.ref ? " · " + r.ref : ""), amount: +r.amount || 0 }; });
+    var oi = (S.data.otherinc || []).filter(function (r) { return active(r) && String(r.date).slice(0, 10) === d && r.station === sid; }).map(function (r) { return { desc: r.description + (r.ref ? " · " + r.ref : ""), amount: +r.amount || 0 }; })
+      .concat((S.data.rentIncome || []).filter(function (l) { return l[1] + "-01" === d && l[2] === sid; }).map(function (l) { var c = (S.data.recurring || []).filter(function (x) { return x.id === l[0]; })[0];
+        return { desc: (c ? c.description : "Recurring charge " + l[0]) + " — " + MONL[+l[1].slice(5) - 1] + " " + l[1].slice(0, 4) + " (invoice " + l[4] + ")", amount: +l[3] || 0 }; }));
     var t1 = energy.reduce(function (t, g) { return t + g.rev; }, 0), t2 = ns.reduce(function (t, x) { return t + x.total; }, 0), t3 = oi.reduce(function (t, x) { return t + x.amount; }, 0);
     return { d: d, sid: sid, energy: energy, ns: ns, oi: oi, t1: t1, t2: t2, t3: t3, kwh: energy.reduce(function (t, g) { return t + g.kwh; }, 0), dur: energy.reduce(function (t, g) { return t + g.dur; }, 0) };
   }
@@ -2190,8 +2228,9 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     setSync("busy", "Issuing invoice…");
     api({ action: "issueInvoice", invoice: { prefix: cfg.prefix, minNo: cfg.start, docType: "Customer invoice", date: o.date, due: doc.due, company: R.cust.billName, custId: R.cust.id, custType: R.cust.company ? (o.type === "*" ? "All" : o.type) : custCat(R.cust),
       stations: R.stTxt, from: o.from, to: o.to, kwhSys: R.kwhSys, kwhNs: R.kwhNs, amount: T.sub, vat: T.vat, total: T.total, rate: doc.rate, ref: doc.ref,
-      notes: JSON.stringify({ doc: doc }) } })
-      .then(function (j) { upsertLocal("invoices", j.record); setSync("ok", "Invoice " + j.record.id + " issued"); doc.no = j.record.id; printInvoices([doc]); })
+      notes: JSON.stringify({ doc: doc }), rentLines: R.lines.filter(function (l) { return l.rent; }).map(function (l) { return l.rent; }) } })
+      .then(function (j) { upsertLocal("invoices", j.record); S.data.rentIncome = (S.data.rentIncome || []).concat(R.lines.filter(function (l) { return l.rent; }).map(function (l) { return l.rent.concat([j.record.id]); }));
+        setSync("ok", "Invoice " + j.record.id + " issued"); doc.no = j.record.id; printInvoices([doc]); drawInvoice(); })
       .catch(function (e) { handleError(e, "Issuing invoice"); });
   }
   function reprintInvoice(rec) {
