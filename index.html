@@ -55,12 +55,14 @@ h3 { font-size: 14px; margin: 0 0 8px; font-weight: 600; }
 .dot::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--idle); }
 .dot.ok::before { background: var(--ok); } .dot.busy::before { background: var(--warn); } .dot.err::before { background: var(--crit); }
 nav.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
-nav.tabs button { background: transparent; border: 1px solid transparent; border-radius: 18px; padding: 6px 13px; color: var(--ink); font-weight: 500; display: inline-flex; align-items: center; gap: 6px; }
-nav.tabs button:hover { background: var(--surface); }
-nav.tabs button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+nav.tabs button { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 6px 13px; color: var(--ink); font-weight: 600; display: inline-flex; align-items: center; gap: 6px;
+  box-shadow: 0 1px 2px rgba(16,24,40,.08), 0 1px 3px rgba(16,24,40,.06); transition: box-shadow .15s, transform .15s; }
+nav.tabs button:hover { box-shadow: 0 4px 10px rgba(11,110,117,.18); transform: translateY(-1px); }
+nav.tabs button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); box-shadow: 0 4px 12px rgba(11,110,117,.35); }
 nav.tabs .count { background: var(--crit); color: #fff; border-radius: 9px; padding: 0 6px; font-size: 12px; }
 nav.sub { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
-nav.sub button { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 5px 12px; color: var(--ink); }
+nav.sub button { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 5px 12px; color: var(--ink); box-shadow: 0 1px 2px rgba(16,24,40,.08); transition: box-shadow .15s; }
+nav.sub button:hover { box-shadow: 0 3px 8px rgba(11,110,117,.15); }
 nav.sub button[aria-selected="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
 .notice { background: var(--warn-soft); border-left: 4px solid var(--warn); padding: 9px 12px; border-radius: 4px; }
 .notice.info { background: var(--accent-soft); border-left-color: var(--accent); }
@@ -352,8 +354,8 @@ body.printing #printArea { display: block; padding: 0 8mm; }
     </div>
 
     <div class="grid3" style="margin-top:16px">
-      <div class="panel"><h3>Revenue by station type</h3><div class="tbl-wrap" id="tByType"></div><div class="chart-box" style="height:230px;margin-top:12px"><canvas id="cTypePie"></canvas></div></div>
-      <div class="panel"><h3>Revenue by customer type (system)</h3><div class="tbl-wrap" id="tByCust"></div><div class="chart-box" style="height:230px;margin-top:12px"><canvas id="cCustPie"></canvas></div></div>
+      <div class="panel"><h3>Revenue by station type</h3><div class="tbl-wrap" id="tByType"></div><div class="chart-box" style="height:260px;margin-top:12px"><canvas id="cTypePie"></canvas></div></div>
+      <div class="panel"><h3>Revenue by customer type (system)</h3><div class="tbl-wrap" id="tByCust"></div><div class="chart-box" style="height:260px;margin-top:12px"><canvas id="cCustPie"></canvas></div></div>
       <div class="panel"><h3>Incidents by severity</h3><div class="tbl-wrap" id="tIncSev"></div></div>
     </div>
 
@@ -1138,6 +1140,50 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
     }), 2);
   }
 
+  /* Doughnut with the total in the middle and a call-out (name · % · amount) for every slice on the right.
+     The largest slice is turned to face left so no leader line crosses the chart. */
+  function mKhr(v) { return Math.abs(v) >= 1e6 ? (v / 1e6).toLocaleString("en-US", { maximumFractionDigits: 1 }) + "M" : n0(v); }
+  function calloutDonut(id, old, labels, values, colors) {
+    if (old) old.destroy();
+    var cv = $(id); if (!cv) return null;
+    var tot = values.reduce(function (t, v) { return t + v; }, 0), w = cv.parentNode.clientWidth || 380;
+    var css = getComputedStyle(document.documentElement), INK = css.getPropertyValue("--ink").trim() || "#10262b", MUT = css.getPropertyValue("--muted").trim() || "#557077";
+    var plug = { id: "callouts", afterDatasetsDraw: function (chart) {
+      var ctx = chart.ctx, meta = chart.getDatasetMeta(0), items = [];
+      meta.data.forEach(function (arc, i) {
+        var v = values[i]; if (!v) return;
+        var p = arc.getProps(["x", "y", "startAngle", "endAngle", "outerRadius", "innerRadius"], true), mid = (p.startAngle + p.endAngle) / 2;
+        if (Math.cos(mid) < 0) mid = p.endAngle - 0.12;   // slice facing left: anchor near its top-right edge
+        items.push({ mid: mid, p: p, color: colors[i], l1: labels[i] + "  " + (v / tot * 100).toFixed(1) + "%", l2: mKhr(v) + " KHR", y: p.y + Math.sin(mid) * (p.outerRadius + 18) });
+      });
+      items.sort(function (a, b) { return a.y - b.y; });
+      var top = chart.chartArea.top - 12, bot = chart.chartArea.bottom + 12, k;
+      for (k = 0; k < items.length; k++) { if (items[k].y < top + 8) items[k].y = top + 8; if (k && items[k].y - items[k - 1].y < 30) items[k].y = items[k - 1].y + 30; }
+      for (k = items.length - 1; k >= 0; k--) { if (items[k].y > bot - 8) items[k].y = bot - 8; if (k < items.length - 1 && items[k + 1].y - items[k].y < 30) items[k].y = items[k + 1].y - 30; }
+      items.forEach(function (it) {
+        var p = it.p, x0 = p.x + Math.cos(it.mid) * p.outerRadius, y0 = p.y + Math.sin(it.mid) * p.outerRadius, x2 = p.x + p.outerRadius + 30, x1 = Math.min(p.x + Math.cos(it.mid) * (p.outerRadius + 12), x2 - 6);
+        ctx.save(); ctx.strokeStyle = it.color; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, it.y); ctx.lineTo(x2, it.y); ctx.stroke();
+        ctx.fillStyle = it.color; ctx.beginPath(); ctx.arc(x0, y0, 2.5, 0, 7); ctx.fill();
+        ctx.textAlign = "left"; ctx.textBaseline = "middle";
+        ctx.fillStyle = INK; ctx.font = "600 12px Inter, Arial, sans-serif"; ctx.fillText(it.l1, x2 + 5, it.y - 7);
+        ctx.fillStyle = MUT; ctx.font = "11px Inter, Arial, sans-serif"; ctx.fillText(it.l2, x2 + 5, it.y + 8);
+        ctx.restore();
+      });
+      if (meta.data[0]) {
+        var c = meta.data[0].getProps(["x", "y", "innerRadius"], true), fs = Math.max(10, Math.min(15, Math.floor(c.innerRadius / 4.2)));
+        ctx.save(); ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = MUT; ctx.font = "11px Inter, Arial, sans-serif"; ctx.fillText("Total", c.x, c.y - 9);
+        ctx.fillStyle = INK; ctx.font = "700 " + fs + "px Inter, Arial, sans-serif"; ctx.fillText(mKhr(tot) + " KHR", c.x, c.y + 9); ctx.restore();
+      }
+    } };
+    return new Chart(cv, {
+      type: "doughnut",
+      data: { labels: labels, datasets: [{ data: values, backgroundColor: colors, borderColor: "#fff", borderWidth: 2 }] },
+      options: { maintainAspectRatio: false, cutout: "58%", rotation: tot ? 270 - values[0] / tot * 180 : 0,
+        layout: { padding: { left: 6, right: Math.min(190, Math.round(w * 0.5)), top: 26, bottom: 26 } },
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: function (c) { return " " + n0(c.raw) + " KHR (" + (tot ? (c.raw / tot * 100).toFixed(1) : 0) + "%)"; } } } } },
+      plugins: [plug]
+    });
+  }
   function drawCharts(A, ids) {
     if (!window.Chart) return;
     var css = getComputedStyle(document.documentElement);
@@ -1155,27 +1201,13 @@ var SHEET_URL = "https://docs.google.com/spreadsheets/d/16mWoOaw9gNJRtPvqpL0mOc5
       options: { maintainAspectRatio: false, interaction: { mode: "index", intersect: false }, plugins: { legend: { position: "bottom", labels: { boxWidth: 12 } } },
         scales: { y: { beginAtZero: true, title: { display: true, text: "Sessions" } }, y1: { position: "right", beginAtZero: true, grid: { drawOnChartArea: false }, title: { display: true, text: "Issue rate %" } }, y2: { display: false, beginAtZero: true } } }
     });
-    // station-type pie (system + non-system revenue)
-    var tk = ["VET-owned", "Franchised (PNP)", "HSP"].filter(function (k) { var x = A.types[k]; return x && (x.rev + x.nsRev) > 0; });
-    var ttot = tk.reduce(function (t, k) { return t + A.types[k].rev + A.types[k].nsRev; }, 0), TCOL = { "VET-owned": acc, "Franchised (PNP)": warn, "HSP": "#7a9e3f" };
-    if (S.charts.typePie) S.charts.typePie.destroy();
-    S.charts.typePie = new Chart($("cTypePie"), {
-      type: "pie",
-      data: { labels: tk.map(function (k) { var v = A.types[k].rev + A.types[k].nsRev; return k + " " + (ttot ? (v / ttot * 100).toFixed(1) : "0") + "%"; }), datasets: [{ data: tk.map(function (k) { return A.types[k].rev + A.types[k].nsRev; }), backgroundColor: tk.map(function (k) { return TCOL[k]; }), borderColor: "#fff", borderWidth: 2 }] },
-      options: { maintainAspectRatio: false, plugins: { legend: { position: "right", labels: { boxWidth: 12 } },
-        tooltip: { callbacks: { label: function (c) { return " " + n0(c.raw) + " KHR"; } } } } }
-    });
-    // customer-type pie (system revenue)
+    // station-type and customer-type doughnuts: total in the middle, call-outs on the right
+    var TCOL = { "VET-owned": acc, "Franchised (PNP)": warn, "HSP": "#7a9e3f" }, PIE = [acc, warn, "#7a9e3f", "#6b5ca5", crit, "#94a3b8", "#c08a1e", "#3b82a0"];
+    var tk = ["VET-owned", "Franchised (PNP)", "HSP"].filter(function (k) { var x = A.types[k]; return x && (x.rev + x.nsRev) > 0; })
+      .sort(function (p, q) { return (A.types[q].rev + A.types[q].nsRev) - (A.types[p].rev + A.types[p].nsRev); });
+    S.charts.typePie = calloutDonut("cTypePie", S.charts.typePie, tk, tk.map(function (k) { return A.types[k].rev + A.types[k].nsRev; }), tk.map(function (k) { return TCOL[k]; }));
     var ck = Object.keys(A.cust).filter(function (k) { return A.cust[k].rev > 0; }).sort(function (p, q) { return A.cust[q].rev - A.cust[p].rev; });
-    var ctot = ck.reduce(function (t, k) { return t + A.cust[k].rev; }, 0);
-    var PIE = [acc, warn, "#7a9e3f", "#6b5ca5", crit, "#94a3b8", "#c08a1e", "#3b82a0"];
-    if (S.charts.custPie) S.charts.custPie.destroy();
-    S.charts.custPie = new Chart($("cCustPie"), {
-      type: "pie",
-      data: { labels: ck.map(function (k) { return k + " " + (ctot ? (A.cust[k].rev / ctot * 100).toFixed(1) : "0") + "%"; }), datasets: [{ data: ck.map(function (k) { return A.cust[k].rev; }), backgroundColor: ck.map(function (k, i) { return PIE[i % PIE.length]; }), borderColor: "#fff", borderWidth: 2 }] },
-      options: { maintainAspectRatio: false, plugins: { legend: { position: "right", labels: { boxWidth: 12 } },
-        tooltip: { callbacks: { label: function (c) { return " " + n0(c.raw) + " KHR"; } } } } }
-    });
+    S.charts.custPie = calloutDonut("cCustPie", S.charts.custPie, ck, ck.map(function (k) { return A.cust[k].rev; }), ck.map(function (k, i) { return PIE[i % PIE.length]; }));
     // monthly
     var end = A.to.slice(0, 7) + "-01", months = []; for (var i = 5; i >= 0; i--) months.push(monthAdd(end, -i).slice(0, 7));
     var set = {}; ids.forEach(function (id) { set[id] = 1; });
